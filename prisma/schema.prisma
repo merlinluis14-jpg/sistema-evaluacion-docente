@@ -1,0 +1,81 @@
+// Configuración del cliente Prisma para generar tipos de TypeScript automáticamente
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Modelo para Usuarios (Administrativos y Alumnos)
+// Cumple con RF1: Login con matrícula/contraseña
+model User {
+  id          String   @id @default(cuid())
+  username    String   @unique // Para alumnos será su matrícula
+  password    String   // Almacenada de manera cifrada (RNF11)
+  role        Role     @default(ALUMNO)
+  evaluations Evaluation[] // Un alumno puede realizar muchas evaluaciones
+  createdAt   DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  ALUMNO
+}
+
+// Modelo para la gestión de catedráticos (RF3)
+model Teacher {
+  id         String   @id @default(cuid())
+  name       String   // Nombre(s)
+  lastName   String   // Apellidos
+  email      String   @unique
+  employeeId String   @unique // Matrícula o número de empleado
+  department String   // Carrera o departamento
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relaciones necesarias para Prisma
+  subjects    Subject[] // Un docente puede impartir varias materias
+  evaluations Evaluation[]
+}
+
+// Modelo para Materias
+// Cumple con RF4: Lista de materias y docentes
+model Subject {
+  id           String       @id @default(cuid())
+  name         String
+  code         String       @unique // Código de la asignatura
+  cuatrimestre Int          @default(1) // Del 1 al 10
+  isActive     Boolean      @default(true) // Para poder inactivar materias antiguas
+  teacherId    String
+  teacher      Teacher      @relation(fields: [teacherId], references: [id])
+  evaluations  Evaluation[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+// Modelo de Evaluación Docente (FDA-24.5)
+// Cumple con RF5 y RF7: Formulario detallado y evaluación única
+model Evaluation {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           User     @relation(fields: [studentId], references: [id])
+  teacherId         String
+  teacher           Teacher  @relation(fields: [teacherId], references: [id])
+  subjectId         String
+  subject           Subject  @relation(fields: [subjectId], references: [id])
+  
+  // Ítems de evaluación (Ejemplo de promedios o escalas de frecuencia)
+  facilitadorScore  Int      // RF5: Evaluación del facilitador
+  habilidadesScore  Int      // RF5: Habilidades
+  mediosScore       Int      // RF5: Uso de medios
+  teoriaPractica    Int      // RF5: Combinación T/P
+  autoevaluacion    Int      // RF5: Autoevaluación del alumno
+  comentarios       String?  @db.Text // RF5: Comentarios abiertos
+
+  createdAt         DateTime @default(now())
+
+  // Garantiza que un alumno solo evalúe una vez una materia de un docente específico
+  @@unique([studentId, subjectId])
+}
