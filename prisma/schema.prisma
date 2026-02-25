@@ -8,7 +8,7 @@ datasource db {
 }
 
 // Modelo para Usuarios (Administrativos y Alumnos)
-// Cumple con RF1: Login con matrícula/contraseña
+// Login con matrícula/contraseña
 model User {
   id          String   @id @default(cuid())
   username    String   @unique // Para alumnos será su matrícula
@@ -23,7 +23,7 @@ enum Role {
   ALUMNO
 }
 
-// Modelo para la gestión de catedráticos (RF3)
+// Modelo para la gestión de catedráticos
 model Teacher {
   id         String   @id @default(cuid())
   name       String   // Nombre(s)
@@ -41,7 +41,7 @@ model Teacher {
 }
 
 // Modelo para Materias
-// Cumple con RF4: Lista de materias y docentes
+// Lista de materias y docentes
 model Subject {
   id           String       @id @default(cuid())
   name         String
@@ -55,8 +55,8 @@ model Subject {
   updatedAt    DateTime     @updatedAt
 }
 
-// Modelo de Evaluación Docente (FDA-24.5)
-// Cumple con RF5 y RF7: Formulario detallado y evaluación única
+// Modelo de Evaluación Docente 
+// Formulario detallado y evaluación única
 model Evaluation {
   id                String   @id @default(cuid())
   studentId         String
@@ -66,15 +66,25 @@ model Evaluation {
   subjectId         String
   subject           Subject  @relation(fields: [subjectId], references: [id])
   
-  // Ítems de evaluación (Ejemplo de promedios o escalas de frecuencia)
-  facilitadorScore  Int      // RF5: Evaluación del facilitador
-  habilidadesScore  Int      // RF5: Habilidades
-  mediosScore       Int      // RF5: Uso de medios
-  teoriaPractica    Int      // RF5: Combinación T/P
-  autoevaluacion    Int      // RF5: Autoevaluación del alumno
-  comentarios       String?  @db.Text // RF5: Comentarios abiertos
+  // Bloque 1: Evaluación del facilitador (11 ítems - simplificados a promedio o campos clave)
+  facilitadorAvg    Float    @default(0) 
+  
+  // Bloque 2: Habilidades (4 ítems)
+  habilidadesAvg    Float    @default(0) 
+  
+  // Bloque 3: Medios didácticos (6 ítems)
+  mediosAvg         Float    @default(0) 
+  
+  // Bloque 4: Autoevaluación del alumno (11 ítems)
+  autoEvalAvg       Float    @default(0) 
 
+  // Bloque 5: Teoría/Práctica (1 ítem)
+  teoriaPractica    Int      @default(0) 
+  
+  comentarios       String?  @db.Text 
+  
   createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Garantiza que un alumno solo evalúe una vez una materia de un docente específico
   @@unique([studentId, subjectId])

@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-export default async function MateriasPage() {
+export default async function MateriasPage({ searchParams }: { searchParams: Promise<{ success?: string; error?: string }> }) {
+    const params = await searchParams;
+    const success = params?.success;
+    const error = params?.error;
     // Obtenemos las materias registradas, incluyendo los datos del docente relacionado
     const materias = await prisma.subject.findMany({
         include: {
@@ -14,6 +17,39 @@ export default async function MateriasPage() {
 
     return (
         <div className="p-8 pb-20 sm:p-12 animate-in fade-in zoom-in duration-500 max-w-7xl mx-auto">
+
+            {/* Banner de éxito */}
+            {success === "true" && (
+                <div className="mb-6 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl shadow-sm animate-in fade-in">
+                    <span className="text-2xl">✅</span>
+                    <div>
+                        <p className="font-bold text-base">¡Evaluación enviada correctamente!</p>
+                        <p className="text-sm text-emerald-700 mt-0.5">Gracias por tu retroalimentación. Los datos han sido registrados en el sistema.</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Banner de evaluación duplicada */}
+            {error === "duplicada" && (
+                <div className="mb-6 flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-900 px-5 py-4 rounded-2xl shadow-sm animate-in fade-in">
+                    <span className="text-2xl">⚠️</span>
+                    <div>
+                        <p className="font-bold text-base">Evaluación ya registrada</p>
+                        <p className="text-sm text-amber-800 mt-0.5">Ya has evaluado a este docente en esta materia. Solo puedes enviar una evaluación por materia.</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Banner de error general */}
+            {error === "general" && (
+                <div className="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-2xl shadow-sm animate-in fade-in">
+                    <span className="text-2xl">❌</span>
+                    <div>
+                        <p className="font-bold text-base">Error al enviar la evaluación</p>
+                        <p className="text-sm text-red-700 mt-0.5">Ocurrió un problema inesperado. Por favor intenta de nuevo más tarde.</p>
+                    </div>
+                </div>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
@@ -72,7 +108,13 @@ export default async function MateriasPage() {
                                             {materia.isActive ? "Activa" : "Inactiva"}
                                         </span>
                                     </td>
-                                    <td className="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
+                                    <td className="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium flex justify-end gap-4 items-center h-full min-h-[4rem]">
+                                        <Link
+                                            href={`/dashboard/materias/evaluar/${materia.id}`}
+                                            className="text-amber-500 hover:text-amber-600 font-semibold flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-all"
+                                        >
+                                            ⭐ Evaluar Docente
+                                        </Link>
                                         <button className="text-red-600 hover:text-red-900 opacity-0 group-hover:opacity-100 transition-opacity">
                                             Eliminar
                                         </button>
