@@ -4,8 +4,18 @@ import { PrismaClient } from "@prisma/client";
 
 const cacheBusterPrisma = global as unknown as { prisma_new: PrismaClient };
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:UPTXAdmin2026@db.cbxlkfjemljkrovtobxr.supabase.co:6543/postgres?pgbouncer=true";
-const pool = new Pool({ connectionString });
+// En Vercel siempre usaremos la variable de entorno DATABASE_URL
+const connectionString = process.env.DATABASE_URL;
+
+const pool = new Pool({
+  connectionString,
+  max: 10,
+  ssl: {
+    rejectUnauthorized: false
+  },
+  connectionTimeoutMillis: 10000,
+});
+
 const adapter = new PrismaPg(pool);
 
 export const prisma =

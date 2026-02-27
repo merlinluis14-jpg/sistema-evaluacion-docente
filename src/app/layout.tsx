@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema de Evaluación Docente UPTX",
-  description: "Plataforma de evaluación docente institucional UPTX",
+  title: "Sistema de Evaluación Docente UPT",
+  description: "Plataforma de evaluación docente institucional UPT",
 };
 
 export default function RootLayout({

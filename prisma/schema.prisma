@@ -7,15 +7,17 @@ datasource db {
   provider = "postgresql"
 }
 
-// Modelo para Usuarios (Administrativos y Alumnos)
-// Login con matrícula/contraseña
+// ============================================================
+// USUARIOS — Alumnos y Administrativos
+// Cumple con RF1: Login con matrícula/contraseña
+// ============================================================
 model User {
-  id          String   @id @default(cuid())
-  username    String   @unique // Para alumnos será su matrícula
-  password    String   // Almacenada de manera cifrada (RNF11)
-  role        Role     @default(ALUMNO)
-  evaluations Evaluation[] // Un alumno puede realizar muchas evaluaciones
-  createdAt   DateTime @default(now())
+  id          String       @id @default(cuid())
+  username    String       @unique // Para alumnos: matrícula institucional
+  password    String       // Almacenada con bcrypt (RF11)
+  role        Role         @default(ALUMNO)
+  evaluations Evaluation[]
+  createdAt   DateTime     @default(now())
 }
 
 enum Role {
@@ -23,31 +25,32 @@ enum Role {
   ALUMNO
 }
 
-// Modelo para la gestión de catedráticos
+// ============================================================
+// DOCENTES (RF3)
+// ============================================================
 model Teacher {
-  id         String   @id @default(cuid())
-  name       String   // Nombre(s)
-  lastName   String   // Apellidos
-  email      String   @unique
-  employeeId String   @unique // Matrícula o número de empleado
-  department String   // Carrera o departamento
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // Relaciones necesarias para Prisma
-  subjects    Subject[] // Un docente puede impartir varias materias
+  id          String       @id @default(cuid())
+  name        String
+  lastName    String
+  email       String       @unique
+  employeeId  String       @unique
+  department  String
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  subjects    Subject[]
   evaluations Evaluation[]
 }
 
-// Modelo para Materias
-// Lista de materias y docentes
+// ============================================================
+// MATERIAS (RF4)
+// ============================================================
 model Subject {
   id           String       @id @default(cuid())
   name         String
-  code         String       @unique // Código de la asignatura
-  cuatrimestre Int          @default(1) // Del 1 al 10
-  isActive     Boolean      @default(true) // Para poder inactivar materias antiguas
+  code         String       @unique
+  cuatrimestre Int          @default(1)
+  isActive     Boolean      @default(true)
   teacherId    String
   teacher      Teacher      @relation(fields: [teacherId], references: [id])
   evaluations  Evaluation[]
@@ -55,37 +58,101 @@ model Subject {
   updatedAt    DateTime     @updatedAt
 }
 
-// Modelo de Evaluación Docente 
-// Formulario detallado y evaluación única
+// ============================================================
+// PERIODOS DE EVALUACIÓN (RF10)
+// ============================================================
+model Period {
+  id          String       @id @default(cuid())
+  name        String       // Ej: "Cuatrimestre Enero-Abril 2026"
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean      @default(false) // Solo un periodo activo a la vez
+  evaluations Evaluation[]
+  createdAt   DateTime     @default(now())
+}
+
+// ============================================================
+// EVALUACIÓN DOCENTE — Instrumento FDA-24.5 Completo
+// Cumple con RF5 y RF7
+// ============================================================
 model Evaluation {
-  id                String   @id @default(cuid())
-  studentId         String
-  student           User     @relation(fields: [studentId], references: [id])
-  teacherId         String
-  teacher           Teacher  @relation(fields: [teacherId], references: [id])
-  subjectId         String
-  subject           Subject  @relation(fields: [subjectId], references: [id])
-  
-  // Bloque 1: Evaluación del facilitador (11 ítems - simplificados a promedio o campos clave)
-  facilitadorAvg    Float    @default(0) 
-  
-  // Bloque 2: Habilidades (4 ítems)
-  habilidadesAvg    Float    @default(0) 
-  
-  // Bloque 3: Medios didácticos (6 ítems)
-  mediosAvg         Float    @default(0) 
-  
-  // Bloque 4: Autoevaluación del alumno (11 ítems)
-  autoEvalAvg       Float    @default(0) 
+  id        String  @id @default(cuid())
+  studentId String
+  student   User    @relation(fields: [studentId], references: [id])
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  periodId  String
+  period    Period  @relation(fields: [periodId], references: [id])
 
-  // Bloque 5: Teoría/Práctica (1 ítem)
-  teoriaPractica    Int      @default(0) 
-  
-  comentarios       String?  @db.Text 
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  // ----------------------------------------------------------
+  // SECCIÓN 1: Evaluación del Facilitador (11 ítems)
+  // Escala: E=4, MB=3, B=2, M=1
+  // ----------------------------------------------------------
+  fac_item01 Int @default(0) // Al inicio orientó sobre unidades, objetivos, etc.
+  fac_item02 Int @default(0) // Domina los contenidos de las unidades
+  fac_item03 Int @default(0) // Resumió el tema al final de cada sesión
+  fac_item04 Int @default(0) // Resumió los temas al final de cada unidad
+  fac_item05 Int @default(0) // Aclaró dudas
+  fac_item06 Int @default(0) // Impartió asesorías
+  fac_item07 Int @default(0) // Entregó resultados del examen oportunamente
+  fac_item08 Int @default(0) // Logró los objetivos del cuatrimestre
+  fac_item09 Int @default(0) // Promovió un ambiente de respeto y disciplina
+  fac_item10 Int @default(0) // Puntualidad del FACILITADOR y manejo del tiempo
+  fac_item11 Int @default(0) // Puntualidad del ALUMNO y manejo de la situación
 
-  // Garantiza que un alumno solo evalúe una vez una materia de un docente específico
-  @@unique([studentId, subjectId])
+  // ----------------------------------------------------------
+  // SECCIÓN 2: Habilidades del Facilitador (4 ítems)
+  // Escala: E=4, MB=3, B=2, R=2, M=1
+  // ----------------------------------------------------------
+  hab_item01 Int @default(0) // Manejo del lenguaje apropiado de la asignatura
+  hab_item02 Int @default(0) // Conducción al desarrollo profesional
+  hab_item03 Int @default(0) // Capacidad de captar la atención del grupo
+  hab_item04 Int @default(0) // Relación de contenidos con competencias del modelo educativo
+
+  // ----------------------------------------------------------
+  // SECCIÓN 3: Utilización de los Medios Didácticos (6 ítems)
+  // Escala: Siempre=5, 1-3/sem=4, 1-3/mes=3, 1-3/cuat=2, Nunca=1
+  // ----------------------------------------------------------
+  med_item01 Int @default(0) // Pizarrón
+  med_item02 Int @default(0) // TV
+  med_item03 Int @default(0) // Cañón
+  med_item04 Int @default(0) // Webquest
+  med_item05 Int @default(0) // Guías de trabajo
+  med_item06 Int @default(0) // Libros
+
+  // ----------------------------------------------------------
+  // SECCIÓN 4: Teoría / Práctica (1 ítem)
+  // 1=Bien según naturaleza, 2=Buena combo, 3=Mucha teoría, 4=Mucha práctica, 5=Poca ambas
+  // ----------------------------------------------------------
+  teoriaPractica Int @default(0)
+
+  // ----------------------------------------------------------
+  // SECCIÓN 5: Autoevaluación del Alumno (11 ítems)
+  // Misma escala de frecuencia que Sección 3
+  // ----------------------------------------------------------
+  auto_item01 Int @default(0) // ¿Participé en clase?
+  auto_item02 Int @default(0) // ¿Falté a alguna clase?
+  auto_item03 Int @default(0) // ¿Realicé todos los trabajos y tareas?
+  auto_item04 Int @default(0) // ¿Solicité asesoría del profesor?
+  auto_item05 Int @default(0) // ¿Apliqué técnicas de autoestudio?
+  auto_item06 Int @default(0) // ¿Realicé investigación para ampliar temas?
+  auto_item07 Int @default(0) // ¿Me presenté con el material necesario?
+  auto_item08 Int @default(0) // ¿Me preparé para exámenes continuamente?
+  auto_item09 Int @default(0) // Puse en práctica los conocimientos adquiridos
+  auto_item10 Int @default(0) // ¿Presté atención y disposición en cada clase?
+  auto_item11 Int @default(0) // Desarrollo de las competencias
+
+  // ----------------------------------------------------------
+  // SECCIÓN 6: Comentarios abiertos (2 campos)
+  // ----------------------------------------------------------
+  comentario_fortalezas String? @db.Text // Fortalezas y sugerencias al docente
+  comentario_adicional  String? @db.Text // Otros comentarios
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // RF7: Un alumno solo evalúa una vez por materia por periodo
+  @@unique([studentId, subjectId, periodId])
 }

@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { createSubject } from "../actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function NuevaMateriaPage() {
     // Traemos de la base de datos todos los profesores que estén activos (isActive: true)
     const teachers = await prisma.teacher.findMany({

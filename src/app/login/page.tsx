@@ -14,7 +14,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); // Limpiamos errores previos
-    
+
     // Llamamos a la función signIn que conecta con nuestro route.ts
     const result = await signIn("credentials", {
       username,
@@ -26,7 +26,7 @@ export default function LoginPage() {
       setError("Credenciales inválidas. Verifica tu matrícula y contraseña.");
     } else {
       // Redirección al panel principal tras login exitoso (ajusta la ruta según tu proyecto)
-      router.push("/dashboard"); 
+      router.push("/dashboard");
     }
   };
 
@@ -35,10 +35,10 @@ export default function LoginPage() {
       {/* Contenedor principal con diseño responsive (RNF2) */}
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-blue-900">UPTX</h1>
+          <h1 className="text-2xl font-bold text-blue-900">UPT</h1>
           <h2 className="text-lg text-gray-600 mt-2">Sistema de Evaluación Docente</h2>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -53,7 +53,7 @@ export default function LoginPage() {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Contraseña
