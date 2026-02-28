@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navLinks = [
-    { href: "/dashboard", label: "Inicio", icon: "🏠" },
-    { href: "/dashboard/docentes", label: "Docentes", icon: "👨‍🏫" },
-    { href: "/dashboard/materias", label: "Materias", icon: "📚" },
-    { href: "/dashboard/periodos", label: "Periodos", icon: "📅" },
+    { href: "/admin", label: "Inicio", icon: "🏠" },
+    { href: "/admin/docentes", label: "Docentes", icon: "👨‍🏫" },
+    { href: "/admin/materias", label: "Materias", icon: "📚" },
+    { href: "/admin/periodos", label: "Periodos", icon: "📅" },
 ];
 
 export default function Sidebar() {
@@ -27,9 +27,9 @@ export default function Sidebar() {
             {/* Navegación */}
             <nav className="space-y-1.5 flex-1">
                 {navLinks.map(({ href, label, icon }) => {
-                    // Activo si la ruta actual empieza con el href (excepto /dashboard exacto)
-                    const isActive = href === "/dashboard"
-                        ? pathname === "/dashboard"
+                    // Activo si la ruta actual empieza con el href (excepto /admin exacto)
+                    const isActive = href === "/admin"
+                        ? pathname === "/admin"
                         : pathname.startsWith(href);
 
                     return (

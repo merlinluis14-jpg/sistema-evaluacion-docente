@@ -9,27 +9,33 @@ import { authOptions } from "@/lib/auth";
 export async function createEvaluation(formData: FormData) {
     const session = await getServerSession(authOptions);
 
+    // Resuelve el Student asociado al usuario autenticado
     let studentId = "";
-    if (session?.user?.name) {
-        const user = await prisma.user.findUnique({ where: { username: session.user.name } });
-        if (user) studentId = user.id;
+
+    if (session?.user?.id) {
+        // Buscar el Student vinculado al User autenticado
+        const student = await prisma.student.findUnique({
+            where: { userId: session.user.id },
+        });
+        if (student) studentId = student.id;
     }
 
-    // dev fallback
+    // TODO: eliminar en producción
     if (!studentId) {
-        const devStudent = await prisma.user.findFirst({ where: { role: "ALUMNO" } });
+        const devStudent = await prisma.student.findFirst();
         if (devStudent) studentId = devStudent.id;
-        else throw new Error("No hay alumnos registrados.");
+        else throw new Error("No hay alumnos registrados en el sistema.");
     }
 
     const subjectId = formData.get("subjectId") as string;
     const teacherId = formData.get("teacherId") as string;
     const periodId = formData.get("periodId") as string;
 
+    // una evaluación por alumno/materia/periodo
     const existing = await prisma.evaluation.findUnique({
         where: { studentId_subjectId_periodId: { studentId, subjectId, periodId } }
     });
-    if (existing) redirect("/dashboard/materias?error=duplicada");
+    if (existing) redirect("/alumno?error=duplicada");
 
     const num = (key: string) => parseInt(formData.get(key) as string) || 0;
 
@@ -38,7 +44,7 @@ export async function createEvaluation(formData: FormData) {
             data: {
                 studentId, teacherId, subjectId, periodId,
 
-                // s1: facilitador
+                // Sección 1: Facilitador (11 ítems)
                 fac_item01: num("fac_item01"), fac_item02: num("fac_item02"),
                 fac_item03: num("fac_item03"), fac_item04: num("fac_item04"),
                 fac_item05: num("fac_item05"), fac_item06: num("fac_item06"),
@@ -46,18 +52,19 @@ export async function createEvaluation(formData: FormData) {
                 fac_item09: num("fac_item09"), fac_item10: num("fac_item10"),
                 fac_item11: num("fac_item11"),
 
-                // s2: habilidades
+                // Sección 2: Habilidades (4 ítems)
                 hab_item01: num("hab_item01"), hab_item02: num("hab_item02"),
                 hab_item03: num("hab_item03"), hab_item04: num("hab_item04"),
 
-                // s3: medios
+                // Sección 3: Medios Didácticos (6 ítems)
                 med_item01: num("med_item01"), med_item02: num("med_item02"),
                 med_item03: num("med_item03"), med_item04: num("med_item04"),
                 med_item05: num("med_item05"), med_item06: num("med_item06"),
 
+                // Sección 4: Teoría / Práctica
                 teoriaPractica: num("teoriaPractica"),
 
-                // s5: autoevaluación
+                // Sección 5: Autoevaluación (11 ítems)
                 auto_item01: num("auto_item01"), auto_item02: num("auto_item02"),
                 auto_item03: num("auto_item03"), auto_item04: num("auto_item04"),
                 auto_item05: num("auto_item05"), auto_item06: num("auto_item06"),
@@ -65,15 +72,16 @@ export async function createEvaluation(formData: FormData) {
                 auto_item09: num("auto_item09"), auto_item10: num("auto_item10"),
                 auto_item11: num("auto_item11"),
 
-                comentario_fortalezas: formData.get("comentario_fortalezas") as string || null,
-                comentario_adicional: formData.get("comentario_adicional") as string || null,
+                // Sección 6: Comentarios
+                comentario_fortalezas: (formData.get("comentario_fortalezas") as string) || null,
+                comentario_adicional: (formData.get("comentario_adicional") as string) || null,
             },
         });
     } catch (error) {
         console.error("Error al guardar evaluación:", error);
-        redirect("/dashboard/materias?error=general");
+        redirect("/alumno?error=general");
     }
 
-    revalidatePath("/dashboard/materias");
-    redirect("/dashboard/materias?success=true");
+    revalidatePath("/alumno");
+    redirect("/alumno?success=true");
 }

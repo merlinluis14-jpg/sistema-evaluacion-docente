@@ -28,23 +28,20 @@ export async function createSubject(formData: FormData) {
         });
     } catch (error) {
         console.error("Error al crear materia:", error);
-        return { success: false, error: "Error al crear la materia en la base de datos. Puede que el código ya exista." };
+        return { success: false, error: "Error al crear la materia. Verifica que el código no esté duplicado en la misma carrera." };
     }
 
-
-    revalidatePath("/dashboard/materias");
-    redirect("/dashboard/materias");
+    revalidatePath("/admin/materias");
+    redirect("/admin/materias");
 }
 
 export async function deleteSubject(id: string) {
     try {
-        await prisma.subject.delete({
-            where: { id },
-        });
-        revalidatePath("/dashboard/materias");
+        await prisma.subject.delete({ where: { id } });
+        revalidatePath("/admin/materias");
         return { success: true };
     } catch (error) {
-        console.error("Error al eliminando materia:", error);
+        console.error("Error al eliminar materia:", error);
         return { success: false, error: "No se pudo eliminar la materia." };
     }
 }

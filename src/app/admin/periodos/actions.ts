@@ -21,8 +21,8 @@ export async function createPeriod(formData: FormData) {
         },
     });
 
-    revalidatePath("/dashboard/periodos");
-    redirect("/dashboard/periodos");
+    revalidatePath("/admin/periodos");
+    redirect("/admin/periodos");
 }
 
 /** Activa un periodo y desactiva todos los demás */
@@ -32,13 +32,13 @@ export async function activatePeriod(id: string) {
         prisma.period.updateMany({ data: { isActive: false } }),
         prisma.period.update({ where: { id }, data: { isActive: true } }),
     ]);
-    revalidatePath("/dashboard/periodos");
+    revalidatePath("/admin/periodos");
 }
 
 /** Desactiva un periodo sin activar ningún otro */
 export async function deactivatePeriod(id: string) {
     await prisma.period.update({ where: { id }, data: { isActive: false } });
-    revalidatePath("/dashboard/periodos");
+    revalidatePath("/admin/periodos");
 }
 
 /** Elimina un periodo (solo si no tiene evaluaciones) */
@@ -46,5 +46,6 @@ export async function deletePeriod(id: string) {
     const count = await prisma.evaluation.count({ where: { periodId: id } });
     if (count > 0) throw new Error("No se puede eliminar un periodo con evaluaciones registradas.");
     await prisma.period.delete({ where: { id } });
-    revalidatePath("/dashboard/periodos");
+    revalidatePath("/admin/periodos");
 }
+

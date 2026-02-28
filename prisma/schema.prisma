@@ -1,4 +1,10 @@
-// Configuración del cliente Prisma para generar tipos de TypeScript automáticamente
+// ============================================================
+// prisma/schema.prisma
+// Sistema de Evaluación Docente — UPTX
+// Schema v2 COMPLETO y CORREGIDO
+// Multi-carrera · 3 Roles · Grupos · FDA-24.5 (33 ítems)
+// ============================================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,77 +14,194 @@ datasource db {
 }
 
 // ============================================================
-// USUARIOS — Alumnos y Administrativos
-// Cumple con RF1: Login con matrícula/contraseña
+// ROLES
 // ============================================================
-model User {
-  id          String       @id @default(cuid())
-  username    String       @unique // Para alumnos: matrícula institucional
-  password    String       // Almacenada con bcrypt (RF11)
-  role        Role         @default(ALUMNO)
-  evaluations Evaluation[]
-  createdAt   DateTime     @default(now())
-}
-
 enum Role {
   ADMIN
+  DOCENTE
   ALUMNO
 }
 
 // ============================================================
-// DOCENTES (RF3)
+// USER — Base de autenticación para los 3 roles
+// ADMIN y DOCENTE: login con email
+// ALUMNO: login con matrícula (username)
+// ============================================================
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique  // ADMIN y DOCENTE
+  username  String?  @unique  // ALUMNO (su matrícula)
+  password  String            // Hash bcrypt
+  role      Role     @default(ALUMNO)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  teacher   Teacher?
+  student   Student?
+}
+
+// ============================================================
+// CAREER — Todas las carreras de la UPTX
+// Ejemplos de code: ISC, IIT, IGA, IBQ, LNCA
+// ============================================================
+model Career {
+  id        String   @id @default(cuid())
+  code      String   @unique // "ISC", "IIT", "IGA"...
+  name      String           // "Ingeniería en Sistemas Computacionales"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  teachers  Teacher[]
+  students  Student[]
+  groups    Group[]
+  subjects  Subject[]
+}
+
+// ============================================================
+// TEACHER — Docente con cuenta propia
+// Login: email + contraseña
 // ============================================================
 model Teacher {
-  id          String       @id @default(cuid())
-  name        String
-  lastName    String
-  email       String       @unique
-  employeeId  String       @unique
-  department  String
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id])
+  name       String
+  lastName   String
+  employeeId String   @unique  // Número de empleado institucional
+  careerId   String
+  career     Career   @relation(fields: [careerId], references: [id])
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   subjects    Subject[]
   evaluations Evaluation[]
 }
 
 // ============================================================
-// MATERIAS (RF4)
+// STUDENT — Alumno importado vía CSV
+// Login: matrícula + contraseña
+// ============================================================
+model Student {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  lastName  String
+  matricula String   @unique  // Matrícula institucional (NO enrollment)
+  careerId  String
+  career    Career   @relation(fields: [careerId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groups      GroupEnrollment[]
+  evaluations Evaluation[]
+}
+
+// ============================================================
+// GROUP — Grupo académico (ej: 3A, 5B, 2C)
+// Pertenece a una carrera y a un periodo
+// ============================================================
+model Group {
+  id        String   @id @default(cuid())
+  name      String           // "3A", "5B", "2C"
+  period    String           // "Enero-Abril 2026"
+  careerId  String
+  career    Career   @relation(fields: [careerId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  enrollments GroupEnrollment[]  // Alumnos en este grupo
+  subjects    GroupSubject[]     // Materias asignadas al grupo
+}
+
+// ============================================================
+// GROUP ENROLLMENT — Tabla pivote: Alumno ↔ Grupo
+// Se puebla durante la importación CSV
+// ============================================================
+model GroupEnrollment {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, groupId])
+}
+
+// ============================================================
+// SUBJECT — Materia vinculada a carrera y docente
 // ============================================================
 model Subject {
-  id           String       @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
-  code         String       @unique
-  cuatrimestre Int          @default(1)
-  isActive     Boolean      @default(true)
+  code         String           // "MAT-101", "BD-201"
+  cuatrimestre Int      @default(1)
+  careerId     String
+  career       Career   @relation(fields: [careerId], references: [id])
   teacherId    String
-  teacher      Teacher      @relation(fields: [teacherId], references: [id])
-  evaluations  Evaluation[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  teacher      Teacher  @relation(fields: [teacherId], references: [id])
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  groups      GroupSubject[]
+  evaluations Evaluation[]
+
+  @@unique([code, careerId]) // Mismo código puede existir en distintas carreras
 }
 
 // ============================================================
-// PERIODOS DE EVALUACIÓN (RF10)
+// GROUP SUBJECT — Tabla pivote: Grupo ↔ Materia
+// Define qué materias ve cada alumno según su grupo
+// ============================================================
+model GroupSubject {
+  id        String   @id @default(cuid())
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id])
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([groupId, subjectId])
+}
+
+// ============================================================
+// PERIOD — Periodos de evaluación (RF10)
+// El admin activa/desactiva cuándo pueden evaluar los alumnos
 // ============================================================
 model Period {
-  id          String       @id @default(cuid())
-  name        String       // Ej: "Cuatrimestre Enero-Abril 2026"
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean      @default(false) // Solo un periodo activo a la vez
+  id        String   @id @default(cuid())
+  name      String           // "Cuatrimestre Enero-Abril 2026"
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false) // Solo uno activo a la vez
+  createdAt DateTime @default(now())
+
   evaluations Evaluation[]
-  createdAt   DateTime     @default(now())
 }
 
 // ============================================================
-// EVALUACIÓN DOCENTE — Instrumento FDA-24.5 Completo
-// Cumple con RF5 y RF7
+// EVALUATION — Instrumento FDA-24.5 completo (33 ítems)
+//
+// NOMENCLATURA OFICIAL del proyecto:
+//   Sección 1 (Facilitador):     fac_item01 ... fac_item11
+//   Sección 2 (Habilidades):     hab_item01 ... hab_item04
+//   Sección 3 (Medios):          med_item01 ... med_item06
+//   Sección 4 (Teoría/Práctica): teoriaPractica
+//   Sección 5 (Autoevaluación):  auto_item01 ... auto_item11
+//   Sección 6 (Comentarios):     comentario_fortalezas, comentario_adicional
+//
+// NO usar f1, f2, h1, h2 — esa nomenclatura es incorrecta
 // ============================================================
 model Evaluation {
   id        String  @id @default(cuid())
+
+  // Relaciones obligatorias
   studentId String
-  student   User    @relation(fields: [studentId], references: [id])
+  student   Student @relation(fields: [studentId], references: [id])
   teacherId String
   teacher   Teacher @relation(fields: [teacherId], references: [id])
   subjectId String
@@ -87,10 +210,10 @@ model Evaluation {
   period    Period  @relation(fields: [periodId], references: [id])
 
   // ----------------------------------------------------------
-  // SECCIÓN 1: Evaluación del Facilitador (11 ítems)
+  // SECCIÓN 1: Evaluación del Facilitador — 11 ítems
   // Escala: E=4, MB=3, B=2, M=1
   // ----------------------------------------------------------
-  fac_item01 Int @default(0) // Al inicio orientó sobre unidades, objetivos, etc.
+  fac_item01 Int @default(0) // Al inicio orientó sobre las unidades de aprendizaje
   fac_item02 Int @default(0) // Domina los contenidos de las unidades
   fac_item03 Int @default(0) // Resumió el tema al final de cada sesión
   fac_item04 Int @default(0) // Resumió los temas al final de cada unidad
@@ -99,20 +222,20 @@ model Evaluation {
   fac_item07 Int @default(0) // Entregó resultados del examen oportunamente
   fac_item08 Int @default(0) // Logró los objetivos del cuatrimestre
   fac_item09 Int @default(0) // Promovió un ambiente de respeto y disciplina
-  fac_item10 Int @default(0) // Puntualidad del FACILITADOR y manejo del tiempo
-  fac_item11 Int @default(0) // Puntualidad del ALUMNO y manejo de la situación
+  fac_item10 Int @default(0) // Puntualidad del FACILITADOR
+  fac_item11 Int @default(0) // Puntualidad del ALUMNO (manejo por el prof)
 
   // ----------------------------------------------------------
-  // SECCIÓN 2: Habilidades del Facilitador (4 ítems)
+  // SECCIÓN 2: Habilidades del Facilitador — 4 ítems
   // Escala: E=4, MB=3, B=2, R=2, M=1
   // ----------------------------------------------------------
-  hab_item01 Int @default(0) // Manejo del lenguaje apropiado de la asignatura
+  hab_item01 Int @default(0) // Manejo del lenguaje apropiado
   hab_item02 Int @default(0) // Conducción al desarrollo profesional
-  hab_item03 Int @default(0) // Capacidad de captar la atención del grupo
-  hab_item04 Int @default(0) // Relación de contenidos con competencias del modelo educativo
+  hab_item03 Int @default(0) // Captar la atención del grupo
+  hab_item04 Int @default(0) // Relación con competencias del modelo educativo
 
   // ----------------------------------------------------------
-  // SECCIÓN 3: Utilización de los Medios Didácticos (6 ítems)
+  // SECCIÓN 3: Medios Didácticos — 6 ítems
   // Escala: Siempre=5, 1-3/sem=4, 1-3/mes=3, 1-3/cuat=2, Nunca=1
   // ----------------------------------------------------------
   med_item01 Int @default(0) // Pizarrón
@@ -123,14 +246,18 @@ model Evaluation {
   med_item06 Int @default(0) // Libros
 
   // ----------------------------------------------------------
-  // SECCIÓN 4: Teoría / Práctica (1 ítem)
-  // 1=Bien según naturaleza, 2=Buena combo, 3=Mucha teoría, 4=Mucha práctica, 5=Poca ambas
+  // SECCIÓN 4: Teoría / Práctica — 1 ítem
+  // 1=Bien por naturaleza del curso
+  // 2=Buena combinación teoría/práctica
+  // 3=Demasiada teoría y poca práctica
+  // 4=Poca teoría y mucha práctica
+  // 5=Poca teoría y poca práctica
   // ----------------------------------------------------------
   teoriaPractica Int @default(0)
 
   // ----------------------------------------------------------
-  // SECCIÓN 5: Autoevaluación del Alumno (11 ítems)
-  // Misma escala de frecuencia que Sección 3
+  // SECCIÓN 5: Autoevaluación del Alumno — 11 ítems
+  // Escala: Siempre=5, 1-3/sem=4, 1-3/mes=3, 1-3/cuat=2, Nunca=1
   // ----------------------------------------------------------
   auto_item01 Int @default(0) // ¿Participé en clase?
   auto_item02 Int @default(0) // ¿Falté a alguna clase?
@@ -139,20 +266,34 @@ model Evaluation {
   auto_item05 Int @default(0) // ¿Apliqué técnicas de autoestudio?
   auto_item06 Int @default(0) // ¿Realicé investigación para ampliar temas?
   auto_item07 Int @default(0) // ¿Me presenté con el material necesario?
-  auto_item08 Int @default(0) // ¿Me preparé para exámenes continuamente?
+  auto_item08 Int @default(0) // ¿Me preparé para exámenes?
   auto_item09 Int @default(0) // Puse en práctica los conocimientos adquiridos
-  auto_item10 Int @default(0) // ¿Presté atención y disposición en cada clase?
+  auto_item10 Int @default(0) // Atención y disposición para el aprendizaje
   auto_item11 Int @default(0) // Desarrollo de las competencias
 
   // ----------------------------------------------------------
-  // SECCIÓN 6: Comentarios abiertos (2 campos)
+  // SECCIÓN 6: Comentarios abiertos — 2 campos
   // ----------------------------------------------------------
-  comentario_fortalezas String? @db.Text // Fortalezas y sugerencias al docente
-  comentario_adicional  String? @db.Text // Otros comentarios
+  comentario_fortalezas String? @db.Text  // Fortalezas y sugerencias al docente
+  comentario_adicional  String? @db.Text  // Comentario adicional libre
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // RF7: Un alumno solo evalúa una vez por materia por periodo
+  // RF7: Un alumno evalúa UNA SOLA VEZ por materia por periodo
   @@unique([studentId, subjectId, periodId])
+}
+
+// ============================================================
+// IMPORT LOG — Registro de importaciones CSV (RF12)
+// ============================================================
+model ImportLog {
+  id          String   @id @default(cuid())
+  type        String   // "ALUMNOS", "DOCENTES", "MATERIAS"
+  fileName    String
+  totalRows   Int
+  successRows Int
+  errorRows   Int
+  errors      String?  @db.Text // JSON con detalle de cada error
+  createdAt   DateTime @default(now())
 }
