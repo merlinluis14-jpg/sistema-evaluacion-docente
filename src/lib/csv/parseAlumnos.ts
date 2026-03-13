@@ -45,12 +45,10 @@ export async function parseAndImportAlumnos(
     const careerCache = new Map<string, string>(); // code → careerId
     const groupCache = new Map<string, string>(); // `${careerId}:${grupoName}` → groupId
 
-    // Proceso de filas
     for (let i = 0; i < rows.length; i++) {
         const rowNum = i + 2; // +1 header +1 base 1-indexed
         const row = rows[i];
 
-        // Validación de campos
         const { matricula, nombre, apellido, carrera_code, grupo } = row;
         const missingFields: string[] = [];
         if (!matricula) missingFields.push("matricula");
@@ -69,7 +67,6 @@ export async function parseAndImportAlumnos(
         }
 
         try {
-            // Obtener carrera
             let careerId = careerCache.get(carrera_code.toUpperCase());
             if (!careerId) {
                 const career = await prisma.career.findFirst({
@@ -87,7 +84,6 @@ export async function parseAndImportAlumnos(
                 careerCache.set(carrera_code.toUpperCase(), careerId);
             }
 
-            // Obtener o crear grupo
             const groupKey = `${careerId}:${grupo.toUpperCase()}`;
             let groupId = groupCache.get(groupKey);
             if (!groupId) {
@@ -115,11 +111,9 @@ export async function parseAndImportAlumnos(
                 groupCache.set(groupKey, groupId);
             }
 
-            // ── Hash de contraseña ────────────────────────────────
             const rawPassword = row.password?.trim() || matricula;
             const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
-            // Upsert de Usuario
             const user = await prisma.user.upsert({
                 where: { username: matricula },
                 update: { password: hashedPassword, isActive: true },
@@ -131,7 +125,6 @@ export async function parseAndImportAlumnos(
                 },
             });
 
-            // Upsert de Alumno
             const student = await prisma.student.upsert({
                 where: { matricula },
                 update: {
@@ -150,7 +143,6 @@ export async function parseAndImportAlumnos(
                 },
             });
 
-            // Asignación al grupo
             await prisma.groupEnrollment.upsert({
                 where: {
                     studentId_groupId: {

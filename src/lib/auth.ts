@@ -12,7 +12,7 @@ export const authOptions: NextAuthOptions = {
         CredentialsProvider({
             name: "credentials",
             credentials: {
-                
+
                 username: { label: "Usuario", type: "text" },
                 password: { label: "Contraseña", type: "password" },
             },

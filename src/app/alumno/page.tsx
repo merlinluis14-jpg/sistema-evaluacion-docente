@@ -49,7 +49,7 @@ export default async function AlumnoPage({
         })
         : [];
 
-    const subjectsEvaluadas = new Set(evaluacionesHechas.map((e) => e.subjectId));
+    const materiasEvaluadas = new Set(evaluacionesHechas.map((e) => e.subjectId));
 
     // Todas las materias únicas del alumno (a través de sus grupos)
     const materiasMap = new Map<string, {
@@ -71,12 +71,11 @@ export default async function AlumnoPage({
     }
 
     const materias = Array.from(materiasMap.values());
-    const totalPendientes = materias.filter((m) => !subjectsEvaluadas.has(m.id)).length;
+    const totalPendientes = materias.filter((m) => !materiasEvaluadas.has(m.id)).length;
 
     return (
         <div className="space-y-6">
 
-            {/* ── Header ── */}
             <div className="flex items-start justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-2xl font-black text-slate-800">Mis Materias</h1>
@@ -93,7 +92,6 @@ export default async function AlumnoPage({
                 )}
             </div>
 
-            {/* ── Alertas de estado ── */}
             {params.success && (
                 <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 flex items-center gap-3">
                     <span className="text-xl">✅</span>
@@ -107,7 +105,6 @@ export default async function AlumnoPage({
                 </div>
             )}
 
-            {/* ── Sin periodo activo ── */}
             {!periodoActivo && (
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center">
                     <p className="text-4xl mb-2">📅</p>
@@ -118,7 +115,6 @@ export default async function AlumnoPage({
                 </div>
             )}
 
-            {/* ── Sin materias asignadas ── */}
             {student && materias.length === 0 && (
                 <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-12 text-center">
                     <p className="text-4xl mb-2">📭</p>
@@ -127,7 +123,6 @@ export default async function AlumnoPage({
                 </div>
             )}
 
-            {/* ── Progreso ── */}
             {materias.length > 0 && periodoActivo && (
                 <div className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-4">
                     <div className="flex-1">
@@ -150,18 +145,16 @@ export default async function AlumnoPage({
                 </div>
             )}
 
-            {/* ── Grid de materias ── */}
             {materias.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {materias.map((materia) => {
-                        const yaEvaluo = subjectsEvaluadas.has(materia.id);
+                        const yaEvaluo = materiasEvaluadas.has(materia.id);
                         return (
                             <div
                                 key={materia.id}
                                 className={`bg-white rounded-2xl border p-6 shadow-sm transition-all ${yaEvaluo ? "border-emerald-200 opacity-75" : "border-slate-100 hover:border-blue-200 hover:shadow-md"
                                     }`}
                             >
-                                {/* Cabeza */}
                                 <div className="flex justify-between items-start mb-3">
                                     <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
                                         {materia.career.code} · C{materia.cuatrimestre}
@@ -169,7 +162,6 @@ export default async function AlumnoPage({
                                     <span className="text-xs text-slate-400 font-mono">{materia.code}</span>
                                 </div>
 
-                                {/* Info */}
                                 <h3 className="font-black text-slate-800 text-base leading-tight mb-2">{materia.name}</h3>
                                 <div className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-xl mb-4">
                                     <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs flex-shrink-0">
@@ -180,7 +172,6 @@ export default async function AlumnoPage({
                                     </p>
                                 </div>
 
-                                {/* Acción */}
                                 {yaEvaluo ? (
                                     <div className="w-full text-center py-2.5 rounded-xl bg-emerald-50 text-emerald-600 text-sm font-bold border border-emerald-200">
                                         ✓ Ya evaluaste esta materia

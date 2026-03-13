@@ -12,13 +12,11 @@ const SCALE_EMBM = [
     { value: 1, label: "M", full: "Malo" },
 ];
 
-// FIX: "R" (Regular) usa value=2 al igual que "B" en el instrumento original,
-// ya que el FDA-24.5 asigna el mismo peso numérico. Se mantiene la distinción
-// visual para que el alumno comprenda la escala, pero ambos envían el valor 2.
-const SCALE_EMBM_HAB = [
-    { value: 4, label: "E", full: "Excelente" },
-    { value: 3, label: "MB", full: "Muy Bien" },
-    { value: 2, label: "B", full: "Bien" },
+// Escala Habilidades: E=5, MB=4, B=3, R=2, M=1 — valores únicos
+const SCALE_EMBMR = [
+    { value: 5, label: "E", full: "Excelente" },
+    { value: 4, label: "MB", full: "Muy Bien" },
+    { value: 3, label: "B", full: "Bien" },
     { value: 2, label: "R", full: "Regular" },
     { value: 1, label: "M", full: "Malo" },
 ];
@@ -209,8 +207,8 @@ export function EvaluationForm({
                 {steps.map((s, idx) => (
                     <div key={idx} className="flex items-center gap-2 flex-shrink-0">
                         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${step === idx + 1 ? `${s.bg} text-white shadow-md`
-                                : step > idx + 1 ? "bg-slate-200 text-slate-400 line-through"
-                                    : "bg-slate-100 text-slate-400"}`}>
+                            : step > idx + 1 ? "bg-slate-200 text-slate-400 line-through"
+                                : "bg-slate-100 text-slate-400"}`}>
                             <span>{idx + 1}</span>
                             <span className="hidden sm:inline">{s.label}</span>
                         </div>
@@ -222,152 +220,142 @@ export function EvaluationForm({
             </div>
 
             {/* ── PASO 1: Facilitador ──────────────────────────── */}
-            {step === 1 && (
-                <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                    <SectionHeader stepNum="01" title="Evaluación del Facilitador"
-                        subtitle="Desempeño general, puntualidad, dominio de contenidos y cumplimiento de objetivos institucionales."
-                        badge="11 Ítems" accentBg="bg-blue-600" accentText="text-blue-600"
-                        badgeBg="bg-blue-100" badgeText="text-blue-700" borderColor="border-blue-50" />
-                    <div className="flex flex-wrap justify-end gap-3 px-2">
-                        {SCALE_EMBM.map((s, i) => (
-                            <span key={i} className="text-xs text-slate-400 font-bold">
-                                <span className="text-slate-700">{s.label}</span> = {s.full}
-                            </span>
-                        ))}
-                    </div>
-                    <div className="space-y-3">
-                        {SEC1.map((item, idx) => (
-                            <ScaleRow key={item.name} name={item.name} label={item.label} itemNumber={idx + 1}
-                                scale={SCALE_EMBM} accentBg="bg-blue-600" accentAccent="accent-blue-600" />
-                        ))}
-                    </div>
+            <div className={`space-y-4 duration-300 ${step === 1 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
+                <SectionHeader stepNum="01" title="Evaluación del Facilitador"
+                    subtitle="Desempeño general, puntualidad, dominio de contenidos y cumplimiento de objetivos institucionales."
+                    badge="11 Ítems" accentBg="bg-blue-600" accentText="text-blue-600"
+                    badgeBg="bg-blue-100" badgeText="text-blue-700" borderColor="border-blue-50" />
+                <div className="flex flex-wrap justify-end gap-3 px-2">
+                    {SCALE_EMBM.map((s, i) => (
+                        <span key={i} className="text-xs text-slate-400 font-bold">
+                            <span className="text-slate-700">{s.label}</span> = {s.full}
+                        </span>
+                    ))}
                 </div>
-            )}
+                <div className="space-y-3">
+                    {SEC1.map((item, idx) => (
+                        <ScaleRow key={item.name} name={item.name} label={item.label} itemNumber={idx + 1}
+                            scale={SCALE_EMBM} accentBg="bg-blue-600" accentAccent="accent-blue-600" />
+                    ))}
+                </div>
+            </div>
 
             {/* ── PASO 2: Habilidades ──────────────────────────── */}
-            {step === 2 && (
-                <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                    <SectionHeader stepNum="02" title="Habilidades del Facilitador"
-                        subtitle="Dominio del tema, capacidad de comunicación y vinculación con el modelo educativo institucional."
-                        badge="4 Ítems" accentBg="bg-indigo-600" accentText="text-indigo-600"
-                        badgeBg="bg-indigo-100" badgeText="text-indigo-700" borderColor="border-indigo-50" />
-                    <div className="flex flex-wrap justify-end gap-3 px-2">
-                        {SCALE_EMBM_HAB.map((s, i) => (
-                            <span key={i} className="text-xs text-slate-400 font-bold">
-                                <span className="text-slate-700">{s.label}</span> = {s.full}
-                            </span>
-                        ))}
-                    </div>
-                    <div className="space-y-3">
-                        {SEC2.map((item, idx) => (
-                            <ScaleRow key={item.name} name={item.name} label={item.label} itemNumber={idx + 1}
-                                scale={SCALE_EMBM_HAB} accentBg="bg-indigo-600" accentAccent="accent-indigo-600" />
-                        ))}
-                    </div>
+            <div className={`space-y-4 duration-300 ${step === 2 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
+                <SectionHeader stepNum="02" title="Habilidades del Facilitador"
+                    subtitle="Dominio del tema, capacidad de comunicación y vinculación con el modelo educativo institucional."
+                    badge="4 Ítems" accentBg="bg-indigo-600" accentText="text-indigo-600"
+                    badgeBg="bg-indigo-100" badgeText="text-indigo-700" borderColor="border-indigo-50" />
+                <div className="flex flex-wrap justify-end gap-3 px-2">
+                    {SCALE_EMBMR.map((s, i) => (
+                        <span key={i} className="text-xs text-slate-400 font-bold">
+                            <span className="text-slate-700">{s.label}</span> = {s.full}
+                        </span>
+                    ))}
                 </div>
-            )}
+                <div className="space-y-3">
+                    {SEC2.map((item, idx) => (
+                        <ScaleRow key={item.name} name={item.name} label={item.label} itemNumber={idx + 1}
+                            scale={SCALE_EMBMR} accentBg="bg-indigo-600" accentAccent="accent-indigo-600" />
+                    ))}
+                </div>
+            </div>
 
             {/* ── PASO 3: Medios Didácticos ────────────────────── */}
-            {step === 3 && (
-                <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                    <SectionHeader stepNum="03" title="Utilización de los Medios Didácticos"
-                        subtitle="Indica con qué frecuencia el facilitador utilizó cada recurso durante el cuatrimestre."
-                        badge="6 Ítems" accentBg="bg-violet-600" accentText="text-violet-600"
-                        badgeBg="bg-violet-100" badgeText="text-violet-700" borderColor="border-violet-50" />
-                    <div className="bg-slate-50 rounded-2xl p-4 text-xs text-slate-500 space-y-1.5">
-                        {SCALE_FREQ.map((s, i) => (
-                            <div key={i} className="flex gap-2">
-                                <span className="font-bold text-slate-700 w-16 flex-shrink-0">{s.label}</span>
-                                <span>{s.full}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="space-y-3">
-                        {SEC3.map((item, idx) => (
-                            <FreqRow key={item.name} name={item.name} label={item.label}
-                                itemNumber={idx + 1} accentBg="bg-violet-600" />
-                        ))}
-                    </div>
+            <div className={`space-y-4 duration-300 ${step === 3 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
+                <SectionHeader stepNum="03" title="Utilización de los Medios Didácticos"
+                    subtitle="Indica con qué frecuencia el facilitador utilizó cada recurso durante el cuatrimestre."
+                    badge="6 Ítems" accentBg="bg-violet-600" accentText="text-violet-600"
+                    badgeBg="bg-violet-100" badgeText="text-violet-700" borderColor="border-violet-50" />
+                <div className="bg-slate-50 rounded-2xl p-4 text-xs text-slate-500 space-y-1.5">
+                    {SCALE_FREQ.map((s, i) => (
+                        <div key={i} className="flex gap-2">
+                            <span className="font-bold text-slate-700 w-16 flex-shrink-0">{s.label}</span>
+                            <span>{s.full}</span>
+                        </div>
+                    ))}
                 </div>
-            )}
+                <div className="space-y-3">
+                    {SEC3.map((item, idx) => (
+                        <FreqRow key={item.name} name={item.name} label={item.label}
+                            itemNumber={idx + 1} accentBg="bg-violet-600" />
+                    ))}
+                </div>
+            </div>
 
             {/* ── PASO 4: Teoría / Práctica ────────────────────── */}
-            {step === 4 && (
-                <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                    <SectionHeader stepNum="04" title="Relación Teoría / Práctica"
-                        subtitle="Selecciona la opción que mejor describe el equilibrio entre teoría y práctica durante el curso."
-                        badge="1 Ítem" accentBg="bg-amber-500" accentText="text-amber-600"
-                        badgeBg="bg-amber-100" badgeText="text-amber-700" borderColor="border-amber-50" />
-                    <div className="bg-white rounded-3xl shadow-sm border border-amber-50 p-8 space-y-3">
-                        {SCALE_TP.map((opt) => (
-                            <label key={opt.value}
-                                className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-amber-200 hover:bg-amber-50/50 cursor-pointer transition-all group">
-                                <input type="radio" name="teoriaPractica" value={opt.value} required
-                                    className="w-5 h-5 cursor-pointer accent-amber-500 flex-shrink-0" />
-                                <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900 leading-relaxed">
-                                    {opt.label}
-                                </span>
-                            </label>
-                        ))}
-                    </div>
+            <div className={`space-y-4 duration-300 ${step === 4 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
+                <SectionHeader stepNum="04" title="Relación Teoría / Práctica"
+                    subtitle="Selecciona la opción que mejor describe el equilibrio entre teoría y práctica durante el curso."
+                    badge="1 Ítem" accentBg="bg-amber-500" accentText="text-amber-600"
+                    badgeBg="bg-amber-100" badgeText="text-amber-700" borderColor="border-amber-50" />
+                <div className="bg-white rounded-3xl shadow-sm border border-amber-50 p-8 space-y-3">
+                    {SCALE_TP.map((opt) => (
+                        <label key={opt.value}
+                            className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-amber-200 hover:bg-amber-50/50 cursor-pointer transition-all group">
+                            <input type="radio" name="teoriaPractica" value={opt.value}
+                                className="w-5 h-5 cursor-pointer accent-amber-500 flex-shrink-0" />
+                            <span className="text-sm text-slate-700 font-medium group-hover:text-slate-900 leading-relaxed">
+                                {opt.label}
+                            </span>
+                        </label>
+                    ))}
                 </div>
-            )}
+            </div>
 
             {/* ── PASO 5: Autoevaluación + Comentarios ────────── */}
-            {step === 5 && (
-                <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                    <SectionHeader stepNum="05" title="Autoevaluación del Alumno"
-                        subtitle="Evalúa tu propio desempeño, compromiso y participación durante el cuatrimestre."
-                        badge="11 Ítems" accentBg="bg-emerald-600" accentText="text-emerald-600"
-                        badgeBg="bg-emerald-100" badgeText="text-emerald-700" borderColor="border-emerald-50" />
-                    <div className="bg-slate-50 rounded-2xl p-4 text-xs text-slate-500 space-y-1.5">
-                        {SCALE_FREQ.map((s, i) => (
-                            <div key={i} className="flex gap-2">
-                                <span className="font-bold text-slate-700 w-16 flex-shrink-0">{s.label}</span>
-                                <span>{s.full}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="space-y-3">
-                        {SEC5.map((item, idx) => (
-                            <FreqRow key={item.name} name={item.name} label={item.label}
-                                itemNumber={idx + 1} accentBg="bg-emerald-600" />
-                        ))}
-                    </div>
+            <div className={`space-y-4 duration-300 ${step === 5 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
+                <SectionHeader stepNum="05" title="Autoevaluación del Alumno"
+                    subtitle="Evalúa tu propio desempeño, compromiso y participación durante el cuatrimestre."
+                    badge="11 Ítems" accentBg="bg-emerald-600" accentText="text-emerald-600"
+                    badgeBg="bg-emerald-100" badgeText="text-emerald-700" borderColor="border-emerald-50" />
+                <div className="bg-slate-50 rounded-2xl p-4 text-xs text-slate-500 space-y-1.5">
+                    {SCALE_FREQ.map((s, i) => (
+                        <div key={i} className="flex gap-2">
+                            <span className="font-bold text-slate-700 w-16 flex-shrink-0">{s.label}</span>
+                            <span>{s.full}</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="space-y-3">
+                    {SEC5.map((item, idx) => (
+                        <FreqRow key={item.name} name={item.name} label={item.label}
+                            itemNumber={idx + 1} accentBg="bg-emerald-600" />
+                    ))}
+                </div>
 
-                    {/* Sección 6 — Comentarios */}
-                    <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 space-y-6">
-                        <div>
-                            <span className="text-xs font-black tracking-widest uppercase text-slate-400">Sección 06</span>
-                            <h2 className="text-xl font-black text-slate-800 mt-0.5">Comentarios</h2>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-bold text-slate-700">
-                                ¿Cuáles son las fortalezas del docente y qué sugerencias darías para hacer más dinámicas las clases?
-                            </label>
-                            <textarea name="comentario_fortalezas"
-                                placeholder="Escribe aquí tu retroalimentación... (Opcional)"
-                                className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 transition-all outline-none h-28 bg-slate-50/50 text-sm resize-none" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-bold text-slate-700">
-                                ¿Consideras necesario realizar algún otro comentario respecto a tu docente?
-                            </label>
-                            <textarea name="comentario_adicional"
-                                placeholder="Comentario adicional... (Opcional)"
-                                className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 transition-all outline-none h-24 bg-slate-50/50 text-sm resize-none" />
-                        </div>
+                {/* Sección 6 — Comentarios */}
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 space-y-6">
+                    <div>
+                        <span className="text-xs font-black tracking-widest uppercase text-slate-400">Sección 06</span>
+                        <h2 className="text-xl font-black text-slate-800 mt-0.5">Comentarios</h2>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="block text-sm font-bold text-slate-700">
+                            ¿Cuáles son las fortalezas del docente y qué sugerencias darías para hacer más dinámicas las clases?
+                        </label>
+                        <textarea name="comentario_fortalezas"
+                            placeholder="Escribe aquí tu retroalimentación... (Opcional)"
+                            className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 transition-all outline-none h-28 bg-slate-50/50 text-sm resize-none" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="block text-sm font-bold text-slate-700">
+                            ¿Consideras necesario realizar algún otro comentario respecto a tu docente?
+                        </label>
+                        <textarea name="comentario_adicional"
+                            placeholder="Comentario adicional... (Opcional)"
+                            className="w-full p-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 transition-all outline-none h-24 bg-slate-50/50 text-sm resize-none" />
                     </div>
                 </div>
-            )}
+            </div>
 
             {/* ── NAVEGACIÓN ──────────────────────────────────── */}
             <div className="flex items-center justify-between pt-2 pb-6">
                 <div className="flex gap-1.5 items-center">
                     {Array.from({ length: TOTAL }).map((_, idx) => (
                         <div key={idx} className={`rounded-full transition-all duration-500 ${step === idx + 1 ? "w-8 h-2 bg-blue-600"
-                                : step > idx + 1 ? "w-2 h-2 bg-slate-400"
-                                    : "w-2 h-2 bg-slate-200"}`} />
+                            : step > idx + 1 ? "w-2 h-2 bg-slate-400"
+                                : "w-2 h-2 bg-slate-200"}`} />
                     ))}
                     <span className="ml-2 text-xs font-bold text-slate-400">{step}/{TOTAL}</span>
                 </div>

@@ -9,18 +9,15 @@ import { authOptions } from "@/lib/auth";
 export async function createEvaluation(formData: FormData) {
     const session = await getServerSession(authOptions);
 
-    // Resuelve el Student asociado al usuario autenticado
     let studentId = "";
-
     if (session?.user?.id) {
-        // Buscar el Student vinculado al User autenticado
         const student = await prisma.student.findUnique({
             where: { userId: session.user.id },
         });
         if (student) studentId = student.id;
     }
 
-    // TODO: eliminar en producción
+    // Hack para testing: asume el primer alumno si no hay sesión. Quitar antes del release v1.
     if (!studentId) {
         const devStudent = await prisma.student.findFirst();
         if (devStudent) studentId = devStudent.id;
