@@ -1,0 +1,7 @@
+ src/app/admin/evaluaciones/actions.ts              |   5 +-
+ .../alumno/evaluar/[subjectId]/EvaluationForm.tsx  | 254 ++++++++++-----------
+ src/app/alumno/page.tsx                            |  15 +-
+ src/app/docente/page.tsx                           |  78 +++++--
+ src/lib/auth.ts                                    |   2 +-
+ src/lib/csv/parseAlumnos.ts                        |   8 -
+ 6 files changed, 179 insertions(+), 183 deletions(-)

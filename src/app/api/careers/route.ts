@@ -1,6 +1,7 @@
-// src/app/api/careers/route.ts
-// Endpoint REST que devuelve todas las carreras activas
-// Usado por los formularios client-side (ej: nuevo docente)
+/**
+ * API route for accessing active careers
+ * Provides a read-only list of active careers strictly for use in client-side forms and dropdowns.
+ */
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";

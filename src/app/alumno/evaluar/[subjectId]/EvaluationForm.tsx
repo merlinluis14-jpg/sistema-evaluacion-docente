@@ -1,10 +1,13 @@
 "use client";
+/**
+ * Evaluation Form (Client Component)
+ * Handles state and submission for the 33-item FDA-24.5 instrument.
+ * Includes step navigation and ensures anonymity of student responses.
+ * Cumple con: RF6, RF7
+ */
 
 import { useState } from "react";
 
-// ============================================================
-// CONSTANTES DE ESCALA
-// ============================================================
 const SCALE_EMBM = [
     { value: 4, label: "E", full: "Excelente" },
     { value: 3, label: "MB", full: "Muy Bien" },
@@ -12,7 +15,6 @@ const SCALE_EMBM = [
     { value: 1, label: "M", full: "Malo" },
 ];
 
-// Escala Habilidades: E=5, MB=4, B=3, R=2, M=1 — valores únicos
 const SCALE_EMBMR = [
     { value: 5, label: "E", full: "Excelente" },
     { value: 4, label: "MB", full: "Muy Bien" },
@@ -37,9 +39,6 @@ const SCALE_TP = [
     { value: 5, label: "Poca teoría y poca práctica" },
 ];
 
-// ============================================================
-// ÍTEMS DEL FDA-24.5
-// ============================================================
 const SEC1 = [
     { name: "fac_item01", label: "Al inicio del cuatrimestre orientó sobre las unidades de aprendizaje, objetivos, resultados esperados, competencias, habilidades y referencias bibliográficas." },
     { name: "fac_item02", label: "Domina los contenidos de las unidades." },
@@ -63,11 +62,11 @@ const SEC2 = [
 
 const SEC3 = [
     { name: "med_item01", label: "Pizarrón" },
-    { name: "med_item02", label: "TV" },
-    { name: "med_item03", label: "Cañón" },
-    { name: "med_item04", label: "Webquest (guía electrónica en internet orientada por el facilitador)" },
+    { name: "med_item02", label: "TV / Pantalla" },
+    { name: "med_item03", label: "Cañón / Proyector" },
+    { name: "med_item04", label: "Webquest / Plataformas digitales" },
     { name: "med_item05", label: "Guías de trabajo" },
-    { name: "med_item06", label: "Libros" },
+    { name: "med_item06", label: "Libros y bibliografía" },
 ];
 
 const SEC5 = [
@@ -83,10 +82,6 @@ const SEC5 = [
     { name: "auto_item10", label: "¿Presté en cada clase atención y disposición para el aprendizaje?" },
     { name: "auto_item11", label: "Desarrollo de las competencias." },
 ];
-
-// ============================================================
-// SUB-COMPONENTES (con clases explícitas para Tailwind JIT)
-// ============================================================
 
 type ScaleOption = { value: number; label: string; full: string };
 
@@ -166,9 +161,6 @@ function SectionHeader({ stepNum, title, subtitle, badge, accentBg, accentText, 
     );
 }
 
-// ============================================================
-// COMPONENTE PRINCIPAL
-// ============================================================
 export function EvaluationForm({
     subjectId, teacherId, periodId, action,
 }: {
@@ -194,15 +186,12 @@ export function EvaluationForm({
             <input type="hidden" name="teacherId" value={teacherId} />
             <input type="hidden" name="periodId" value={periodId} />
 
-            {/* Aviso de anonimato — RF7 */}
             <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-2xl px-5 py-3">
-                <span className="text-lg">🔒</span>
                 <p className="text-sm text-blue-700 font-medium">
                     Tu evaluación es <strong>completamente anónima</strong>. El docente no podrá identificarte.
                 </p>
             </div>
 
-            {/* Indicador de pasos */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                 {steps.map((s, idx) => (
                     <div key={idx} className="flex items-center gap-2 flex-shrink-0">
@@ -219,7 +208,6 @@ export function EvaluationForm({
                 ))}
             </div>
 
-            {/* ── PASO 1: Facilitador ──────────────────────────── */}
             <div className={`space-y-4 duration-300 ${step === 1 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
                 <SectionHeader stepNum="01" title="Evaluación del Facilitador"
                     subtitle="Desempeño general, puntualidad, dominio de contenidos y cumplimiento de objetivos institucionales."
@@ -240,7 +228,6 @@ export function EvaluationForm({
                 </div>
             </div>
 
-            {/* ── PASO 2: Habilidades ──────────────────────────── */}
             <div className={`space-y-4 duration-300 ${step === 2 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
                 <SectionHeader stepNum="02" title="Habilidades del Facilitador"
                     subtitle="Dominio del tema, capacidad de comunicación y vinculación con el modelo educativo institucional."
@@ -261,7 +248,6 @@ export function EvaluationForm({
                 </div>
             </div>
 
-            {/* ── PASO 3: Medios Didácticos ────────────────────── */}
             <div className={`space-y-4 duration-300 ${step === 3 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
                 <SectionHeader stepNum="03" title="Utilización de los Medios Didácticos"
                     subtitle="Indica con qué frecuencia el facilitador utilizó cada recurso durante el cuatrimestre."
@@ -283,7 +269,6 @@ export function EvaluationForm({
                 </div>
             </div>
 
-            {/* ── PASO 4: Teoría / Práctica ────────────────────── */}
             <div className={`space-y-4 duration-300 ${step === 4 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
                 <SectionHeader stepNum="04" title="Relación Teoría / Práctica"
                     subtitle="Selecciona la opción que mejor describe el equilibrio entre teoría y práctica durante el curso."
@@ -303,7 +288,6 @@ export function EvaluationForm({
                 </div>
             </div>
 
-            {/* ── PASO 5: Autoevaluación + Comentarios ────────── */}
             <div className={`space-y-4 duration-300 ${step === 5 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
                 <SectionHeader stepNum="05" title="Autoevaluación del Alumno"
                     subtitle="Evalúa tu propio desempeño, compromiso y participación durante el cuatrimestre."
@@ -324,7 +308,6 @@ export function EvaluationForm({
                     ))}
                 </div>
 
-                {/* Sección 6 — Comentarios */}
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 space-y-6">
                     <div>
                         <span className="text-xs font-black tracking-widest uppercase text-slate-400">Sección 06</span>
@@ -349,7 +332,6 @@ export function EvaluationForm({
                 </div>
             </div>
 
-            {/* ── NAVEGACIÓN ──────────────────────────────────── */}
             <div className="flex items-center justify-between pt-2 pb-6">
                 <div className="flex gap-1.5 items-center">
                     {Array.from({ length: TOTAL }).map((_, idx) => (
@@ -364,18 +346,18 @@ export function EvaluationForm({
                     {step > 1 && (
                         <button type="button" onClick={prev}
                             className="bg-white text-slate-600 px-6 py-3 rounded-2xl font-bold shadow-sm hover:bg-slate-50 border border-slate-200 active:scale-95 transition-all text-sm">
-                            ← Anterior
+                            Anterior
                         </button>
                     )}
                     {step < TOTAL ? (
                         <button type="button" onClick={next}
                             className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold shadow-lg hover:bg-slate-700 active:scale-95 transition-all text-sm">
-                            Siguiente →
+                            Siguiente
                         </button>
                     ) : (
                         <button type="submit"
                             className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-10 py-3 rounded-2xl font-black shadow-xl hover:shadow-emerald-500/30 active:scale-95 transition-all text-sm">
-                            ✓ Enviar Evaluación FDA-24.5
+                            Enviar Evaluación
                         </button>
                     )}
                 </div>
