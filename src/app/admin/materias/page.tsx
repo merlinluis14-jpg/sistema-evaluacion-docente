@@ -1,91 +1,239 @@
+// Gestión de Materias - Panel Administrador
+
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function MateriasPage({ searchParams }: { searchParams: Promise<{ success?: string; error?: string }> }) {
-    const params = await searchParams;
-    const success = params?.success;
-    const error = params?.error;
+export default async function MateriasAdminPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ carrera?: string; q?: string }>;
+}) {
+    const { carrera, q } = await searchParams;
 
-    const materias = await prisma.subject.findMany({
-        include: {
-            teacher: true,
-        },
-        orderBy: {
-            cuatrimestre: 'asc'
-        }
+    const carreras = await prisma.career.findMany({
+        where: { isActive: true },
+        orderBy: { code: "asc" },
     });
 
+    const materias = await prisma.subject.findMany({
+        where: {
+            ...(carrera ? { careerId: carrera } : {}),
+            ...(q
+                ? {
+                    OR: [
+                        { name: { contains: q, mode: "insensitive" } },
+                        { code: { contains: q, mode: "insensitive" } },
+                    ],
+                }
+                : {}),
+        },
+        include: {
+            teacher: true,
+            career: true,
+        },
+        orderBy: [{ career: { code: "asc" } }, { cuatrimestre: "asc" }],
+    });
+
+    const totalMaterias = await prisma.subject.count();
+
     return (
-        <div className="p-8 pb-20 sm:p-12 animate-in fade-in zoom-in duration-500 max-w-7xl mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="p-8 space-y-6 max-w-7xl mx-auto">
+
+            {/* Header */}
+            <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-                        Evaluación de Materias
+                    <h1 className="text-3xl font-black text-slate-800">
+                        Gestión de <span className="text-blue-600">Materias</span>
                     </h1>
-                    <p className="text-gray-500 mt-2">
-                        Selecciona una asignatura para evaluar el desempeño de tu docente.
+                    <p className="text-slate-400 text-sm mt-1">
+                        {totalMaterias} materias registradas en el sistema
                     </p>
                 </div>
+                <Link
+                    href="/admin/materias/nueva"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20"
+                >
+                    <span>+</span> Nueva Materia
+                </Link>
             </div>
 
-            {success && (
-                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-                    <span className="text-xl">✅</span>
-                    <p className="font-medium text-sm">Evaluación enviada exitosamente. ¡Gracias por tu participación!</p>
-                </div>
-            )}
-
-            {error === "duplicada" && (
-                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl flex items-center gap-3">
-                    <span className="text-xl">⚠️</span>
-                    <p className="font-medium text-sm">Ya has evaluado esta materia en el periodo actual. Solo se permite una evaluación por materia.</p>
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {materias.map((materia) => (
-                    <div key={materia.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all group flex flex-col justify-between">
-                        <div>
-                            <div className="flex justify-between items-start mb-4">
-                                <span className="bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
-                                    Cuatrimestre {materia.cuatrimestre}
-                                </span>
-                                <span className="text-xs font-mono text-gray-400">{materia.code}</span>
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
-                                {materia.name}
-                            </h3>
-                            <div className="flex items-center gap-3 mt-4 p-3 bg-gray-50 rounded-2xl">
-                                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs ring-2 ring-white">
-                                    {materia.teacher.name[0]}{materia.teacher.lastName[0]}
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Docente</p>
-                                    <p className="text-sm font-bold text-gray-700">{materia.teacher.name} {materia.teacher.lastName}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-6">
-                            <Link
-                                href={`/admin/materias/evaluar/${materia.id}`}
-                                className="block w-full text-center py-3 px-4 rounded-xl bg-gray-900 text-white font-bold text-sm hover:bg-blue-600 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-gray-200"
-                            >
-                                Evaluar Docente
-                            </Link>
-                        </div>
+            {/* Filtros */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <form className="flex gap-3 flex-wrap items-end">
+                    <div className="flex-1 min-w-48">
+                        <label className="block text-xs font-bold text-slate-500 mb-1.5">
+                            Buscar
+                        </label>
+                        <input
+                            name="q"
+                            defaultValue={q}
+                            placeholder="Nombre o código de materia..."
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                        />
                     </div>
-                ))}
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1.5">
+                            Carrera
+                        </label>
+                        <select
+                            name="carrera"
+                            defaultValue={carrera}
+                            className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                        >
+                            <option value="">Todas las carreras</option>
+                            {carreras.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.code} — {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-700 active:scale-95 transition-all"
+                    >
+                        Filtrar
+                    </button>
+
+                    {(q || carrera) && (
+                        <Link
+                            href="/admin/materias"
+                            className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                        >
+                            Limpiar
+                        </Link>
+                    )}
+                </form>
             </div>
 
-            {materias.length === 0 && (
-                <div className="bg-white rounded-3xl border border-dashed border-gray-300 p-20 text-center">
-                    <p className="text-gray-500 font-medium">No hay materias disponibles para evaluar en este momento.</p>
+            {/* Tabla de materias */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <h2 className="font-bold text-slate-700">
+                        Mostrando {materias.length} de {totalMaterias} materias
+                    </h2>
                 </div>
-            )}
+
+                <table className="w-full">
+                    <thead>
+                        <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Código
+                            </th>
+                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Materia
+                            </th>
+                            <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Carrera
+                            </th>
+                            <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Cuatrimestre
+                            </th>
+                            <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Docente asignado
+                            </th>
+                            <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Estado
+                            </th>
+                            <th className="px-4 py-3" />
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                        {materias.map((materia) => (
+                            <tr
+                                key={materia.id}
+                                className="hover:bg-slate-50/50 transition-colors"
+                            >
+                                {/* Código */}
+                                <td className="px-6 py-3">
+                                    <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
+                                        {materia.code}
+                                    </span>
+                                </td>
+
+                                {/* Nombre */}
+                                <td className="px-4 py-3">
+                                    <p className="font-semibold text-slate-800 text-sm">
+                                        {materia.name}
+                                    </p>
+                                </td>
+
+                                {/* Carrera */}
+                                <td className="px-4 py-3 text-center">
+                                    <span className="bg-indigo-50 text-indigo-700 font-black text-xs px-2 py-1 rounded-lg">
+                                        {materia.career.code}
+                                    </span>
+                                </td>
+
+                                {/* Cuatrimestre */}
+                                <td className="px-4 py-3 text-center">
+                                    <span className="text-sm font-bold text-slate-600">
+                                        {materia.cuatrimestre}°
+                                    </span>
+                                </td>
+
+                                {/* Docente */}
+                                <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-[10px] font-black flex-shrink-0">
+                                            {materia.teacher.name[0]}
+                                            {materia.teacher.lastName[0]}
+                                        </div>
+                                        <span className="text-sm text-slate-600">
+                                            {materia.teacher.name} {materia.teacher.lastName}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                {/* Estado */}
+                                <td className="px-4 py-3 text-center">
+                                    <span
+                                        className={`px-2 py-1 rounded-full text-xs font-bold ${materia.isActive
+                                                ? "bg-emerald-100 text-emerald-700"
+                                                : "bg-slate-100 text-slate-400"
+                                            }`}
+                                    >
+                                        {materia.isActive ? "Activa" : "Inactiva"}
+                                    </span>
+                                </td>
+
+                                {/* Acciones */}
+                                <td className="px-4 py-3 text-right">
+                                    <Link
+                                        href={`/admin/materias/${materia.id}/editar`}
+                                        className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                                    >
+                                        Editar
+                                    </Link>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                {materias.length === 0 && (
+                    <div className="text-center py-16 text-slate-400">
+                        <p className="text-4xl mb-3">📚</p>
+                        <p className="font-bold">No se encontraron materias</p>
+                        <p className="text-sm mt-1">
+                            {q || carrera
+                                ? "Intenta con otros filtros"
+                                : "Crea la primera materia con el botón superior"}
+                        </p>
+                        <Link
+                            href="/admin/materias/nueva"
+                            className="inline-block mt-4 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all"
+                        >
+                            + Nueva Materia
+                        </Link>
+                    </div>
+                )}
+            </div>
+
         </div>
     );
 }
-
