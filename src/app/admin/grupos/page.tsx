@@ -1,7 +1,7 @@
-// src/app/admin/grupos/page.tsx
 import { prisma } from "@/lib/prisma";
 import { CareerFilter } from "./CareerFilter";
 import Link from "next/link";
+import { Calendar, Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ export default async function GruposPage({
         <div className="p-8 pb-20 sm:p-12 animate-in fade-in zoom-in duration-500 max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-slate-900">
+                    <h1 className="text-3xl font-black text-slate-800">
                         Gestión de <span className="text-blue-600">Grupos</span>
                     </h1>
                     <p className="text-slate-500 mt-2 text-lg">
@@ -71,7 +71,7 @@ export default async function GruposPage({
                                     </td>
                                     <td className="py-5 px-4">
                                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold">
-                                            📅 {group.period}
+                                            <Calendar className="w-3 h-3" /> {group.period}
                                         </span>
                                     </td>
                                     <td className="py-5 px-4 text-center">
@@ -94,10 +94,10 @@ export default async function GruposPage({
                             {groups.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="py-20 text-center">
-                                        <p className="text-4xl mb-4 text-slate-200">👥</p>
+                                        <Users className="w-10 h-10 mb-4 text-slate-200 mx-auto" />
                                         <p className="text-slate-400 font-bold">No se encontraron grupos con los criterios seleccionados.</p>
                                         {careerId && (
-                                            <Link href="/admin/grupos" className="text-blue-600 text-sm font-bold mt-2 inline-block hover:underline">
+                                            <Link href="/admin/grupos" className="text-slate-500 hover:text-slate-700 text-sm font-bold mt-2 inline-block hover:underline">
                                                 Limpiar filtros
                                             </Link>
                                         )}

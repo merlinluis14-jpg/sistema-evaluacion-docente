@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -74,9 +75,9 @@ export default async function EditarMateriaPage({
       {/* Navegación */}
       <a
         href="/admin/materias"
-        className="text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
       >
-        ← Volver a Materias
+        <ArrowLeft size={15} /> Volver a Materias
       </a>
 
       {/* Header */}
@@ -210,13 +211,13 @@ export default async function EditarMateriaPage({
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-black hover:bg-blue-700 active:scale-[0.99] transition-all shadow-lg shadow-blue-500/20"
+              className="flex-1 py-3 rounded-xl bg-blue-700 text-white text-sm font-black hover:bg-blue-800 active:scale-[0.99] transition-all shadow-lg shadow-blue-700/20"
             >
               Guardar cambios
             </button>
             <a
               href="/admin/materias"
-              className="px-6 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all text-center"
+              className="px-6 py-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 transition-all text-center"
             >
               Cancelar
             </a>

@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { AlertTriangle, CalendarDays, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -95,9 +96,9 @@ export default async function NuevoPeriodoPage({
 
       <Link
         href="/admin/periodos"
-        className="text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
       >
-        ← Volver a Periodos
+        <ArrowLeft size={15} /> Volver a Periodos
       </Link>
 
       <div>
@@ -111,13 +112,15 @@ export default async function NuevoPeriodoPage({
 
       {error && mensajesError[error] && (
         <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-center gap-3">
-          <span className="text-red-500">⚠️</span>
+          <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
           <p className="text-sm text-red-600 font-medium">{mensajesError[error]}</p>
         </div>
       )}
 
       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 space-y-3">
-        <p className="text-sm font-bold text-blue-700">📅 Plantillas del Calendario Oficial UPTX</p>
+        <p className="text-sm font-bold text-blue-700 flex items-center gap-2">
+          <CalendarDays className="w-4 h-4" /> Plantillas del Calendario Oficial UPTX
+        </p>
         <p className="text-xs text-blue-500">
           Selecciona una para pre-llenar el formulario automáticamente
         </p>
@@ -213,13 +216,13 @@ export default async function NuevoPeriodoPage({
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-black hover:bg-blue-700 active:scale-[0.99] transition-all shadow-lg shadow-blue-500/20"
+              className="flex-1 py-3 rounded-xl bg-blue-700 text-white text-sm font-black hover:bg-blue-800 active:scale-[0.99] transition-all shadow-lg shadow-blue-700/20"
             >
               Crear periodo
             </button>
             <Link
               href="/admin/periodos"
-              className="px-6 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all text-center"
+              className="px-6 py-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 transition-all text-center"
             >
               Cancelar
             </Link>

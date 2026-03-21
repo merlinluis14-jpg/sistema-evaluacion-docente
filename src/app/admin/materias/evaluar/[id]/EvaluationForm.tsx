@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Lock, Check } from "lucide-react";
 
-// ============================================================
-// CONSTANTES DE ESCALA
-// ============================================================
+// Constantes de escala — Instrumento FDA-24.5
 const SCALE_EMBM = [
     { value: 4, label: "E", full: "Excelente" },
     { value: 3, label: "MB", full: "Muy Bien" },
@@ -39,9 +38,7 @@ const SCALE_TP = [
     { value: 5, label: "Poca teoría y poca práctica" },
 ];
 
-// ============================================================
-// ÍTEMS DEL FDA-24.5
-// ============================================================
+// Ítems del instrumento FDA-24.5 organizados por sección
 const SEC1 = [
     { name: "fac_item01", label: "Al inicio del cuatrimestre orientó sobre las unidades de aprendizaje, objetivos, resultados esperados, competencias, habilidades y referencias bibliográficas." },
     { name: "fac_item02", label: "Domina los contenidos de las unidades." },
@@ -86,9 +83,7 @@ const SEC5 = [
     { name: "auto_item11", label: "Desarrollo de las competencias." },
 ];
 
-// ============================================================
-// SUB-COMPONENTES (con clases explícitas para Tailwind JIT)
-// ============================================================
+// Sub-componentes de presentación (clases explícitas para Tailwind JIT)
 
 type ScaleOption = { value: number; label: string; full: string };
 
@@ -168,9 +163,6 @@ function SectionHeader({ stepNum, title, subtitle, badge, accentBg, accentText, 
     );
 }
 
-// ============================================================
-// COMPONENTE PRINCIPAL
-// ============================================================
 export function EvaluationForm({
     subjectId, teacherId, periodId, action,
 }: {
@@ -198,13 +190,12 @@ export function EvaluationForm({
 
             {/* Aviso de anonimato — RF7 */}
             <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-2xl px-5 py-3">
-                <span className="text-lg">🔒</span>
+                <Lock size={20} className="text-white" />
                 <p className="text-sm text-blue-700 font-medium">
                     Tu evaluación es <strong>completamente anónima</strong>. El docente no podrá identificarte.
                 </p>
             </div>
 
-            {/* Indicador de pasos */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                 {steps.map((s, idx) => (
                     <div key={idx} className="flex items-center gap-2 flex-shrink-0">
@@ -221,7 +212,6 @@ export function EvaluationForm({
                 ))}
             </div>
 
-            {/* ── PASO 1: Facilitador ──────────────────────────── */}
             {step === 1 && (
                 <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                     <SectionHeader stepNum="01" title="Evaluación del Facilitador"
@@ -244,7 +234,6 @@ export function EvaluationForm({
                 </div>
             )}
 
-            {/* ── PASO 2: Habilidades ──────────────────────────── */}
             {step === 2 && (
                 <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                     <SectionHeader stepNum="02" title="Habilidades del Facilitador"
@@ -267,7 +256,6 @@ export function EvaluationForm({
                 </div>
             )}
 
-            {/* ── PASO 3: Medios Didácticos ────────────────────── */}
             {step === 3 && (
                 <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                     <SectionHeader stepNum="03" title="Utilización de los Medios Didácticos"
@@ -291,7 +279,6 @@ export function EvaluationForm({
                 </div>
             )}
 
-            {/* ── PASO 4: Teoría / Práctica ────────────────────── */}
             {step === 4 && (
                 <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                     <SectionHeader stepNum="04" title="Relación Teoría / Práctica"
@@ -313,7 +300,6 @@ export function EvaluationForm({
                 </div>
             )}
 
-            {/* ── PASO 5: Autoevaluación + Comentarios ────────── */}
             {step === 5 && (
                 <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                     <SectionHeader stepNum="05" title="Autoevaluación del Alumno"
@@ -361,7 +347,6 @@ export function EvaluationForm({
                 </div>
             )}
 
-            {/* ── NAVEGACIÓN ──────────────────────────────────── */}
             <div className="flex items-center justify-between pt-2 pb-6">
                 <div className="flex gap-1.5 items-center">
                     {Array.from({ length: TOTAL }).map((_, idx) => (
@@ -386,8 +371,8 @@ export function EvaluationForm({
                         </button>
                     ) : (
                         <button type="submit"
-                            className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-10 py-3 rounded-2xl font-black shadow-xl hover:shadow-emerald-500/30 active:scale-95 transition-all text-sm">
-                            ✓ Enviar Evaluación FDA-24.5
+                            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-10 py-3 rounded-2xl font-black shadow-xl hover:shadow-emerald-500/30 active:scale-95 transition-all text-sm">
+                            <Check size={18} /> Enviar Evaluación FDA-24.5
                         </button>
                     )}
                 </div>

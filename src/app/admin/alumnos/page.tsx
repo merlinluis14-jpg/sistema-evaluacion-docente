@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { Upload, AlertTriangle, GraduationCap, Plus } from "lucide-react";
 
 export default async function AlumnosPage({
     searchParams,
@@ -67,15 +68,15 @@ export default async function AlumnosPage({
                 <div className="flex items-center gap-3">
                     <Link
                         href="/admin/alumnos/nuevo"
-                        className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-700 transition-all"
+                        className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all"
                     >
-                        + Nuevo Alumno
+                        <Plus size={16} /> Nuevo Alumno
                     </Link>
                     <Link
                         href="/admin/alumnos/importar"
-                        className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20"
+                        className="flex items-center gap-2 bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 active:scale-95 transition-all shadow-lg shadow-blue-700/20"
                     >
-                        <span>📤</span> Importar CSV
+                        <Upload className="w-4 h-4" /> Importar CSV
                     </Link>
                 </div>
             </div>
@@ -156,7 +157,8 @@ export default async function AlumnosPage({
                     </h2>
                     {alumnos.length === 100 && (
                         <span className="text-xs text-amber-600 font-medium bg-amber-50 px-3 py-1 rounded-full">
-                            ⚠️ Mostrando primeros 100 — usa los filtros para refinar
+                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                        <span>Mostrando primeros 100 — usa los filtros para refinar</span>
                         </span>
                     )}
                 </div>
@@ -209,7 +211,7 @@ export default async function AlumnosPage({
 
                 {alumnos.length === 0 && (
                     <div className="text-center py-12 text-slate-400">
-                        <p className="text-4xl mb-3">🎓</p>
+                        <GraduationCap className="w-10 h-10 mb-3 text-slate-300" />
                         <p className="font-bold">No se encontraron alumnos</p>
                         <p className="text-sm mt-1">
                             {q || carrera || grupo
@@ -220,7 +222,7 @@ export default async function AlumnosPage({
                             href="/admin/alumnos/importar"
                             className="inline-block mt-4 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all"
                         >
-                            📤 Importar CSV
+                            <Upload className="w-4 h-4 inline mr-1" /> Importar CSV
                         </Link>
                     </div>
                 )}

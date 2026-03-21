@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { Plus, Pencil, BookOpen, Inbox } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,6 @@ export default async function MateriasAdminPage({
     return (
         <div className="p-8 space-y-6 max-w-7xl mx-auto">
 
-            {/* Header */}
             <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">
@@ -53,13 +53,12 @@ export default async function MateriasAdminPage({
                 </div>
                 <Link
                     href="/admin/materias/nueva"
-                    className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20"
+                    className="flex items-center gap-2 bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 active:scale-95 transition-all shadow-lg shadow-blue-700/20"
                 >
-                    <span>+</span> Nueva Materia
+                    <Plus size={16} /> Nueva Materia
                 </Link>
             </div>
 
-            {/* Filtros */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <form className="flex gap-3 flex-wrap items-end">
                     <div className="flex-1 min-w-48">
@@ -94,7 +93,7 @@ export default async function MateriasAdminPage({
 
                     <button
                         type="submit"
-                        className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-700 active:scale-95 transition-all"
+                        className="bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 active:scale-95 transition-all"
                     >
                         Filtrar
                     </button>
@@ -102,7 +101,7 @@ export default async function MateriasAdminPage({
                     {(q || carrera) && (
                         <Link
                             href="/admin/materias"
-                            className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                            className="px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
                         >
                             Limpiar
                         </Link>
@@ -148,35 +147,30 @@ export default async function MateriasAdminPage({
                                 key={materia.id}
                                 className="hover:bg-slate-50/50 transition-colors"
                             >
-                                {/* Código */}
                                 <td className="px-6 py-3">
                                     <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
                                         {materia.code}
                                     </span>
                                 </td>
 
-                                {/* Nombre */}
                                 <td className="px-4 py-3">
                                     <p className="font-semibold text-slate-800 text-sm">
                                         {materia.name}
                                     </p>
                                 </td>
 
-                                {/* Carrera */}
                                 <td className="px-4 py-3 text-center">
                                     <span className="bg-indigo-50 text-indigo-700 font-black text-xs px-2 py-1 rounded-lg">
                                         {materia.career.code}
                                     </span>
                                 </td>
 
-                                {/* Cuatrimestre */}
                                 <td className="px-4 py-3 text-center">
                                     <span className="text-sm font-bold text-slate-600">
                                         {materia.cuatrimestre}°
                                     </span>
                                 </td>
 
-                                {/* Docente */}
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-2">
                                         <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-[10px] font-black flex-shrink-0">
@@ -189,25 +183,23 @@ export default async function MateriasAdminPage({
                                     </div>
                                 </td>
 
-                                {/* Estado */}
                                 <td className="px-4 py-3 text-center">
                                     <span
-                                        className={`px-2 py-1 rounded-full text-xs font-bold ${materia.isActive
-                                                ? "bg-emerald-100 text-emerald-700"
-                                                : "bg-slate-100 text-slate-400"
+                                        className={`px-2 py-1 rounded-full text-xs font-bold border ${materia.isActive
+                                                ? "bg-blue-50 text-blue-700 border-blue-200"
+                                                : "bg-slate-100 text-slate-500 border-slate-200"
                                             }`}
                                     >
                                         {materia.isActive ? "Activa" : "Inactiva"}
                                     </span>
                                 </td>
 
-                                {/* Acciones */}
                                 <td className="px-4 py-3 text-right">
                                     <Link
                                         href={`/admin/materias/${materia.id}/editar`}
-                                        className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                                     >
-                                        Editar
+                                        <Pencil size={14} /> Editar
                                     </Link>
                                 </td>
                             </tr>
@@ -217,8 +209,8 @@ export default async function MateriasAdminPage({
 
                 {materias.length === 0 && (
                     <div className="text-center py-16 text-slate-400">
-                        <p className="text-4xl mb-3">📚</p>
-                        <p className="font-bold">No se encontraron materias</p>
+                        <BookOpen size={40} className="mx-auto mb-3 text-slate-300" />
+                        <p className="font-bold text-slate-600">No se encontraron materias</p>
                         <p className="text-sm mt-1">
                             {q || carrera
                                 ? "Intenta con otros filtros"
@@ -226,9 +218,9 @@ export default async function MateriasAdminPage({
                         </p>
                         <Link
                             href="/admin/materias/nueva"
-                            className="inline-block mt-4 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all"
+                            className="inline-flex items-center justify-center gap-2 mt-4 bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 transition-all shadow-md shadow-blue-700/20 hover:scale-105 active:scale-95"
                         >
-                            + Nueva Materia
+                            <Plus size={16} /> Nueva Materia
                         </Link>
                     </div>
                 )}

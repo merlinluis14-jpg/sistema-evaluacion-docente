@@ -1,17 +1,17 @@
-// RF8: Reportes por docente y materia, exportables en PDF y Excel
-// RF9: Estadísticas con promedios y análisis por sección FDA-24.5
 
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import ExportButtons from "./ExportButtons";
+import { ClipboardList, UserCog, Calendar, BarChart2, Inbox } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReportesPage({
   searchParams,
 }: {
-  searchParams: { periodoId?: string; carreraId?: string };
+  searchParams: Promise<{ periodoId?: string; carreraId?: string }>;
 }) {
+  const { periodoId: periodoIdParam, carreraId } = await searchParams;
   // Cargar filtros disponibles
   const [periodos, carreras] = await Promise.all([
     prisma.period.findMany({ orderBy: { createdAt: "desc" } }),
@@ -20,14 +20,14 @@ export default async function ReportesPage({
 
   // Periodo seleccionado — por defecto el activo
   const periodoActivo = periodos.find(p => p.isActive);
-  const periodoId = searchParams.periodoId ?? periodoActivo?.id;
+  const periodoId = periodoIdParam ?? periodoActivo?.id;
 
   // Consulta de evaluaciones agrupadas por docente
   const evaluaciones = await prisma.evaluation.findMany({
     where: {
       ...(periodoId ? { periodId: periodoId } : {}),
-      ...(searchParams.carreraId
-        ? { teacher: { careerId: searchParams.carreraId } }
+      ...(carreraId
+        ? { teacher: { careerId: carreraId } }
         : {}),
     },
     include: {
@@ -153,7 +153,7 @@ export default async function ReportesPage({
             </label>
             <select
               name="carreraId"
-              defaultValue={searchParams.carreraId}
+              defaultValue={carreraId}
               className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
             >
               <option value="">Todas las carreras</option>
@@ -165,15 +165,15 @@ export default async function ReportesPage({
 
           <button
             type="submit"
-            className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-700 transition-all"
+            className="bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 transition-all"
           >
             Filtrar
           </button>
 
-          {(searchParams.periodoId || searchParams.carreraId) && (
+          {(periodoIdParam || carreraId) && (
             <Link
               href="/admin/reportes"
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all"
+              className="px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
             >
               Limpiar
             </Link>
@@ -182,30 +182,43 @@ export default async function ReportesPage({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: "Total evaluaciones", value: totalEvals, icon: "📋", color: "blue" },
-          { label: "Docentes evaluados", value: totalDocentes, icon: "👨🏫", color: "indigo" },
-          {
-            label: "Periodo activo",
-            value: periodoActivo ? "Sí" : "No",
-            icon: "📅",
-            color: periodoActivo ? "emerald" : "amber"
-          },
-          {
-            label: "Promedio general",
-            value: reporteDocentes.length > 0
+
+        {/* Total evaluaciones */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+          <ClipboardList className="w-5 h-5 mb-1 text-blue-500" />
+          <p className="text-2xl font-black text-blue-700">{totalEvals}</p>
+          <p className="text-xs font-bold text-blue-600 mt-0.5">Total evaluaciones</p>
+        </div>
+
+        {/* Docentes evaluados */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+          <UserCog className="w-5 h-5 mb-1 text-blue-500" />
+          <p className="text-2xl font-black text-blue-700">{totalDocentes}</p>
+          <p className="text-xs font-bold text-blue-600 mt-0.5">Docentes evaluados</p>
+        </div>
+
+        {/* Periodo activo */}
+        <div className={`rounded-2xl p-5 ${periodoActivo ? "bg-blue-50 border border-blue-100" : "bg-slate-50 border border-slate-100"}`}>
+          <Calendar className={`w-5 h-5 mb-1 ${periodoActivo ? "text-blue-500" : "text-slate-400"}`} />
+          <p className={`text-2xl font-black ${periodoActivo ? "text-blue-700" : "text-slate-600"}`}>
+            {periodoActivo ? "Sí" : "No"}
+          </p>
+          <p className={`text-xs font-bold mt-0.5 ${periodoActivo ? "text-blue-600" : "text-slate-500"}`}>
+            Periodo activo
+          </p>
+        </div>
+
+        {/* Promedio general */}
+        <div className="bg-violet-50 border border-violet-100 rounded-2xl p-5">
+          <BarChart2 className="w-5 h-5 mb-1 text-violet-500" />
+          <p className="text-2xl font-black text-violet-700">
+            {reporteDocentes.length > 0
               ? (reporteDocentes.reduce((a, b) => a + parseFloat(b.globalAvg), 0) / reporteDocentes.length).toFixed(2)
-              : "—",
-            icon: "📊",
-            color: "violet"
-          },
-        ].map(({ label, value, icon, color }) => (
-          <div key={label} className={`bg-${color}-50 border border-${color}-100 rounded-2xl p-5`}>
-            <p className="text-2xl mb-1">{icon}</p>
-            <p className={`text-2xl font-black text-${color}-700`}>{value}</p>
-            <p className={`text-xs font-bold text-${color}-500 mt-0.5`}>{label}</p>
-          </div>
-        ))}
+              : "—"}
+          </p>
+          <p className="text-xs font-bold text-violet-600 mt-0.5">Promedio general</p>
+        </div>
+
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -220,7 +233,7 @@ export default async function ReportesPage({
 
         {reporteDocentes.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-4xl mb-3">📭</p>
+            <Inbox className="w-12 h-12 mb-3 text-slate-300 mx-auto" />
             <p className="font-bold text-slate-500">No hay evaluaciones para este filtro</p>
             <p className="text-sm text-slate-400 mt-1">
               Selecciona un periodo con evaluaciones registradas

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import GraficasDetalle from "./GraficasDetalle";
+import { Target, Lightbulb, Monitor, ClipboardCheck, Inbox, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -46,11 +47,11 @@ export default async function ReporteDocenteDetallePage({
   if (evaluaciones.length === 0) {
     return (
       <div className="p-8 max-w-4xl mx-auto space-y-6">
-        <Link href="/admin/reportes" className="text-sm text-slate-400 hover:text-slate-600">
-          ← Volver a Reportes
+        <Link href="/admin/reportes" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600">
+          <ArrowLeft size={15} /> Volver a Reportes
         </Link>
         <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center">
-          <p className="text-4xl mb-3">📭</p>
+          <Inbox className="w-12 h-12 mb-3 text-slate-300 mx-auto" />
           <p className="font-bold text-slate-600">Sin evaluaciones registradas</p>
           <p className="text-sm text-slate-400 mt-1">
             {teacher.name} {teacher.lastName} no tiene evaluaciones en este periodo.
@@ -137,9 +138,9 @@ export default async function ReporteDocenteDetallePage({
       {/* ── Navegación ── */}
       <Link
         href={`/admin/reportes${periodoId ? `?periodoId=${periodoId}` : ""}`}
-        className="text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
       >
-        ← Volver a Reportes
+        <ArrowLeft size={15} /> Volver a Reportes
       </Link>
 
       {/* ── Header del docente ── */}
@@ -179,13 +180,13 @@ export default async function ReporteDocenteDetallePage({
       {/* ── Tarjetas resumen por sección ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Facilitador", valor: promedioFac, max: 4, color: "blue", icon: "🎯" },
-          { label: "Habilidades", valor: promedioHab, max: 5, color: "indigo", icon: "💡" },
-          { label: "Medios Did.", valor: promedioMed, max: 5, color: "violet", icon: "🖥️" },
-          { label: "Autoevaluac.", valor: promedioAuto, max: 5, color: "emerald", icon: "📝" },
-        ].map(({ label, valor, max, color, icon }) => (
+          { label: "Facilitador",  valor: promedioFac,  max: 4, color: "blue",    Icon: Target         },
+          { label: "Habilidades",  valor: promedioHab,  max: 5, color: "indigo",  Icon: Lightbulb      },
+          { label: "Medios Did.",  valor: promedioMed,  max: 5, color: "violet",  Icon: Monitor        },
+          { label: "Autoevaluac.",valor: promedioAuto, max: 5, color: "emerald", Icon: ClipboardCheck },
+        ].map(({ label, valor, max, color, Icon }) => (
           <div key={label} className={`bg-${color}-50 border border-${color}-100 rounded-2xl p-4 text-center`}>
-            <p className="text-xl mb-1">{icon}</p>
+            <Icon className={`w-5 h-5 mb-1 mx-auto text-${color}-500`} />
             <p className={`text-2xl font-black text-${color}-700`}>{valor}</p>
             <p className={`text-xs text-${color}-400 font-bold`}>/{max} — {label}</p>
           </div>

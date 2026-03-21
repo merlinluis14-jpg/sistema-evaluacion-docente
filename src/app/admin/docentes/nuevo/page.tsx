@@ -4,6 +4,7 @@ import { createTeacher } from "../actions";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 type Career = { id: string; code: string; name: string };
 
@@ -42,9 +43,7 @@ export default function NuevoDocentePage() {
                     href="/admin/docentes"
                     className="text-sm font-medium text-blue-600 hover:text-blue-500 mb-4 inline-flex items-center gap-1 group"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 transition-transform group-hover:-translate-x-1">
-                        <path fillRule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clipRule="evenodd" />
-                    </svg>
+                    <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
                     Volver a la lista
                 </Link>
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mt-2">
@@ -97,14 +96,14 @@ export default function NuevoDocentePage() {
                     <div className="pt-4 flex items-center justify-end gap-4">
                         <Link
                             href="/admin/docentes"
-                            className="px-6 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all"
+                            className="px-6 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition-all font-bold"
                         >
                             Cancelar
                         </Link>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-500 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100"
+                            className="inline-flex items-center justify-center rounded-xl bg-blue-700 px-8 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-800 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 font-bold"
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">

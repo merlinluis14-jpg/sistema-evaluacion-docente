@@ -1,6 +1,6 @@
-// src/app/admin/carreras/page.tsx
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { BookOpen, Inbox } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export default async function CarrerasPage() {
         <div className="p-8 pb-20 sm:p-12 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-slate-900">
+                    <h1 className="text-3xl font-black text-slate-800">
                         Oferta <span className="text-blue-600">Académica</span>
                     </h1>
                     <p className="text-slate-500 mt-2 text-lg">
@@ -43,7 +43,7 @@ export default async function CarrerasPage() {
                                     <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-2xl font-black text-blue-600 group-hover:scale-110 transition-transform duration-500">
                                         {career.code}
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${career.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
+                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${career.isActive ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"
                                         }`}>
                                         {career.isActive ? "Activa" : "Inactiva"}
                                     </span>
@@ -77,8 +77,8 @@ export default async function CarrerasPage() {
                             >
                                 Ver Docentes →
                             </Link>
-                            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-blue-50 group-hover:text-blue-400 transition-all">
-                                🏛️
+                            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-all">
+                                <BookOpen size={14} />
                             </div>
                         </div>
                     </div>
@@ -86,7 +86,7 @@ export default async function CarrerasPage() {
 
                 {careers.length === 0 && (
                     <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                        <p className="text-4xl mb-4">🏜️</p>
+                        <Inbox size={40} className="mx-auto mb-4 text-slate-300" />
                         <p className="text-slate-500 font-medium text-lg">No se han registrado carreras en el sistema.</p>
                         <p className="text-slate-400 text-sm mt-1">Ejecuta el seed o agrega una manualmente.</p>
                     </div>

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { PeriodControls } from "./PeriodControls";
+import { Calendar, CheckCircle2, PauseCircle, Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,8 @@ export default async function PeriodosPage() {
         <div className="p-8 pb-20 sm:p-12 max-w-5xl mx-auto animate-in fade-in zoom-in duration-500">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-                        Periodos de Evaluación
+                    <h1 className="text-3xl font-black text-slate-800">
+                        Periodos de <span className="text-blue-600">Evaluación</span>
                     </h1>
                     <p className="text-gray-500 mt-2">
                         Gestiona los cuatrimestres activos para el instrumento FDA-24.5.
@@ -26,30 +27,36 @@ export default async function PeriodosPage() {
                 </div>
                 <Link
                     href="/admin/periodos/nuevo"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-indigo-500 transition-all hover:scale-105 active:scale-95"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all"
                 >
-                    + Nuevo Periodo
+                    <Plus size={16} /> Nuevo Periodo
                 </Link>
             </div>
 
             {/* Tarjetas de resumen */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl">📅</div>
+                    <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-indigo-600" />
+                    </div>
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Total</p>
                         <p className="text-3xl font-black text-slate-800">{periods.length}</p>
                     </div>
                 </div>
                 <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-5 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-2xl">✅</div>
+                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                    </div>
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Activo</p>
                         <p className="text-xl font-black text-emerald-700 truncate">{active?.name ?? "—"}</p>
                     </div>
                 </div>
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-2xl">⏸</div>
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                        <PauseCircle className="w-6 h-6 text-slate-400" />
+                    </div>
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Inactivos</p>
                         <p className="text-3xl font-black text-slate-800">{inactive}</p>

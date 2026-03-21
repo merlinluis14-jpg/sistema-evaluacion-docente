@@ -1,8 +1,8 @@
-// src/app/admin/docentes/page.tsx
 
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { DeleteTeacherButton } from "./DeleteTeacherButton";
+import { UserCog, Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +19,8 @@ export default async function DocentesPage() {
         <div className="p-8 pb-20 sm:p-12 animate-in fade-in zoom-in duration-500 max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-                        Gestión de Docentes
+                    <h1 className="text-3xl font-black text-slate-800">
+                        Gestión de <span className="text-blue-600">Docentes</span>
                     </h1>
                     <p className="text-gray-500 mt-2">
                         Administra los catedráticos registrados en el sistema de evaluación.
@@ -28,11 +28,9 @@ export default async function DocentesPage() {
                 </div>
                 <Link
                     href="/admin/docentes/nuevo"
-                    className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-500 transition-all hover:scale-105 active:scale-95"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all"
                 >
-                    <svg className="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                    </svg>
+                    <Plus size={16} />
                     Nuevo Docente
                 </Link>
             </div>
@@ -63,7 +61,7 @@ export default async function DocentesPage() {
                             {teachers.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="py-16 text-center text-gray-400 font-medium">
-                                        <p className="text-3xl mb-2">👨‍🏫</p>
+                                        <UserCog className="w-10 h-10 mb-2 text-slate-300 mx-auto" />
                                         No hay docentes registrados aún.{" "}
                                         <Link href="/admin/docentes/nuevo" className="text-blue-600 hover:underline font-semibold">
                                             Registra el primero
@@ -103,8 +101,8 @@ export default async function DocentesPage() {
                                     {/* Estado */}
                                     <td className="whitespace-nowrap px-3 py-4 text-sm">
                                         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border ${teacher.isActive
-                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                            : "bg-red-50 text-red-700 border-red-200"
+                                            ? "bg-blue-50 text-blue-700 border-blue-200"
+                                            : "bg-slate-100 text-slate-500 border-slate-200"
                                             }`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${teacher.isActive ? "bg-emerald-500" : "bg-red-500"}`}></span>
                                             {teacher.isActive ? "Activo" : "Inactivo"}

@@ -3,6 +3,7 @@
 // Client Component — maneja la exportación a PDF y Excel del reporte
 
 import { useState } from "react";
+import { FileSpreadsheet, FileText } from "lucide-react";
 
 type DocenteReporte = {
   teacher: {
@@ -124,7 +125,7 @@ export default function ExportButtons({ data, periodo }: Props) {
         {loadingExcel ? (
           <span className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-600 rounded-full animate-spin" />
         ) : (
-          <span>📊</span>
+          <FileSpreadsheet className="w-4 h-4" />
         )}
         Exportar Excel
       </button>
@@ -138,7 +139,7 @@ export default function ExportButtons({ data, periodo }: Props) {
         {loadingPdf ? (
           <span className="w-4 h-4 border-2 border-red-400/30 border-t-red-600 rounded-full animate-spin" />
         ) : (
-          <span>📄</span>
+          <FileText className="w-4 h-4" />
         )}
         Exportar PDF
       </button>

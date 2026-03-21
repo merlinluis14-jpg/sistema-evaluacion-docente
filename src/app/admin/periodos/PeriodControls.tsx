@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { activatePeriod, deactivatePeriod, deletePeriod } from "./actions";
+import { Trash2 } from "lucide-react";
 
 type Period = {
     id: string;
@@ -65,8 +66,8 @@ export function PeriodControls({ period }: { period: Period }) {
             {/* Estado */}
             <td className="px-3 py-5">
                 {period.isActive ? (
-                    <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                         Activo
                     </span>
                 ) : (
@@ -90,12 +91,12 @@ export function PeriodControls({ period }: { period: Period }) {
                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {!period.isActive ? (
                         <button onClick={handleActivate} disabled={isPending}
-                            className="text-xs font-bold bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50">
-                            {isPending ? "..." : "✓ Activar"}
+                            className="text-xs font-bold bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-all active:scale-95 disabled:opacity-50">
+                            {isPending ? "..." : "Activar"}
                         </button>
                     ) : (
                         <button onClick={handleDeactivate} disabled={isPending}
-                            className="text-xs font-bold bg-slate-200 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-300 transition-all active:scale-95 disabled:opacity-50">
+                            className="text-xs font-bold bg-slate-100 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-200 transition-all active:scale-95 disabled:opacity-50">
                             {isPending ? "..." : "Desactivar"}
                         </button>
                     )}
@@ -104,9 +105,9 @@ export function PeriodControls({ period }: { period: Period }) {
                         onClick={handleDelete}
                         disabled={isPending || period._count.evaluations > 0}
                         title={period._count.evaluations > 0 ? "Tiene evaluaciones registradas, no se puede eliminar" : "Eliminar periodo"}
-                        className="text-xs font-bold text-red-400 hover:text-red-600 px-2 py-2 rounded-lg hover:bg-red-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-2 rounded-lg hover:bg-red-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                        🗑
+                        <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
             </td>

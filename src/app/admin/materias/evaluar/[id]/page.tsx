@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { createEvaluation } from "@/app/admin/evaluaciones/actions";
 import { EvaluationForm } from "./EvaluationForm";
 import Link from "next/link";
+import { ArrowLeft, CalendarDays } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,11 @@ export default async function EvaluatePage({ params }: { params: Promise<{ id: s
         <div className="flex justify-center items-center h-screen bg-gray-50">
             <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-800">Materia no encontrada</h2>
-                <Link href="/admin/materias" className="text-blue-600 mt-4 inline-block font-semibold hover:underline">
-                    Volver a materias
+                <Link
+                    href={`/admin/materias`}
+                    className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 font-medium mb-4 transition-colors"
+                >
+                    <ArrowLeft size={16} /> Volver a materias
                 </Link>
             </div>
         </div>
@@ -32,7 +36,9 @@ export default async function EvaluatePage({ params }: { params: Promise<{ id: s
     if (!activePeriod) return (
         <div className="flex justify-center items-center min-h-screen bg-gray-50 p-8">
             <div className="max-w-md text-center bg-white rounded-3xl shadow-xl p-10 border border-amber-100">
-                <div className="text-5xl mb-4">📅</div>
+                <div className="flex justify-center mb-4 text-slate-400">
+                    <CalendarDays size={48} />
+                </div>
                 <h2 className="text-2xl font-bold text-amber-700 mb-2">Sin periodo activo</h2>
                 <p className="text-gray-500 mb-6">
                     No hay un periodo de evaluación activo. Solicita al administrador que active el periodo correspondiente.

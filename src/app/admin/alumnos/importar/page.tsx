@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { Upload, CheckCircle2, FolderOpen, AlertTriangle, BarChart2, Download, ArrowLeft } from "lucide-react";
 
 type ImportError = {
     row: number;
@@ -101,9 +102,9 @@ export default function ImportarAlumnosPage() {
             <div className="flex items-center gap-4">
                 <Link
                     href="/admin/alumnos"
-                    className="text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium"
+                    className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium"
                 >
-                    ← Volver a Alumnos
+                    <ArrowLeft size={15} /> Volver a Alumnos
                 </Link>
             </div>
 
@@ -144,7 +145,7 @@ export default function ImportarAlumnosPage() {
                         onClick={downloadTemplate}
                         className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl transition-all"
                     >
-                        ⬇️ Descargar template
+                    <Download className="w-4 h-4" /> Descargar template
                     </button>
                 </div>
 
@@ -228,7 +229,7 @@ export default function ImportarAlumnosPage() {
 
                     {file ? (
                         <div className="space-y-1">
-                            <p className="text-3xl">✅</p>
+                            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
                             <p className="font-bold text-emerald-700">{file.name}</p>
                             <p className="text-xs text-emerald-600">
                                 {(file.size / 1024).toFixed(1)} KB · Listo para importar
@@ -242,7 +243,7 @@ export default function ImportarAlumnosPage() {
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            <p className="text-4xl">📂</p>
+                            <FolderOpen className="w-10 h-10 text-slate-300 mx-auto" />
                             <p className="font-bold text-slate-600">
                                 Arrastra tu CSV aquí
                             </p>
@@ -257,7 +258,7 @@ export default function ImportarAlumnosPage() {
                 {/* Error de validación */}
                 {error && (
                     <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-start gap-3">
-                        <span className="text-red-500 mt-0.5">⚠️</span>
+                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                         <p className="text-sm text-red-600 font-medium">{error}</p>
                     </div>
                 )}
@@ -277,7 +278,9 @@ export default function ImportarAlumnosPage() {
                             Importando alumnos...
                         </span>
                     ) : (
-                        "📤 Iniciar Importación"
+                        <span className="flex items-center justify-center gap-2">
+                            <Upload className="w-4 h-4" /> Iniciar Importación
+                        </span>
                     )}
                 </button>
             </div>
@@ -285,7 +288,9 @@ export default function ImportarAlumnosPage() {
             {/* Resultados */}
             {result && (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                    <h2 className="font-bold text-slate-700">📊 Resultado de la importación</h2>
+                    <h2 className="font-bold text-slate-700 flex items-center gap-2">
+                        <BarChart2 className="w-4 h-4" /> Resultado de la importación
+                    </h2>
 
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-3">
@@ -310,8 +315,8 @@ export default function ImportarAlumnosPage() {
                     {/* Mensaje de éxito */}
                     {result.success > 0 && result.errors.length === 0 && (
                         <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
-                            <p className="text-sm text-emerald-700 font-bold">
-                                ✅ Todos los alumnos fueron importados correctamente
+                            <p className="text-sm text-emerald-700 font-bold flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4" /> Todos los alumnos fueron importados correctamente
                             </p>
                         </div>
                     )}
@@ -319,8 +324,8 @@ export default function ImportarAlumnosPage() {
                     {/* Errores detallados */}
                     {result.errors.length > 0 && (
                         <div className="space-y-2">
-                            <p className="text-sm font-bold text-red-600">
-                                ⚠️ {result.errors.length} fila(s) con errores — el resto fue importado correctamente
+                            <p className="text-sm font-bold text-red-600 flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4" /> {result.errors.length} fila(s) con errores — el resto fue importado correctamente
                             </p>
                             <div className="bg-slate-50 rounded-xl overflow-hidden">
                                 <table className="w-full text-xs">
@@ -349,13 +354,13 @@ export default function ImportarAlumnosPage() {
                     <div className="flex gap-3 pt-2">
                         <Link
                             href="/admin/alumnos"
-                            className="flex-1 text-center py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-700 transition-all"
+                            className="flex-1 text-center py-2.5 rounded-xl bg-blue-700 text-white text-sm font-bold hover:bg-blue-800 transition-all"
                         >
                             Ver alumnos importados →
                         </Link>
                         <button
                             onClick={() => { setFile(null); setResult(null); }}
-                            className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all"
+                            className="px-5 py-2.5 rounded-xl bg-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-200 transition-all"
                         >
                             Nueva importación
                         </button>

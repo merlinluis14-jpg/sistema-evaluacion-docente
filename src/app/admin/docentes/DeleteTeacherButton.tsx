@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { deleteTeacher } from "./actions";
+import { Trash2 } from "lucide-react";
 
 export function DeleteTeacherButton({ teacherId, teacherName }: { teacherId: string, teacherName: string }) {
     const [isPending, startTransition] = useTransition();
@@ -18,10 +19,11 @@ export function DeleteTeacherButton({ teacherId, teacherName }: { teacherId: str
         <button
             onClick={handleDelete}
             disabled={isPending}
-            className={`text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-opacity ${isPending ? 'opacity-50 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100'}`}
+            title={`Eliminar a ${teacherName}`}
+            className={`text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-all ${isPending ? 'opacity-50 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100'}`}
         >
-            {isPending ? "Eliminando..." : "Eliminar"}
-            <span className="sr-only">, {teacherName}</span>
+            {isPending ? "..." : <Trash2 size={16} />}
+            <span className="sr-only">Eliminar {teacherName}</span>
         </button>
     );
 }
