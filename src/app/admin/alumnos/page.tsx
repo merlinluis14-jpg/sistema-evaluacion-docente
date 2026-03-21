@@ -4,8 +4,9 @@ import Link from "next/link";
 export default async function AlumnosPage({
     searchParams,
 }: {
-    searchParams: { carrera?: string; grupo?: string; q?: string };
+    searchParams: Promise<{ carrera?: string; grupo?: string; q?: string }>;
 }) {
+    const { carrera, grupo, q } = await searchParams;
     const carreras = await prisma.career.findMany({
         where: { isActive: true },
         orderBy: { code: "asc" },
@@ -14,7 +15,7 @@ export default async function AlumnosPage({
     const grupos = await prisma.group.findMany({
         where: {
             isActive: true,
-            ...(searchParams.carrera ? { careerId: searchParams.carrera } : {}),
+            ...(carrera ? { careerId: carrera } : {}),
         },
         orderBy: { name: "asc" },
         include: { career: true },
@@ -22,17 +23,17 @@ export default async function AlumnosPage({
 
     // Construir filtro de alumnos
     const whereAlumnos: any = { isActive: true };
-    if (searchParams.carrera) whereAlumnos.careerId = searchParams.carrera;
-    if (searchParams.grupo) {
+    if (carrera) whereAlumnos.careerId = carrera;
+    if (grupo) {
         whereAlumnos.groups = {
-            some: { groupId: searchParams.grupo }
+            some: { groupId: grupo }
         };
     }
-    if (searchParams.q) {
+    if (q) {
         whereAlumnos.OR = [
-            { matricula: { contains: searchParams.q, mode: "insensitive" } },
-            { name: { contains: searchParams.q, mode: "insensitive" } },
-            { lastName: { contains: searchParams.q, mode: "insensitive" } },
+            { matricula: { contains: q, mode: "insensitive" } },
+            { name: { contains: q, mode: "insensitive" } },
+            { lastName: { contains: q, mode: "insensitive" } },
         ];
     }
 
@@ -63,12 +64,20 @@ export default async function AlumnosPage({
                         {totalAlumnos} alumnos registrados en el sistema
                     </p>
                 </div>
-                <Link
-                    href="/admin/alumnos/importar"
-                    className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20"
-                >
-                    <span>📤</span> Importar CSV
-                </Link>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href="/admin/alumnos/nuevo"
+                        className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-700 transition-all"
+                    >
+                        + Nuevo Alumno
+                    </Link>
+                    <Link
+                        href="/admin/alumnos/importar"
+                        className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20"
+                    >
+                        <span>📤</span> Importar CSV
+                    </Link>
+                </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
@@ -80,7 +89,7 @@ export default async function AlumnosPage({
                         </label>
                         <input
                             name="q"
-                            defaultValue={searchParams.q}
+                            defaultValue={q}
                             placeholder="Matrícula, nombre o apellido..."
                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
                         />
@@ -93,7 +102,7 @@ export default async function AlumnosPage({
                         </label>
                         <select
                             name="carrera"
-                            defaultValue={searchParams.carrera}
+                            defaultValue={carrera}
                             className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
                         >
                             <option value="">Todas las carreras</option>
@@ -110,7 +119,7 @@ export default async function AlumnosPage({
                         </label>
                         <select
                             name="grupo"
-                            defaultValue={searchParams.grupo}
+                            defaultValue={grupo}
                             className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
                         >
                             <option value="">Todos los grupos</option>
@@ -129,7 +138,7 @@ export default async function AlumnosPage({
                         Filtrar
                     </button>
 
-                    {(searchParams.q || searchParams.carrera || searchParams.grupo) && (
+                    {(q || carrera || grupo) && (
                         <Link
                             href="/admin/alumnos"
                             className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all"
@@ -203,7 +212,7 @@ export default async function AlumnosPage({
                         <p className="text-4xl mb-3">🎓</p>
                         <p className="font-bold">No se encontraron alumnos</p>
                         <p className="text-sm mt-1">
-                            {searchParams.q || searchParams.carrera || searchParams.grupo
+                            {q || carrera || grupo
                                 ? "Intenta con otros filtros"
                                 : "Importa alumnos desde un archivo CSV"}
                         </p>

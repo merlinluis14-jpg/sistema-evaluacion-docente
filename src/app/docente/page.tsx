@@ -8,6 +8,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -136,7 +137,11 @@ export default async function DocentePage() {
 
                                     return (
                                         <tr key={e.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="py-3 pl-6 pr-3 text-sm font-semibold text-slate-800">{e.subject.name}</td>
+                                            <td className="py-3 pl-6 pr-3 text-sm font-semibold text-slate-800">
+                                                <Link href={'/docente/resultados/' + e.subjectId} className="hover:text-indigo-600 transition-colors">
+                                                    {e.subject.name}
+                                                </Link>
+                                            </td>
                                             <td className="py-3 px-3 text-xs text-slate-500">{e.period.name}</td>
                                             <td className="py-3 px-3 text-center">
                                                 <span className="font-black text-indigo-600">{facScore}</span>
