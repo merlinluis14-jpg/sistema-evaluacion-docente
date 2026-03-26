@@ -40,16 +40,15 @@ export default async function GruposPage({
                 </div>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50/50">
-                                <th className="text-left text-xs font-black text-slate-400 uppercase tracking-widest py-5 pl-8 pr-4">Grupo</th>
-                                <th className="text-left text-xs font-black text-slate-400 uppercase tracking-widest py-5 px-4">Carrera</th>
-                                <th className="text-left text-xs font-black text-slate-400 uppercase tracking-widest py-5 px-4">Periodo</th>
-                                <th className="text-center text-xs font-black text-slate-400 uppercase tracking-widest py-5 px-4">Alumnos</th>
-                                <th className="text-right text-xs font-black text-slate-400 uppercase tracking-widest py-5 pl-4 pr-8">Acciones</th>
+                            <tr className="border-b border-slate-100 bg-slate-50">
+                                <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-widest py-5 pl-8 pr-4">Grupo</th>
+                                <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-widest py-5 px-4">Carrera</th>
+                                <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-widest py-5 px-4">Periodo</th>
+                                <th className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest py-5 px-4">Alumnos</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -80,20 +79,12 @@ export default async function GruposPage({
                                             <span className="text-xs font-bold text-slate-400 uppercase">Estudiantes</span>
                                         </div>
                                     </td>
-                                    <td className="py-5 pl-4 pr-8 text-right">
-                                        <button className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-blue-600 hover:text-white transition-all">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </button>
-                                    </td>
                                 </tr>
                             ))}
 
                             {groups.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="py-20 text-center">
+                                    <td colSpan={4} className="py-20 text-center">
                                         <Users className="w-10 h-10 mb-4 text-slate-200 mx-auto" />
                                         <p className="text-slate-400 font-bold">No se encontraron grupos con los criterios seleccionados.</p>
                                         {careerId && (

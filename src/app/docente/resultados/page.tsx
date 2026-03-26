@@ -1,9 +1,4 @@
-/**
- * Mis Resultados — Portal Docente
- * Lista todas las materias evaluadas del docente con sus promedios por sección.
- * Desde aquí el docente accede al detalle por ítem de cada materia.
- * Requisito: RF8 — Consulta de resultados por materia y periodo.
- */
+// Mis Resultados — lista de materias evaluadas con promedios por sección
 
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
@@ -13,11 +8,19 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
+const NIVEL_BADGE: Record<string, string> = {
+  emerald: "bg-emerald-100 text-emerald-700",
+  blue:    "bg-blue-100 text-blue-700",
+  amber:   "bg-amber-100 text-amber-700",
+  red:     "bg-red-100 text-red-700",
+  slate:   "bg-slate-100 text-slate-500",
+};
+
 export default async function DocenteResultadosPage() {
   const session = await getServerSession(authOptions);
 
   const teacher = await prisma.teacher.findFirst({
-    where: { user: { email: session!.user.email! } },
+    where: { user: { id: session!.user.id! } },
     include: { career: true },
   });
   if (!teacher) redirect("/login");
@@ -129,7 +132,7 @@ export default async function DocenteResultadosPage() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-2xl font-black text-slate-800">{globalAvg}</p>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-${nivelColor}-100 text-${nivelColor}-700`}>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${NIVEL_BADGE[nivelColor] ?? "bg-slate-100 text-slate-500"}`}>
                     {nivel}
                   </span>
                 </div>

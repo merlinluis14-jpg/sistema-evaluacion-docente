@@ -2,7 +2,12 @@
 
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Edit3, CheckCircle2, AlertTriangle } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { logAdminAction } from "@/lib/adminLog";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +40,11 @@ export default async function EditarMateriaPage({
   async function actualizarMateria(formData: FormData) {
     "use server";
 
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== 'ADMIN') {
+      redirect('/login');
+    }
+
     const nombre = formData.get("name") as string;
     const codigo = formData.get("code") as string;
     const cuatrimestre = parseInt(formData.get("cuatrimestre") as string);
@@ -47,7 +57,7 @@ export default async function EditarMateriaPage({
     }
 
     try {
-      await prisma.subject.update({
+      const updatedSubject = await prisma.subject.update({
         where: { id },
         data: {
           name: nombre.trim(),
@@ -58,6 +68,17 @@ export default async function EditarMateriaPage({
           isActive,
         },
       });
+
+      await logAdminAction({
+        action: "UPDATE",
+        entity: "MATERIA",
+        entityId: updatedSubject.id,
+        detail: `Materia actualizada: ${updatedSubject.name} (${updatedSubject.code})`,
+      });
+
+      revalidatePath("/admin/materias");
+      redirect("/admin/materias");
+
     } catch (e: any) {
       // Código duplicado en la misma carrera (P2002)
       if (e.code === "P2002") {
@@ -65,20 +86,18 @@ export default async function EditarMateriaPage({
       }
       redirect(`/admin/materias/${id}/editar?error=servidor`);
     }
-
-    redirect("/admin/materias?success=actualizada");
   }
 
   return (
     <div className="p-8 max-w-2xl mx-auto space-y-6">
 
       {/* Navegación */}
-      <a
+      <Link
         href="/admin/materias"
         className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
       >
         <ArrowLeft size={15} /> Volver a Materias
-      </a>
+      </Link>
 
       {/* Header */}
       <div>
@@ -215,12 +234,12 @@ export default async function EditarMateriaPage({
             >
               Guardar cambios
             </button>
-            <a
+            <Link
               href="/admin/materias"
               className="px-6 py-3 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 transition-all text-center"
             >
               Cancelar
-            </a>
+            </Link>
           </div>
 
         </form>

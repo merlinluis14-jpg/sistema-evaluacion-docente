@@ -52,10 +52,10 @@ export default async function AdminPage() {
           <h1 className="text-3xl font-black text-slate-800">
             Dashboard de <span className="text-blue-600">Administración</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Panel de control del Sistema de Evaluación Docente UPTX</p>
+          <p className="text-slate-500 mt-2 text-sm">Panel de control del Sistema de Evaluación Docente UPTX</p>
         </div>
         <div className={`px-4 py-2 rounded-xl text-sm font-bold flex-shrink-0 ${periodoActivo
-            ? "bg-emerald-100 text-emerald-700"
+            ? "bg-blue-50 text-blue-700"
             : "bg-amber-100 text-amber-700"
           }`}
             title={periodoActivo ? `Periodo activo: ${periodoActivo.name}` : "Sin periodo activo"}

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Plus, Pencil, BookOpen, Inbox } from "lucide-react";
+import { Plus, Pencil, BookOpen, Inbox, Upload } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -51,12 +51,20 @@ export default async function MateriasAdminPage({
                         {totalMaterias} materias registradas en el sistema
                     </p>
                 </div>
-                <Link
-                    href="/admin/materias/nueva"
-                    className="flex items-center gap-2 bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 active:scale-95 transition-all shadow-lg shadow-blue-700/20"
-                >
-                    <Plus size={16} /> Nueva Materia
-                </Link>
+                <div className="flex gap-2">
+                    <Link
+                        href="/admin/materias/importar"
+                        className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all font-sans"
+                    >
+                        <Upload size={16} /> Importar CSV
+                    </Link>
+                    <Link
+                        href="/admin/materias/nueva"
+                        className="flex items-center gap-2 bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 active:scale-95 transition-all shadow-lg shadow-blue-700/20"
+                    >
+                        <Plus size={16} /> Nueva Materia
+                    </Link>
+                </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">

@@ -116,7 +116,7 @@ export async function parseAndImportAlumnos(
 
             const user = await prisma.user.upsert({
                 where: { username: matricula },
-                update: { password: hashedPassword, isActive: true },
+                update: { isActive: true },
                 create: {
                     username: matricula,
                     password: hashedPassword,

@@ -1,9 +1,4 @@
-// ============================================================
-// prisma/schema.prisma
-// Sistema de Evaluación Docente — UPTX
-// Schema v2 COMPLETO y CORREGIDO
-// Multi-carrera · 3 Roles · Grupos · FDA-24.5 (33 ítems)
-// ============================================================
+// Schema v2: Multi-carrera, 3 Roles, Grupos, FDA-24.5 (33 ítems)
 
 generator client {
   provider = "prisma-client-js"
@@ -13,20 +8,15 @@ datasource db {
   provider = "postgresql"
 }
 
-// ============================================================
-// ROLES
-// ============================================================
+// Enumeración de Roles
 enum Role {
   ADMIN
   DOCENTE
   ALUMNO
 }
 
-// ============================================================
-// USER — Base de autenticación para los 3 roles
-// ADMIN y DOCENTE: login con email
-// ALUMNO: login con matrícula (username)
-// ============================================================
+// USER: Base de autenticación universal
+// ADMIN/DOCENTE: email | ALUMNO: username (matrícula)
 model User {
   id        String   @id @default(cuid())
   email     String?  @unique  // ADMIN y DOCENTE
@@ -40,10 +30,7 @@ model User {
   student   Student?
 }
 
-// ============================================================
-// CAREER — Todas las carreras de la UPTX
-// Ejemplos de code: ISC, IIT, IGA, IBQ, LNCA
-// ============================================================
+// CAREER: Carreras de la UPTX (e.g. ISC, IIT, IGA)
 model Career {
   id        String   @id @default(cuid())
   code      String   @unique // "ISC", "IIT", "IGA"...
@@ -57,10 +44,7 @@ model Career {
   subjects  Subject[]
 }
 
-// ============================================================
-// TEACHER — Docente con cuenta propia
-// Login: email + contraseña
-// ============================================================
+// TEACHER: Perfil de docente
 model Teacher {
   id         String   @id @default(cuid())
   userId     String   @unique
@@ -78,10 +62,7 @@ model Teacher {
   evaluations Evaluation[]
 }
 
-// ============================================================
-// STUDENT — Alumno importado vía CSV
-// Login: matrícula + contraseña
-// ============================================================
+// STUDENT: Perfil de alumno importado vía CSV
 model Student {
   id        String   @id @default(cuid())
   userId    String   @unique
@@ -99,10 +80,7 @@ model Student {
   evaluations Evaluation[]
 }
 
-// ============================================================
-// GROUP — Grupo académico (ej: 3A, 5B, 2C)
-// Pertenece a una carrera y a un periodo
-// ============================================================
+// GROUP: Grupo académico y su periodo (e.g. 3A, 5B)
 model Group {
   id        String   @id @default(cuid())
   name      String           // "3A", "5B", "2C"
@@ -116,10 +94,7 @@ model Group {
   subjects    GroupSubject[]     // Materias asignadas al grupo
 }
 
-// ============================================================
-// GROUP ENROLLMENT — Tabla pivote: Alumno ↔ Grupo
-// Se puebla durante la importación CSV
-// ============================================================
+// GROUP ENROLLMENT: Tabla pivote Alumno-Grupo
 model GroupEnrollment {
   id        String   @id @default(cuid())
   studentId String
@@ -131,9 +106,7 @@ model GroupEnrollment {
   @@unique([studentId, groupId])
 }
 
-// ============================================================
-// SUBJECT — Materia vinculada a carrera y docente
-// ============================================================
+// SUBJECT: Materias vinculadas a carreras y docentes
 model Subject {
   id           String   @id @default(cuid())
   name         String
@@ -153,10 +126,7 @@ model Subject {
   @@unique([code, careerId]) // Mismo código puede existir en distintas carreras
 }
 
-// ============================================================
-// GROUP SUBJECT — Tabla pivote: Grupo ↔ Materia
-// Define qué materias ve cada alumno según su grupo
-// ============================================================
+// GROUP SUBJECT: Tabla pivote Grupo-Materia
 model GroupSubject {
   id        String   @id @default(cuid())
   groupId   String
@@ -168,10 +138,7 @@ model GroupSubject {
   @@unique([groupId, subjectId])
 }
 
-// ============================================================
-// PERIOD — Periodos de evaluación (RF10)
-// El admin activa/desactiva cuándo pueden evaluar los alumnos
-// ============================================================
+// PERIOD: Gestión temporal de disponibilidad de evaluación
 model Period {
   id        String   @id @default(cuid())
   name      String           // "Cuatrimestre Enero-Abril 2026"
@@ -183,19 +150,7 @@ model Period {
   evaluations Evaluation[]
 }
 
-// ============================================================
-// EVALUATION — Instrumento FDA-24.5 completo (33 ítems)
-//
-// NOMENCLATURA OFICIAL del proyecto:
-//   Sección 1 (Facilitador):     fac_item01 ... fac_item11
-//   Sección 2 (Habilidades):     hab_item01 ... hab_item04
-//   Sección 3 (Medios):          med_item01 ... med_item06
-//   Sección 4 (Teoría/Práctica): teoriaPractica
-//   Sección 5 (Autoevaluación):  auto_item01 ... auto_item11
-//   Sección 6 (Comentarios):     comentario_fortalezas, comentario_adicional
-//
-// NO usar f1, f2, h1, h2 — esa nomenclatura es incorrecta
-// ============================================================
+// EVALUATION: Instrumento FDA-24.5 completo (33 ítems y comentarios)
 model Evaluation {
   id        String  @id @default(cuid())
 
@@ -284,9 +239,7 @@ model Evaluation {
   @@unique([studentId, subjectId, periodId])
 }
 
-// ============================================================
-// IMPORT LOG — Registro de importaciones CSV (RF12)
-// ============================================================
+// IMPORT LOG: Registro para auditorías de CSV
 model ImportLog {
   id          String   @id @default(cuid())
   type        String   // "ALUMNOS", "DOCENTES", "MATERIAS"
@@ -296,4 +249,15 @@ model ImportLog {
   errorRows   Int
   errors      String?  @db.Text // JSON con detalle de cada error
   createdAt   DateTime @default(now())
+}
+
+// ADMIN LOG: Registro de manipulaciones CRUD
+model AdminLog {
+  id        String   @id @default(cuid())
+  userId    String             // ID del admin que realizó la acción
+  action    String             // CREATE, UPDATE, DELETE, ACTIVATE, DEACTIVATE, IMPORT
+  entity    String             // DOCENTE, MATERIA, PERIODO, ALUMNO, EVALUACION
+  entityId  String?            // ID del registro afectado (si aplica)
+  detail    String?  @db.Text  // Descripción legible del cambio
+  createdAt DateTime @default(now())
 }

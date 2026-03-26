@@ -1,10 +1,5 @@
 "use client";
-/**
- * Evaluation Form (Client Component)
- * Handles state and submission for the 33-item FDA-24.5 instrument.
- * Includes step navigation and ensures anonymity of student responses.
- * Cumple con: RF6, RF7
- */
+// Formulario de evaluación FDA-24.5 — componente cliente con navegación por pasos
 
 import { useState } from "react";
 
@@ -168,6 +163,7 @@ export function EvaluationForm({
     action: (formData: FormData) => void | Promise<void>;
 }) {
     const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
     const TOTAL = 5;
     const next = () => setStep(s => Math.min(s + 1, TOTAL));
     const prev = () => setStep(s => Math.max(s - 1, 1));
@@ -181,7 +177,7 @@ export function EvaluationForm({
     ];
 
     return (
-        <form action={action} className="w-full space-y-6 animate-in fade-in duration-500">
+        <form action={async (formData) => { setLoading(true); await action(formData); }} className="w-full space-y-6 animate-in fade-in duration-500">
             <input type="hidden" name="subjectId" value={subjectId} />
             <input type="hidden" name="teacherId" value={teacherId} />
             <input type="hidden" name="periodId" value={periodId} />
@@ -355,9 +351,17 @@ export function EvaluationForm({
                             Siguiente
                         </button>
                     ) : (
-                        <button type="submit"
-                            className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-10 py-3 rounded-2xl font-black shadow-xl hover:shadow-emerald-500/30 active:scale-95 transition-all text-sm">
-                            Enviar Evaluación
+                        <button type="submit" disabled={loading}
+                            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-10 py-3 rounded-2xl font-black shadow-xl hover:shadow-emerald-500/30 active:scale-95 transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                            {loading ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Enviando...
+                                </>
+                            ) : "Enviar Evaluación"}
                         </button>
                     )}
                 </div>

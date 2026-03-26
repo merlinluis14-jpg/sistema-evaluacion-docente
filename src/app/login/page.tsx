@@ -1,4 +1,3 @@
-// src/app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -29,33 +28,32 @@ export default function LoginPage() {
       return;
     }
 
-    // Login exitoso: obtener la sesión actualizada para saber el rol
     const session = await getSession();
     const role = (session?.user as { role?: string })?.role;
 
     if (role === "ADMIN") router.push("/admin");
     else if (role === "DOCENTE") router.push("/docente");
     else if (role === "ALUMNO") router.push("/alumno");
-    else router.push("/admin"); // fallback
+    else router.push("/admin");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-blue-900">UPTX</h1>
-          <h2 className="text-lg text-gray-600 mt-2">Sistema de Evaluación Docente</h2>
+          <h1 className="text-2xl font-black text-slate-800">UPTX</h1>
+          <h2 className="text-base text-slate-500 mt-2 font-medium">Sistema de Evaluación Docente</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-bold text-slate-700 mb-1">
               Matrícula o correo electrónico
             </label>
             <input
               type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-              placeholder="Ej. 122030... o admin@uptex.edu.mx"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-slate-700"
+              placeholder="Ej. 122030... o admin@uptx.edu.mx"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -64,12 +62,12 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-bold text-slate-700 mb-1">
               Contraseña
             </label>
             <input
               type="password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-slate-700"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -79,7 +77,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md text-center border border-red-200">
+            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl text-center border border-red-200 font-medium">
               {error}
             </div>
           )}
@@ -87,7 +85,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (
               <span className="flex items-center gap-2">

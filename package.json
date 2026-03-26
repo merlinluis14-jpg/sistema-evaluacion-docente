@@ -18,12 +18,14 @@
     "@prisma/client": "^7.4.1",
     "@types/papaparse": "^5.5.2",
     "bcryptjs": "^3.0.3",
+    "chart.js": "^4.5.1",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
     "papaparse": "^5.5.3",
     "pg": "^8.18.0",
     "react": "19.2.3",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3"
   },
   "devDependencies": {

@@ -1,9 +1,4 @@
-/**
- * Teacher Dashboard Page
- * Displays FDA-24.5 evaluation results exclusive to the logged-in teacher.
- * Calculations ignore unanswered items (e.g., items with value 0) to prevent score penalization.
- * Cumple con: RF1, RF8
- */
+// Panel del Docente — resultados de evaluación FDA-24.5
 
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
@@ -16,9 +11,9 @@ export default async function DocentePage() {
     const session = await getServerSession(authOptions);
 
     let teacher = null;
-    if (session?.user?.email) {
+    if (session?.user?.id) {
         teacher = await prisma.teacher.findFirst({
-            where: { user: { email: session.user.email } },
+            where: { user: { id: session.user.id } },
             include: {
                 career: true,
                 evaluations: {
@@ -74,8 +69,8 @@ export default async function DocentePage() {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                    Mis <span className="text-indigo-600">Resultados</span>
+                <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+                    Mis <span className="text-blue-600">Resultados</span>
                 </h1>
                 {teacher ? (
                     <p className="text-slate-500 mt-1">

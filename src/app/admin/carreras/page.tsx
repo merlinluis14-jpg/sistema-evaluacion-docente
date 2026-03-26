@@ -35,10 +35,10 @@ export default async function CarrerasPage() {
                 {careers.map((career) => (
                     <div
                         key={career.id}
-                        className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 overflow-hidden flex flex-col"
+                        className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 overflow-hidden flex flex-col"
                     >
                         <div className="p-1.5 flex-1">
-                            <div className="bg-slate-50 rounded-[22px] p-6 h-full flex flex-col">
+                            <div className="bg-slate-50 rounded-xl p-6 h-full flex flex-col">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-2xl font-black text-blue-600 group-hover:scale-110 transition-transform duration-500">
                                         {career.code}

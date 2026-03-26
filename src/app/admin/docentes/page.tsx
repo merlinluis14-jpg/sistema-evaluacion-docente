@@ -2,7 +2,8 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { DeleteTeacherButton } from "./DeleteTeacherButton";
-import { UserCog, Plus } from "lucide-react";
+import { ResetPasswordButton } from "./ResetPasswordButton";
+import { UserCog, Plus, Upload } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -26,13 +27,22 @@ export default async function DocentesPage() {
                         Administra los catedráticos registrados en el sistema de evaluación.
                     </p>
                 </div>
-                <Link
-                    href="/admin/docentes/nuevo"
-                    className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all"
-                >
-                    <Plus size={16} />
-                    Nuevo Docente
-                </Link>
+                <div className="flex gap-2">
+                    <Link
+                        href="/admin/docentes/importar"
+                        className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all font-sans"
+                    >
+                        <Upload size={16} />
+                        Importar CSV
+                    </Link>
+                    <Link
+                        href="/admin/docentes/nuevo"
+                        className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all"
+                    >
+                        <Plus size={16} />
+                        Nuevo Docente
+                    </Link>
+                </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -110,7 +120,10 @@ export default async function DocentesPage() {
                                     </td>
                                     {/* Acciones */}
                                     <td className="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
-                                        <DeleteTeacherButton teacherId={teacher.id} teacherName={`${teacher.name} ${teacher.lastName}`} />
+                                        <div className="flex items-center justify-end gap-2">
+                                            <ResetPasswordButton teacherId={teacher.id} teacherName={`${teacher.name} ${teacher.lastName}`} />
+                                            <DeleteTeacherButton teacherId={teacher.id} teacherName={`${teacher.name} ${teacher.lastName}`} />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

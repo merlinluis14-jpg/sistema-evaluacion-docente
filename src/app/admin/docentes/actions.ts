@@ -3,8 +3,16 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
+import { logAdminAction } from "@/lib/adminLog";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function createTeacher(formData: FormData) {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== 'ADMIN') {
+        return { success: false, error: "No autorizado" };
+    }
+
     const name = formData.get("name") as string;
     const lastName = formData.get("lastName") as string;
     const email = formData.get("email") as string;
@@ -38,6 +46,10 @@ export async function createTeacher(formData: FormData) {
             },
         });
 
+        await logAdminAction({
+            action: "CREATE", entity: "DOCENTE", entityId: user.id,
+            detail: `Docente creado: ${name} ${lastName} (${employeeId})`,
+        });
         revalidatePath("/admin/docentes");
         return { success: true };
     } catch (error) {
@@ -48,17 +60,50 @@ export async function createTeacher(formData: FormData) {
 
 export async function deleteTeacher(id: string) {
     try {
-        // Obtener el userId antes de eliminar el teacher
+        // Hacemos Soft-Delete para no romper las FK de las evaluaciones históricas
         const teacher = await prisma.teacher.findUnique({ where: { id } });
-        await prisma.teacher.delete({ where: { id } });
-        // Eliminar también el User asociado
-        if (teacher?.userId) {
-            await prisma.user.delete({ where: { id: teacher.userId } });
+        if (teacher) {
+            await prisma.teacher.update({ where: { id }, data: { isActive: false } });
+            if (teacher.userId) {
+                await prisma.user.update({ where: { id: teacher.userId }, data: { isActive: false } });
+            }
         }
+        await logAdminAction({
+            action: "DEACTIVATE", entity: "DOCENTE", entityId: id,
+            detail: `Docente desactivado (Soft Delete): ${teacher?.name ?? ""} ${teacher?.lastName ?? ""}`,
+        });
         revalidatePath("/admin/docentes");
         return { success: true };
     } catch (error) {
         console.error("Error al eliminar:", error);
         return { success: false, error: "No se pudo eliminar el docente." };
+    }
+}
+
+export async function resetTeacherPassword(id: string) {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== 'ADMIN') {
+        return { success: false, error: "No autorizado" };
+    }
+
+    try {
+        const teacher = await prisma.teacher.findUnique({ where: { id }, include: { user: true } });
+        if (!teacher || !teacher.userId) return { success: false, error: "Docente no encontrado" };
+
+        const hashedPassword = await bcrypt.hash(teacher.employeeId, 10);
+        await prisma.user.update({
+            where: { id: teacher.userId },
+            data: { password: hashedPassword }
+        });
+
+        await logAdminAction({
+            action: "UPDATE", entity: "DOCENTE", entityId: id,
+            detail: `Contraseña reseteada (a Número Empleado) para docente: ${teacher.name} ${teacher.lastName}`
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error al resetear contraseña:", error);
+        return { success: false, error: "Error al resetear contraseña." };
     }
 }

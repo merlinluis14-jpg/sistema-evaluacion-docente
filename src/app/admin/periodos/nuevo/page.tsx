@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, CalendarDays, ArrowLeft } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +50,11 @@ export default async function NuevoPeriodoPage({
 
   async function crearPeriodo(formData: FormData) {
     "use server";
+
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== 'ADMIN') {
+      redirect('/login');
+    }
 
     const nombre  = (formData.get("nombre") as string)?.trim();
     const inicio  = formData.get("inicio") as string;

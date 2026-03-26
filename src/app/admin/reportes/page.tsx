@@ -6,29 +6,51 @@ import { ClipboardList, UserCog, Calendar, BarChart2, Inbox } from "lucide-react
 
 export const dynamic = "force-dynamic";
 
+// Mapa de clases estáticas para evitar interpolación dinámica de Tailwind
+const NIVEL_TEXT: Record<string, string> = {
+  emerald: "text-emerald-600",
+  blue:    "text-blue-600",
+  amber:   "text-amber-600",
+  red:     "text-red-600",
+  slate:   "text-slate-500",
+};
+const NIVEL_BADGE: Record<string, string> = {
+  emerald: "bg-emerald-50 text-emerald-700",
+  blue:    "bg-blue-50 text-blue-700",
+  amber:   "bg-amber-50 text-amber-700",
+  red:     "bg-red-50 text-red-700",
+  slate:   "bg-slate-50 text-slate-500",
+};
+
 export default async function ReportesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ periodoId?: string; carreraId?: string }>;
+  searchParams: Promise<{ periodoId?: string; carreraId?: string; materiaId?: string; grupoId?: string }>;
 }) {
-  const { periodoId: periodoIdParam, carreraId } = await searchParams;
+  const { periodoId: periodoIdParam, carreraId, materiaId, grupoId } = await searchParams;
   // Cargar filtros disponibles
-  const [periodos, carreras] = await Promise.all([
+  const [periodos, carreras, materias, grupos] = await Promise.all([
     prisma.period.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.career.findMany({ where: { isActive: true }, orderBy: { code: "asc" } }),
+    prisma.subject.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, include: { teacher: true } }),
+    prisma.group.findMany({ orderBy: { name: "asc" }, include: { career: true } }),
   ]);
 
   // Periodo seleccionado — por defecto el activo
   const periodoActivo = periodos.find(p => p.isActive);
   const periodoId = periodoIdParam ?? periodoActivo?.id;
 
-  // Consulta de evaluaciones agrupadas por docente
+  // Consulta de evaluaciones con todos los filtros
   const evaluaciones = await prisma.evaluation.findMany({
     where: {
       ...(periodoId ? { periodId: periodoId } : {}),
-      ...(carreraId
-        ? { teacher: { careerId: carreraId } }
-        : {}),
+      ...(carreraId ? { teacher: { careerId: carreraId } } : {}),
+      ...(materiaId ? { subjectId: materiaId } : {}),
+      ...(grupoId ? {
+        student: {
+          groups: { some: { groupId: grupoId } },
+        },
+      } : {}),
     },
     include: {
       teacher: { include: { career: true } },
@@ -108,6 +130,9 @@ export default async function ReportesPage({
   const totalEvals = evaluaciones.length;
   const totalDocentes = reporteDocentes.length;
   const periodoNombre = periodos.find(p => p.id === periodoId)?.name ?? "Todos";
+  const materiaNombre = materias.find(m => m.id === materiaId)?.name;
+  const grupoNombre = grupos.find(g => g.id === grupoId);
+  const hasFilters = !!(periodoIdParam || carreraId || materiaId || grupoId);
 
   return (
     <div className="p-8 space-y-6 max-w-7xl mx-auto">
@@ -119,6 +144,8 @@ export default async function ReportesPage({
           </h1>
           <p className="text-slate-400 text-sm mt-1">
             Instrumento FDA-24.5 · {periodoNombre}
+            {materiaNombre ? ` · ${materiaNombre}` : ""}
+            {grupoNombre ? ` · Grupo ${grupoNombre.name} (${grupoNombre.career.code})` : ""}
           </p>
         </div>
         <ExportButtons
@@ -163,6 +190,38 @@ export default async function ReportesPage({
             </select>
           </div>
 
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">
+              Materia
+            </label>
+            <select
+              name="materiaId"
+              defaultValue={materiaId}
+              className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+            >
+              <option value="">Todas las materias</option>
+              {materias.map(m => (
+                <option key={m.id} value={m.id}>{m.code} — {m.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">
+              Grupo
+            </label>
+            <select
+              name="grupoId"
+              defaultValue={grupoId}
+              className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+            >
+              <option value="">Todos los grupos</option>
+              {grupos.map(g => (
+                <option key={g.id} value={g.id}>{g.name} — {g.career.code} · {g.period}</option>
+              ))}
+            </select>
+          </div>
+
           <button
             type="submit"
             className="bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 transition-all"
@@ -170,7 +229,7 @@ export default async function ReportesPage({
             Filtrar
           </button>
 
-          {(periodoIdParam || carreraId) && (
+          {hasFilters && (
             <Link
               href="/admin/reportes"
               className="px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
@@ -313,14 +372,14 @@ export default async function ReportesPage({
 
                     {/* Promedio global */}
                     <td className="px-4 py-4 text-center">
-                      <span className={`font-black text-lg text-${doc.nivelColor}-600`}>
+                      <span className={`font-black text-lg ${NIVEL_TEXT[doc.nivelColor] ?? "text-slate-500"}`}>
                         {doc.globalAvg}
                       </span>
                     </td>
 
                     {/* Nivel cualitativo */}
                     <td className="px-4 py-4 text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold bg-${doc.nivelColor}-50 text-${doc.nivelColor}-700`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${NIVEL_BADGE[doc.nivelColor] ?? "bg-slate-50 text-slate-500"}`}>
                         {doc.nivel}
                       </span>
                     </td>

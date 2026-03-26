@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import bcrypt from "bcryptjs";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,11 @@ export default async function NuevoAlumnoPage({
 
   async function crearAlumno(formData: FormData) {
     "use server";
+
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== 'ADMIN') {
+      redirect('/login');
+    }
 
     const matricula    = (formData.get("matricula") as string)?.trim();
     const nombre       = (formData.get("nombre") as string)?.trim();
@@ -173,7 +180,7 @@ export default async function NuevoAlumnoPage({
             <input
               name="email"
               type="email"
-              placeholder="Ej: j.perez@uptex.edu.mx"
+              placeholder="Ej: j.perez@uptx.edu.mx"
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
             />
           </div>

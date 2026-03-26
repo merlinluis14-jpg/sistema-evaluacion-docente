@@ -40,10 +40,10 @@ async function main() {
     const adminPassword = await bcrypt.hash("Admin@UPTX2026", 10);
 
     await prisma.user.upsert({
-        where: { email: "admin@uptex.edu.mx" },
+        where: { email: "admin@uptx.edu.mx" },
         update: {},
         create: {
-            email: "admin@uptex.edu.mx",
+            email: "admin@uptx.edu.mx",
             password: adminPassword,
             role: "ADMIN",
             isActive: true,
@@ -51,7 +51,7 @@ async function main() {
     });
 
     console.log("   ✓ Admin creado");
-    console.log("   📧 Email:      admin@uptex.edu.mx");
+    console.log("   📧 Email:      admin@uptx.edu.mx");
     console.log("   🔑 Contraseña: Admin@UPTX2026");
     console.log("   // TODO: Cambiar contraseña tras el primer login\n");
 
@@ -66,7 +66,7 @@ async function main() {
             name: "Cuatrimestre Enero-Abril 2026",
             startDate: new Date("2026-01-31"),
             endDate: new Date("2026-05-29"),
-            isActive: false, // Activar manualmente
+            isActive: true,
         },
     });
 
@@ -146,7 +146,7 @@ async function main() {
     console.log(`   Grupos:    ${totalGrupos}`);
     console.log("═══════════════════════════════════════\n");
     console.log("🚀 Próximos pasos:");
-    console.log("   1. Login en /login → admin@uptex.edu.mx / Admin@UPTX2026");
+    console.log("   1. Login en /login → admin@uptx.edu.mx / Admin@UPTX2026");
     console.log("   2. Crear docentes en /admin/docentes/nuevo");
     console.log("   3. Activar periodo en /admin/periodos\n");
 }

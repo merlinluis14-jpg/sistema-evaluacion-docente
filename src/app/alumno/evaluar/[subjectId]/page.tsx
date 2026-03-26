@@ -1,8 +1,4 @@
-/**
- * Evaluation form page
- * Loads the subject, its teacher, and the active period, then renders EvaluationForm.
- * Cumple con: RF6, RF7
- */
+// Página de evaluación — carga materia, docente y periodo activo
 
 import { prisma } from "@/lib/prisma";
 import { createEvaluation } from "@/app/admin/evaluaciones/actions";

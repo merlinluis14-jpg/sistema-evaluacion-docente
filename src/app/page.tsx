@@ -40,8 +40,8 @@ export default function Home() {
             </Link>
             <div className="flex flex-col justify-center px-2">
               <div className="flex -space-x-3 mb-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className={`w-8 h-8 rounded-full border-2 border-white bg-slate-${200 + i * 100} shadow-sm`}></div>
+                {['bg-slate-300', 'bg-slate-400', 'bg-slate-500', 'bg-slate-600'].map((bg, i) => (
+                  <div key={i} className={`w-8 h-8 rounded-full border-2 border-white ${bg} shadow-sm`}></div>
                 ))}
               </div>
               <span className="text-xs font-black text-slate-800 uppercase tracking-tight">+1,200 Alumnos Activos</span>
@@ -94,7 +94,7 @@ export default function Home() {
           <span className="text-slate-300">Universidad Politécnica de Texcoco · Proyecto de Tesina</span>
         </p>
         <div className="flex gap-8 text-xs font-black text-slate-400 uppercase tracking-widest">
-          <span className="hover:text-indigo-600 cursor-pointer">Privacidad</span>
+          <Link href="/privacidad" className="hover:text-indigo-600 cursor-pointer">Privacidad</Link>
           <span className="hover:text-indigo-600 cursor-pointer">Soporte Técnico</span>
         </div>
       </footer>

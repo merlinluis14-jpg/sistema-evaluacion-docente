@@ -10,6 +10,14 @@ import { Target, Lightbulb, Monitor, ClipboardCheck, Inbox, ArrowLeft } from "lu
 
 export const dynamic = "force-dynamic";
 
+// Mapa estático de clases para tarjetas de sección
+const COLOR_CARD: Record<string, { bg: string; border: string; icon: string; value: string; label: string }> = {
+  blue:    { bg: "bg-blue-50",    border: "border-blue-100",    icon: "text-blue-500",    value: "text-blue-700",    label: "text-blue-400" },
+  indigo:  { bg: "bg-indigo-50",  border: "border-indigo-100",  icon: "text-indigo-500",  value: "text-indigo-700",  label: "text-indigo-400" },
+  violet:  { bg: "bg-violet-50",  border: "border-violet-100",  icon: "text-violet-500",  value: "text-violet-700",  label: "text-violet-400" },
+  emerald: { bg: "bg-emerald-50", border: "border-emerald-100", icon: "text-emerald-500", value: "text-emerald-700", label: "text-emerald-400" },
+};
+
 export default async function ReporteDocenteDetallePage({
   params,
   searchParams,
@@ -61,7 +69,7 @@ export default async function ReporteDocenteDetallePage({
     );
   }
 
-  // ── Calcular promedios por ítem ──────────────────────────
+  // Procesamiento de promedios para las gráficas
   const n = evaluaciones.length;
   const sum = (key: keyof typeof evaluaciones[0]) =>
     evaluaciones.reduce((acc, e) => acc + (Number(e[key]) || 0), 0);
@@ -135,7 +143,7 @@ export default async function ReporteDocenteDetallePage({
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
 
-      {/* ── Navegación ── */}
+      {/* Navegación */}
       <Link
         href={`/admin/reportes${periodoId ? `?periodoId=${periodoId}` : ""}`}
         className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
@@ -143,7 +151,7 @@ export default async function ReporteDocenteDetallePage({
         <ArrowLeft size={15} /> Volver a Reportes
       </Link>
 
-      {/* ── Header del docente ── */}
+      {/* Datos del Docente */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
@@ -177,23 +185,26 @@ export default async function ReporteDocenteDetallePage({
         </div>
       </div>
 
-      {/* ── Tarjetas resumen por sección ── */}
+      {/* Resumen por Sección */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Facilitador",  valor: promedioFac,  max: 4, color: "blue",    Icon: Target         },
           { label: "Habilidades",  valor: promedioHab,  max: 5, color: "indigo",  Icon: Lightbulb      },
           { label: "Medios Did.",  valor: promedioMed,  max: 5, color: "violet",  Icon: Monitor        },
           { label: "Autoevaluac.",valor: promedioAuto, max: 5, color: "emerald", Icon: ClipboardCheck },
-        ].map(({ label, valor, max, color, Icon }) => (
-          <div key={label} className={`bg-${color}-50 border border-${color}-100 rounded-2xl p-4 text-center`}>
-            <Icon className={`w-5 h-5 mb-1 mx-auto text-${color}-500`} />
-            <p className={`text-2xl font-black text-${color}-700`}>{valor}</p>
-            <p className={`text-xs text-${color}-400 font-bold`}>/{max} — {label}</p>
-          </div>
-        ))}
+        ].map(({ label, valor, max, color, Icon }) => {
+          const c = COLOR_CARD[color];
+          return (
+            <div key={label} className={`${c.bg} border ${c.border} rounded-2xl p-4 text-center`}>
+              <Icon className={`w-5 h-5 mb-1 mx-auto ${c.icon}`} />
+              <p className={`text-2xl font-black ${c.value}`}>{valor}</p>
+              <p className={`text-xs ${c.label} font-bold`}>/{max} — {label}</p>
+            </div>
+          );
+        })}
       </div>
 
-      {/* ── Materias evaluadas ── */}
+      {/* Lista de Materias Evaluadas */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
         <h3 className="font-bold text-slate-700 mb-3 text-sm">Materias evaluadas</h3>
         <div className="flex flex-wrap gap-2">
@@ -205,7 +216,7 @@ export default async function ReporteDocenteDetallePage({
         </div>
       </div>
 
-      {/* ── Gráficas interactivas — Client Component ── */}
+      {/* Visualización Gráfica */}
       <GraficasDetalle
         facilitador={facilitador}
         habilidades={habilidades}

@@ -18,10 +18,10 @@ type ImportResult = {
 
 // Formato del CSV esperado
 const CSV_TEMPLATE = `matricula,nombre,apellido,email,carrera_code,grupo,password
-220310001,Juan,García,j.garcia@uptex.edu.mx,ISC,3A,uptex2026
-220310002,María,López,m.lopez@uptex.edu.mx,ISC,3A,uptex2026
+220310001,Juan,García,j.garcia@uptx.edu.mx,ISC,3A,uptx2026
+220310002,María,López,m.lopez@uptx.edu.mx,ISC,3A,uptx2026
 220310003,Pedro,Martínez,,IET,5B,
-220310004,Ana,Hernández,a.hernandez@uptex.edu.mx,IRO,2C,uptex2026`;
+220310004,Ana,Hernández,a.hernandez@uptx.edu.mx,IRO,2C,uptx2026`;
 
 export default function ImportarAlumnosPage() {
     const [file, setFile] = useState<File | null>(null);
@@ -94,7 +94,7 @@ export default function ImportarAlumnosPage() {
         URL.revokeObjectURL(url);
     };
 
-    // ── UI ───────────────────────────────────────────────────────
+    // Interfaz de Usuario
     return (
         <div className="p-8 space-y-6 max-w-3xl">
 
@@ -192,9 +192,9 @@ export default function ImportarAlumnosPage() {
                     <p className="text-slate-400 text-[10px] font-bold mb-2 uppercase tracking-widest">Ejemplo</p>
                     <pre className="text-emerald-400 text-xs font-mono whitespace-pre leading-relaxed">
                         {`matricula,nombre,apellido,email,carrera_code,grupo,password
-220310001,Juan,García,j.garcia@uptex.edu.mx,ISC,3A,uptex2026
+220310001,Juan,García,j.garcia@uptx.edu.mx,ISC,3A,uptx2026
 220310002,María,López,,ISC,3A,
-220310003,Pedro,Martínez,,IET,5B,uptex2026`}
+220310003,Pedro,Martínez,,IET,5B,uptx2026`}
                     </pre>
                 </div>
             </div>

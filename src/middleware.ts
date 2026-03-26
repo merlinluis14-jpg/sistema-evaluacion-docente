@@ -14,13 +14,13 @@ export async function middleware(req: NextRequest) {
     const role = token?.role as string | undefined;
     const isAuthenticated = !!token;
 
-    // ── Usuario autenticado que va al login → redirigir a su área ──
+    // Redirección de usuarios autenticados según su rol
     if (pathname === "/login" && isAuthenticated) {
         const dest = role === "ADMIN" ? "/admin" : role === "DOCENTE" ? "/docente" : "/alumno";
         return NextResponse.redirect(new URL(dest, req.url));
     }
 
-    // ── Rutas protegidas sin autenticación → login ──
+    // Validación de acceso a rutas protegidas
     const needsAuth =
         pathname.startsWith("/admin") ||
         pathname.startsWith("/docente") ||
@@ -31,13 +31,13 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    // ── /dashboard → redirigir al área del rol durante migración ──
+    // Manejo de la ruta base del dashboard
     if (isAuthenticated && (pathname === "/dashboard" || pathname.startsWith("/dashboard/"))) {
         const dest = role === "ADMIN" ? "/admin" : role === "DOCENTE" ? "/docente" : "/alumno";
         return NextResponse.redirect(new URL(dest, req.url));
     }
 
-    // ── Protección estricta por rol ──
+    // Validación estricta de rutas por rol
     if (pathname.startsWith("/admin") && role !== "ADMIN") {
         return NextResponse.redirect(new URL("/login", req.url));
     }

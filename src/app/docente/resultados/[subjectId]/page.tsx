@@ -1,8 +1,4 @@
-/**
- * Detalle de Resultados por Materia — Portal Docente
- * Muestra los promedios por ítem del FDA-24.5 para una materia específica.
- * Requisito: RF8 — Consulta de resultados individuales por materia y periodo.
- */
+// Detalle de resultados por materia — promedios por ítem del FDA-24.5
 
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
@@ -12,6 +8,13 @@ import Link from "next/link";
 import GraficasDetalle from "@/app/admin/reportes/[teacherId]/GraficasDetalle";
 
 export const dynamic = "force-dynamic";
+
+const NIVEL_BADGE: Record<string, string> = {
+  emerald: "bg-emerald-100 text-emerald-700",
+  blue:    "bg-blue-100 text-blue-700",
+  amber:   "bg-amber-100 text-amber-700",
+  red:     "bg-red-100 text-red-700",
+};
 
 export default async function ResultadosMateriaPage({
   params,
@@ -162,7 +165,7 @@ export default async function ResultadosMateriaPage({
           <div className="text-center">
             <p className="text-4xl font-black text-blue-600">{promedioGlobal}</p>
             <p className="text-xs font-bold text-slate-400 mt-0.5">Promedio Global</p>
-            <span className={`mt-1 inline-block px-3 py-1 rounded-full text-xs font-bold bg-${nivelColor}-100 text-${nivelColor}-700`}>
+            <span className={`mt-1 inline-block px-3 py-1 rounded-full text-xs font-bold ${NIVEL_BADGE[nivelColor] ?? "bg-slate-100 text-slate-700"}`}>
               {nivel}
             </span>
           </div>

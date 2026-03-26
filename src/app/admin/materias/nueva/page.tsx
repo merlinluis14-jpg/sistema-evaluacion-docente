@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,11 @@ export default async function NuevaMateriaPage({
 
   async function crearMateria(formData: FormData) {
     "use server";
+
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== 'ADMIN') {
+      redirect('/login');
+    }
 
     const nombre       = (formData.get("name") as string)?.trim();
     const codigo       = (formData.get("code") as string)?.trim().toUpperCase();

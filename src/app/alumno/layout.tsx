@@ -15,7 +15,7 @@ export default async function AlumnoLayout({ children }: { children: ReactNode }
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
 
-            {/* ── Header top bar ── */}
+            {/* Encabezado Principal */}
             <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between">
 
@@ -57,12 +57,12 @@ export default async function AlumnoLayout({ children }: { children: ReactNode }
                 </div>
             </header>
 
-            {/* ── Contenido ── */}
+            {/* Área de Contenido */}
             <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
                 {children}
             </main>
 
-            {/* ── Footer con nota de anonimato ── */}
+            {/* Pie de Página */}
             <footer className="border-t border-gray-100 bg-white mt-auto">
                 <div className="max-w-4xl mx-auto px-6 py-3 flex items-center gap-2">
                     <span className="text-blue-500 text-sm">🔒</span>

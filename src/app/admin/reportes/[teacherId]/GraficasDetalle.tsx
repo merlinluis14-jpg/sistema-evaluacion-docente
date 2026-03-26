@@ -1,10 +1,18 @@
 "use client";
-/**
- * Detail chart components (Client Component)
- * Renders horizontal bar charts per item and a progress-bar summary per section.
- * No external chart libraries — pure CSS with Tailwind.
- * Cumple con: RF9
- */
+// Gráficas de detalle por sección — barras horizontales CSS + radar Chart.js (RF9)
+
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Radar } from "react-chartjs-2";
+
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 type Item = { label: string; valor: number; max: number };
 
@@ -126,10 +134,102 @@ function ResumenSecciones({ promedios }: { promedios: Props["promedios"] }) {
   );
 }
 
+// Gráfica de radar — RF9
+function RadarSecciones({ promedios }: { promedios: Props["promedios"] }) {
+  // Normalizar a porcentaje (0-100) para comparar secciones con escalas diferentes
+  const facPct = (promedios.fac / 4) * 100;
+  const habPct = (promedios.hab / 5) * 100;
+  const medPct = (promedios.med / 5) * 100;
+  const autoPct = (promedios.auto / 5) * 100;
+
+  const data = {
+    labels: ["Facilitador", "Habilidades", "Medios Didácticos", "Autoevaluación"],
+    datasets: [
+      {
+        label: "Porcentaje por sección",
+        data: [facPct, habPct, medPct, autoPct],
+        backgroundColor: "rgba(59, 130, 246, 0.15)",
+        borderColor: "rgba(59, 130, 246, 0.8)",
+        borderWidth: 2,
+        pointBackgroundColor: "#3b82f6",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: true,
+    scales: {
+      r: {
+        beginAtZero: true,
+        max: 100,
+        min: 0,
+        ticks: {
+          stepSize: 20,
+          font: { size: 10 },
+          color: "#94a3b8",
+          backdropColor: "transparent",
+        },
+        grid: {
+          color: "rgba(148, 163, 184, 0.15)",
+        },
+        angleLines: {
+          color: "rgba(148, 163, 184, 0.2)",
+        },
+        pointLabels: {
+          font: { size: 12, weight: 700 as const },
+          color: "#334155",
+        },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx: { raw: unknown }) => `${Math.round(ctx.raw as number)}%`,
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+      <h3 className="font-black text-slate-700 mb-1">Gráfica Radar — Perfil por Sección</h3>
+      <p className="text-xs text-slate-400 mb-4">
+        Valores normalizados a porcentaje para comparar secciones con distintas escalas
+      </p>
+      <div className="max-w-md mx-auto">
+        <Radar data={data} options={options} />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+        {[
+          { label: "Facilitador", pct: facPct, raw: promedios.fac, max: 4, color: "blue" as ColorKey },
+          { label: "Habilidades", pct: habPct, raw: promedios.hab, max: 5, color: "indigo" as ColorKey },
+          { label: "Medios Did.", pct: medPct, raw: promedios.med, max: 5, color: "violet" as ColorKey },
+          { label: "Autoevaluac.", pct: autoPct, raw: promedios.auto, max: 5, color: "emerald" as ColorKey },
+        ].map(({ label, pct, raw, max, color }) => {
+          const c = COLOR_MAP[color];
+          return (
+            <div key={label} className={`text-center p-2 rounded-xl ${c.bg}`}>
+              <p className={`text-lg font-black ${c.text}`}>{Math.round(pct)}%</p>
+              <p className={`text-[10px] font-bold ${c.text} opacity-70`}>{raw}/{max} — {label}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function GraficasDetalle({ facilitador, habilidades, medios, autoevaluacion, promedios }: Props) {
   return (
     <div className="space-y-6">
       <ResumenSecciones promedios={promedios} />
+      <RadarSecciones promedios={promedios} />
       <SeccionGrafica
         titulo="Sección 1 — Evaluación del Facilitador"
         subtitulo="11 ítems · Escala E/MB/B/M (1-4)"

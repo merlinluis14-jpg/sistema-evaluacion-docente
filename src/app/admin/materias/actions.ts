@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logAdminAction } from "@/lib/adminLog";
 
 export async function createSubject(formData: FormData) {
     const name = formData.get("name") as string;
@@ -16,7 +17,7 @@ export async function createSubject(formData: FormData) {
     }
 
     try {
-        await prisma.subject.create({
+        const subject = await prisma.subject.create({
             data: {
                 name,
                 code,
@@ -25,6 +26,10 @@ export async function createSubject(formData: FormData) {
                 careerId,
                 isActive: true,
             },
+        });
+        await logAdminAction({
+            action: "CREATE", entity: "MATERIA", entityId: subject.id,
+            detail: `Materia creada: ${name} (${code})`,
         });
     } catch (error) {
         console.error("Error al crear materia:", error);
@@ -37,7 +42,12 @@ export async function createSubject(formData: FormData) {
 
 export async function deleteSubject(id: string) {
     try {
+        const subject = await prisma.subject.findUnique({ where: { id }, select: { name: true, code: true } });
         await prisma.subject.delete({ where: { id } });
+        await logAdminAction({
+            action: "DELETE", entity: "MATERIA", entityId: id,
+            detail: `Materia eliminada: ${subject?.name ?? ""} (${subject?.code ?? ""})`,
+        });
         revalidatePath("/admin/materias");
         return { success: true };
     } catch (error) {

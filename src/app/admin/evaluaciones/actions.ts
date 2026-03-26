@@ -17,11 +17,8 @@ export async function createEvaluation(formData: FormData) {
         if (student) studentId = student.id;
     }
 
-    // Hack para testing: asume el primer alumno si no hay sesión. Quitar antes del release v1.
     if (!studentId) {
-        const devStudent = await prisma.student.findFirst();
-        if (devStudent) studentId = devStudent.id;
-        else throw new Error("No hay alumnos registrados en el sistema.");
+        throw new Error("No autorizado — sesión de alumno requerida");
     }
 
     const subjectId = formData.get("subjectId") as string;
@@ -33,6 +30,12 @@ export async function createEvaluation(formData: FormData) {
         where: { studentId_subjectId_periodId: { studentId, subjectId, periodId } }
     });
     if (existing) redirect("/alumno?error=duplicada");
+
+    // Verificar que el periodo siga activo en la base de datos
+    const period = await prisma.period.findUnique({ where: { id: periodId } });
+    if (!period?.isActive) {
+        throw new Error("El periodo de evaluación ya no se encuentra activo");
+    }
 
     const num = (key: string) => parseInt(formData.get(key) as string) || 0;
 

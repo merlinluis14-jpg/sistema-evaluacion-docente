@@ -31,7 +31,7 @@ export default function ExportButtons({ data, periodo }: Props) {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [loadingExcel, setLoadingExcel] = useState(false);
 
-  // ── Exportar a CSV (compatible con Excel) ──────────────────
+  // Generación de reporte CSV (Excel)
   const exportExcel = () => {
     setLoadingExcel(true);
     try {
@@ -77,7 +77,7 @@ export default function ExportButtons({ data, periodo }: Props) {
     }
   };
 
-  // ── Exportar a PDF via API route ───────────────────────────
+  // Llamada al servicio de exportación PDF
   const exportPdf = async () => {
     setLoadingPdf(true);
     try {

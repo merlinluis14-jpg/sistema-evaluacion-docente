@@ -129,7 +129,7 @@ async function main() {
   console.log("🚀 Prueba el flujo completo:");
   console.log("   Login alumno:   122030001  / password123");
   console.log("   Login docente:  carlos.ramirez@uptx.edu.mx / Docente@2026");
-  console.log("   Login admin:    admin@uptex.edu.mx / Admin@UPTX2026\n");
+  console.log("   Login admin:    admin@uptx.edu.mx / Admin@UPTX2026\n");
 }
 
 main()

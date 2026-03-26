@@ -1,8 +1,4 @@
-/**
- * Teacher Layout
- * Enforces role-based access for DOCENTE and provides the sidebar navigation skeleton.
- * Cumple con: RF2, RNF3
- */
+// Layout del portal docente — validación de rol y navegación lateral
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";

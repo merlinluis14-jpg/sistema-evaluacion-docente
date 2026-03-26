@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { parseAndImportAlumnos } from "@/lib/csv/parseAlumnos";
+import { logAdminAction } from "@/lib/adminLog";
 
 export async function POST(req: NextRequest) {
     // Solo administradores
@@ -39,6 +40,11 @@ export async function POST(req: NextRequest) {
 
         // Procesar importación
         const result = await parseAndImportAlumnos(csv, periodo);
+
+        await logAdminAction({
+            action: "IMPORT", entity: "ALUMNO",
+            detail: `Importación CSV: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()})`,
+        });
 
         return NextResponse.json(result, { status: 200 });
 
