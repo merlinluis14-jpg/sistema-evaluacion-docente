@@ -6,13 +6,14 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import GraficasDetalle from "./GraficasDetalle";
+import ExportTeacherPdf from "./ExportTeacherPdf";
 import { Target, Lightbulb, Monitor, ClipboardCheck, Inbox, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 // Mapa estático de clases para tarjetas de sección
 const COLOR_CARD: Record<string, { bg: string; border: string; icon: string; value: string; label: string }> = {
-  blue:    { bg: "bg-blue-50",    border: "border-blue-100",    icon: "text-blue-500",    value: "text-blue-700",    label: "text-blue-400" },
+  blue:    { bg: "bg-[#1B2A6B]/5",    border: "border-[#1B2A6B]/10",    icon: "text-[#1B2A6B]",    value: "text-[#1B2A6B]",    label: "text-[#7A7468]" },
   indigo:  { bg: "bg-indigo-50",  border: "border-indigo-100",  icon: "text-indigo-500",  value: "text-indigo-700",  label: "text-indigo-400" },
   violet:  { bg: "bg-violet-50",  border: "border-violet-100",  icon: "text-violet-500",  value: "text-violet-700",  label: "text-violet-400" },
   emerald: { bg: "bg-emerald-50", border: "border-emerald-100", icon: "text-emerald-500", value: "text-emerald-700", label: "text-emerald-400" },
@@ -143,19 +144,34 @@ export default async function ReporteDocenteDetallePage({
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
 
-      {/* Navegación */}
-      <Link
-        href={`/admin/reportes${periodoId ? `?periodoId=${periodoId}` : ""}`}
-        className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
-      >
-        <ArrowLeft size={15} /> Volver a Reportes
-      </Link>
+      {/* Navegación y Exportación */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <Link
+          href={`/admin/reportes${periodoId ? `?periodoId=${periodoId}` : ""}`}
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
+        >
+          <ArrowLeft size={15} /> Volver a Reportes
+        </Link>
+
+        {/* Botón de Exportación Individual Oficial */}
+        <ExportTeacherPdf 
+          teacher={teacher}
+          periodo={periodo?.name ?? "Histórico Total"}
+          evaluacionesCount={n}
+          promedios={{ fac: promedioFac, hab: promedioHab, med: promedioMed, auto: promedioAuto, global: promedioGlobal }}
+          nivel={nivel}
+          facilitador={facilitador}
+          habilidades={habilidades}
+          medios={medios}
+          autoevaluacion={autoevaluacion}
+        />
+      </div>
 
       {/* Datos del Docente */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl font-black">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#1B2A6B] to-[#2A3F9F] rounded-2xl flex items-center justify-center text-white text-xl font-black">
               {teacher.name[0]}{teacher.lastName[0]}
             </div>
             <div>
@@ -172,10 +188,10 @@ export default async function ReporteDocenteDetallePage({
           </div>
           {/* Nivel global */}
           <div className="text-center">
-            <p className="text-4xl font-black text-blue-600">{promedioGlobal}</p>
+            <p className="text-4xl font-black text-[#1B2A6B]">{promedioGlobal}</p>
             <p className="text-xs font-bold text-slate-400 mt-0.5">Promedio Global</p>
             <span className={`mt-1 inline-block px-3 py-1 rounded-full text-xs font-bold ${nivel === "Excelente" ? "bg-emerald-100 text-emerald-700"
-                : nivel === "Bueno" ? "bg-blue-100 text-blue-700"
+                : nivel === "Bueno" ? "bg-blue-100 text-[#1B2A6B]"
                   : nivel === "Regular" ? "bg-amber-100 text-amber-700"
                     : "bg-red-100 text-red-700"
               }`}>

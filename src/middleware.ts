@@ -14,6 +14,15 @@ export async function middleware(req: NextRequest) {
     const role = token?.role as string | undefined;
     const isAuthenticated = !!token;
 
+    // Protección de APIs contra payloads gigantes (Rate/Size limiting básico)
+    if (pathname.startsWith("/api/import")) {
+        const MAX_BODY_SIZE = 5 * 1024 * 1024; // 5MB
+        const contentLength = Number(req.headers.get("content-length") || "0");
+        if (contentLength > MAX_BODY_SIZE) {
+            return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+        }
+    }
+
     // Redirección de usuarios autenticados según su rol
     if (pathname === "/login" && isAuthenticated) {
         const dest = role === "ADMIN" ? "/admin" : role === "DOCENTE" ? "/docente" : "/alumno";
@@ -58,5 +67,6 @@ export const config = {
         "/admin/:path*",
         "/docente/:path*",
         "/alumno/:path*",
+        "/api/import/:path*",
     ],
 };

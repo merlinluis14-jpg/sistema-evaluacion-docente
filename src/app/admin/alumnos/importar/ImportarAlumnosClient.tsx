@@ -2,21 +2,23 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { Upload, CheckCircle2, FolderOpen, AlertTriangle, BarChart2, Download, ArrowLeft } from "lucide-react";
+import { Upload, CheckCircle2, FolderOpen, AlertTriangle, BarChart2, Download } from "lucide-react";
 
-type ImportError = { row: number; identifier: string; reason: string };
+type ImportError = { row: number; matricula: string; reason: string };
 type ImportResult = { total: number; success: number; errors: ImportError[] };
 
-const CSV_TEMPLATE = `nombre,codigo,cuatrimestre,carrera_code,numero_empleado
-Base de Datos I,ISC-BD1,3,ISC,DOC001
-Programación Orientada a Objetos,ISC-POO,3,ISC,DOC002
-Redes de Computadoras,ISC-RC1,5,ISC,DOC003`;
+const CSV_TEMPLATE = `matricula,nombre,apellido,email,carrera_code,grupo,password
+220310001,Juan,García,j.garcia@uptx.edu.mx,ISC,3A,uptx2026
+220310002,María,López,m.lopez@uptx.edu.mx,ISC,3A,uptx2026
+220310003,Pedro,Martínez,,IET,5B,
+220310004,Ana,Hernández,a.hernandez@uptx.edu.mx,IRO,2C,uptx2026`;
 
-const EXAMPLE_PREVIEW = `nombre,codigo,cuatrimestre,carrera_code,numero_empleado
-Base de Datos I,ISC-BD1,3,ISC,DOC001
-Programación OO,ISC-POO,3,ISC,DOC002`;
+const EXAMPLE_PREVIEW = `matricula,nombre,apellido,email,carrera_code,grupo,password
+220310001,Juan,García,j.garcia@uptx.edu.mx,ISC,3A,uptx2026
+220310002,María,López,,ISC,3A,
+220310003,Pedro,Martínez,,IET,5B,uptx2026`;
 
-export default function ImportarMateriasPage() {
+export default function ImportarAlumnosClient({ periodName }: { periodName: string }) {
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<ImportResult | null>(null);
@@ -41,35 +43,31 @@ export default function ImportarMateriasPage() {
         setLoading(true); setError(null); setResult(null);
         try {
             const text = await file.text();
-            const res = await fetch("/api/import/materias", {
+            const response = await fetch("/api/import/alumnos", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ csv: text }),
+                body: JSON.stringify({ csv: text, periodo: periodName }),
             });
-            if (!res.ok) { const err = await res.json(); throw new Error(err.message || "Error en el servidor"); }
-            setResult(await res.json());
+            if (!response.ok) { const err = await response.json(); throw new Error(err.message || "Error en el servidor"); }
+            setResult(await response.json());
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Error inesperado");
+            setError(err instanceof Error ? err.message : "Error inesperado al importar");
         } finally { setLoading(false); }
     };
 
     const downloadTemplate = () => {
         const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.href = url; a.download = "template_materias_uptx.csv"; a.click();
+        const a = document.createElement("a"); a.href = url; a.download = "template_alumnos_uptx.csv"; a.click();
         URL.revokeObjectURL(url);
     };
 
     return (
-        <div className="p-8 pb-20 sm:p-12 max-w-7xl mx-auto">
-            <div className="flex items-center gap-4 mb-2">
-                <Link href="/admin/materias" className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium">
-                    <ArrowLeft size={15} /> Volver a Materias
-                </Link>
-            </div>
-            <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-800">Importar <span className="text-blue-600">Materias</span></h1>
-                <p className="text-slate-400 text-sm mt-1">Carga masiva de materias desde archivo CSV — los docentes deben existir previamente</p>
+        <>
+            {/* Periodo activo badge */}
+            <div className="mb-6 inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span className="text-sm text-blue-700 font-medium">Periodo activo: <strong>{periodName}</strong></span>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
@@ -97,11 +95,13 @@ export default function ImportarMateriasPage() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {[
-                                        ["nombre", true, "Nombre completo de la materia"],
-                                        ["codigo", true, "Código único por carrera: ISC-BD1, ISC-POO"],
-                                        ["cuatrimestre", true, "Número de cuatrimestre (1-12)"],
+                                        ["matricula", true, "Matrícula institucional única — se usa para el login"],
+                                        ["nombre", true, "Nombre(s) del alumno"],
+                                        ["apellido", true, "Apellido(s) del alumno"],
+                                        ["email", false, "Email institucional (opcional)"],
                                         ["carrera_code", true, "Código de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
-                                        ["numero_empleado", true, "N° de empleado del docente asignado (debe existir)"],
+                                        ["grupo", true, "Nombre del grupo: 3A, 5B, 2C — se crea si no existe"],
+                                        ["password", false, "Contraseña inicial — si se omite, se usa la matrícula"],
                                     ].map(([col, req, desc]) => (
                                         <tr key={col as string}>
                                             <td className="px-4 py-2"><code className="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">{col as string}</code></td>
@@ -170,7 +170,7 @@ export default function ImportarMateriasPage() {
                             {loading ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Importando materias...
+                                    Importando alumnos...
                                 </span>
                             ) : (
                                 <span className="flex items-center justify-center gap-2"><Upload className="w-4 h-4" /> Iniciar Importación</span>
@@ -188,7 +188,7 @@ export default function ImportarMateriasPage() {
                                 </div>
                                 <div className="bg-emerald-50 rounded-xl p-4 text-center">
                                     <p className="text-2xl font-black text-emerald-600">{result.success}</p>
-                                    <p className="text-xs text-emerald-500 font-medium mt-0.5">Importadas</p>
+                                    <p className="text-xs text-emerald-500 font-medium mt-0.5">Importados</p>
                                 </div>
                                 <div className={`rounded-xl p-4 text-center ${result.errors.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
                                     <p className={`text-2xl font-black ${result.errors.length > 0 ? "text-red-500" : "text-slate-400"}`}>{result.errors.length}</p>
@@ -197,24 +197,24 @@ export default function ImportarMateriasPage() {
                             </div>
                             {result.success > 0 && result.errors.length === 0 && (
                                 <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
-                                    <p className="text-sm text-emerald-700 font-bold flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Todas las materias fueron importadas correctamente</p>
+                                    <p className="text-sm text-emerald-700 font-bold flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Todos los alumnos fueron importados correctamente</p>
                                 </div>
                             )}
                             {result.errors.length > 0 && (
                                 <div className="space-y-2">
-                                    <p className="text-sm font-bold text-red-600 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> {result.errors.length} fila(s) con errores</p>
+                                    <p className="text-sm font-bold text-red-600 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> {result.errors.length} fila(s) con errores — el resto fue importado correctamente</p>
                                     <div className="bg-slate-50 rounded-xl overflow-hidden">
                                         <table className="w-full text-xs">
                                             <thead><tr className="bg-slate-100">
                                                 <th className="text-left px-4 py-2 font-bold text-slate-500">Fila</th>
-                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Código</th>
-                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Motivo</th>
+                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Matrícula</th>
+                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Motivo del error</th>
                                             </tr></thead>
                                             <tbody className="divide-y divide-slate-100">
                                                 {result.errors.map((err, i) => (
                                                     <tr key={i}>
                                                         <td className="px-4 py-2 text-slate-500">#{err.row}</td>
-                                                        <td className="px-4 py-2 font-mono text-slate-700">{err.identifier}</td>
+                                                        <td className="px-4 py-2 font-mono text-slate-700">{err.matricula}</td>
                                                         <td className="px-4 py-2 text-red-600">{err.reason}</td>
                                                     </tr>
                                                 ))}
@@ -224,13 +224,13 @@ export default function ImportarMateriasPage() {
                                 </div>
                             )}
                             <div className="flex gap-3 pt-2">
-                                <Link href="/admin/materias" className="flex-1 text-center py-2.5 rounded-xl bg-blue-700 text-white text-sm font-bold hover:bg-blue-800 transition-all">Ver materias importadas →</Link>
+                                <Link href="/admin/alumnos" className="flex-1 text-center py-2.5 rounded-xl bg-blue-700 text-white text-sm font-bold hover:bg-blue-800 transition-all">Ver alumnos importados →</Link>
                                 <button onClick={() => { setFile(null); setResult(null); }} className="px-5 py-2.5 rounded-xl bg-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-200 transition-all">Nueva importación</button>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
-        </div>
+        </>
     );
 }

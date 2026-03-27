@@ -1,13 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Upload, AlertTriangle, GraduationCap, Plus } from "lucide-react";
+import { Upload, AlertTriangle, GraduationCap, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default async function AlumnosPage({
     searchParams,
 }: {
-    searchParams: Promise<{ carrera?: string; grupo?: string; q?: string }>;
+    searchParams: Promise<{ carrera?: string; grupo?: string; q?: string; page?: string }>;
 }) {
-    const { carrera, grupo, q } = await searchParams;
+    const { carrera, grupo, q, page } = await searchParams;
+    const currentPage = parseInt(page || "1", 10);
+    const PAGE_SIZE = 50;
+
     const carreras = await prisma.career.findMany({
         where: { isActive: true },
         orderBy: { code: "asc" },
@@ -48,8 +51,12 @@ export default async function AlumnosPage({
                 take: 1, // Solo el grupo más reciente
             },
         },
-        take: 100, // Paginación simple
+        take: PAGE_SIZE,
+        skip: (currentPage - 1) * PAGE_SIZE,
     });
+
+    const totalFiltered = await prisma.student.count({ where: whereAlumnos });
+    const totalPages = Math.ceil(totalFiltered / PAGE_SIZE);
 
     const totalAlumnos = await prisma.student.count({ where: { isActive: true } });
 
@@ -153,14 +160,8 @@ export default async function AlumnosPage({
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <h2 className="font-bold text-slate-700">
-                        Mostrando {alumnos.length} de {totalAlumnos} alumnos
+                        Mostrando {alumnos.length} resultados (Total: {totalFiltered})
                     </h2>
-                    {alumnos.length === 100 && (
-                        <span className="text-xs text-amber-600 font-medium bg-amber-50 px-3 py-1 rounded-full">
-                        <AlertTriangle className="w-4 h-4 text-amber-500" />
-                        <span>Mostrando primeros 100 — usa los filtros para refinar</span>
-                        </span>
-                    )}
                 </div>
 
                 <table className="w-full">
@@ -229,6 +230,41 @@ export default async function AlumnosPage({
                         >
                             <Upload className="w-4 h-4 inline mr-1" /> Importar CSV
                         </Link>
+                    </div>
+                )}
+
+                {/* Controles de Paginación */}
+                {totalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-500">
+                            Página {currentPage} de {totalPages}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            {currentPage > 1 ? (
+                                <Link
+                                    href={`/admin/alumnos?page=${currentPage - 1}${q ? `&q=${q}` : ''}${carrera ? `&carrera=${carrera}` : ''}${grupo ? `&grupo=${grupo}` : ''}`}
+                                    className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-600"
+                                >
+                                    <ChevronLeft size={18} />
+                                </Link>
+                            ) : (
+                                <button disabled className="p-2 border border-slate-100 rounded-lg text-slate-300 cursor-not-allowed">
+                                    <ChevronLeft size={18} />
+                                </button>
+                            )}
+                            {currentPage < totalPages ? (
+                                <Link
+                                    href={`/admin/alumnos?page=${currentPage + 1}${q ? `&q=${q}` : ''}${carrera ? `&carrera=${carrera}` : ''}${grupo ? `&grupo=${grupo}` : ''}`}
+                                    className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-600"
+                                >
+                                    <ChevronRight size={18} />
+                                </Link>
+                            ) : (
+                                <button disabled className="p-2 border border-slate-100 rounded-lg text-slate-300 cursor-not-allowed">
+                                    <ChevronRight size={18} />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

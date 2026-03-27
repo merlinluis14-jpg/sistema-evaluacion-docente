@@ -3,18 +3,30 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { DeleteTeacherButton } from "./DeleteTeacherButton";
 import { ResetPasswordButton } from "./ResetPasswordButton";
-import { UserCog, Plus, Upload } from "lucide-react";
+import { UserCog, Plus, Upload, FilterX } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function DocentesPage() {
+export default async function DocentesPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ career?: string }>;
+}) {
+    const { career: careerId } = await searchParams;
+
     const teachers = await prisma.teacher.findMany({
+        where: careerId ? { careerId: careerId } : undefined,
         orderBy: { createdAt: "desc" },
         include: {
             career: true,
             user: { select: { email: true } },
         },
     });
+
+    // Load career name for the banner when filtering
+    const activeCareer = careerId
+        ? await prisma.career.findUnique({ where: { id: careerId }, select: { name: true, code: true } })
+        : null;
 
     return (
         <div className="p-8 pb-20 sm:p-12 animate-in fade-in zoom-in duration-500 max-w-7xl mx-auto">
@@ -44,6 +56,22 @@ export default async function DocentesPage() {
                     </Link>
                 </div>
             </div>
+
+            {/* Active career filter banner */}
+            {activeCareer && (
+                <div className="mb-6 flex items-center gap-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl px-5 py-3 text-sm font-medium">
+                    <FilterX size={16} className="shrink-0 text-blue-500" />
+                    <span>
+                        Mostrando docentes de la carrera: <strong>{activeCareer.code} — {activeCareer.name}</strong>
+                    </span>
+                    <Link
+                        href="/admin/docentes"
+                        className="ml-auto text-blue-600 hover:text-blue-800 font-bold underline underline-offset-2 whitespace-nowrap"
+                    >
+                        Ver todos
+                    </Link>
+                </div>
+            )}
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">

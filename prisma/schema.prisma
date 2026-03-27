@@ -232,6 +232,9 @@ model Evaluation {
   comentario_fortalezas String? @db.Text  // Fortalezas y sugerencias al docente
   comentario_adicional  String? @db.Text  // Comentario adicional libre
 
+  // Separación explícita para garantizar privacidad a nivel auditoría
+  isAnonymous Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
