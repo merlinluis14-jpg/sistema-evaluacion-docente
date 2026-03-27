@@ -23,8 +23,8 @@ export async function middleware(req: NextRequest) {
         }
     }
 
-    // Redirección de usuarios autenticados según su rol
-    if (pathname === "/login" && isAuthenticated) {
+    // Redirige usuarios autenticados a su dashboard si acceden a la raíz o login
+    if ((pathname === "/" || pathname === "/login") && isAuthenticated) {
         const dest = role === "ADMIN" ? "/admin" : role === "DOCENTE" ? "/docente" : "/alumno";
         return NextResponse.redirect(new URL(dest, req.url));
     }
@@ -37,7 +37,7 @@ export async function middleware(req: NextRequest) {
         pathname.startsWith("/dashboard");
 
     if (needsAuth && !isAuthenticated) {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL("/", req.url));
     }
 
     // Manejo de la ruta base del dashboard
@@ -48,13 +48,13 @@ export async function middleware(req: NextRequest) {
 
     // Validación estricta de rutas por rol
     if (pathname.startsWith("/admin") && role !== "ADMIN") {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL("/", req.url));
     }
     if (pathname.startsWith("/docente") && role !== "DOCENTE") {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL("/", req.url));
     }
     if (pathname.startsWith("/alumno") && role !== "ALUMNO") {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL("/", req.url));
     }
 
     return NextResponse.next();
@@ -62,6 +62,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
     matcher: [
+        "/",
         "/login",
         "/dashboard/:path*",
         "/admin/:path*",

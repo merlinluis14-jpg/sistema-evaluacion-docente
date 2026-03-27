@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ReactNode } from "react";
+import { SignOutButton } from "@/components/SignOutButton";
 
 export default async function AlumnoLayout({ children }: { children: ReactNode }) {
     const session = await getServerSession(authOptions);
@@ -25,7 +26,7 @@ export default async function AlumnoLayout({ children }: { children: ReactNode }
                             <span className="text-white font-black text-xs">U</span>
                         </div>
                         <div>
-                            <p className="font-bold text-slate-800 text-sm leading-none">UPT Eval</p>
+                            <p className="font-bold text-slate-800 text-sm leading-none">UPTEX Eval</p>
                             <p className="text-slate-400 text-[10px]">Evaluación Docente</p>
                         </div>
                     </div>
@@ -46,12 +47,11 @@ export default async function AlumnoLayout({ children }: { children: ReactNode }
                             <p className="text-xs font-bold text-slate-700">{session.user.name || session.user.email}</p>
                             <p className="text-[10px] text-slate-400">Alumno</p>
                         </div>
-                        <Link
-                            href="/api/auth/signout"
+                        <SignOutButton
                             className="text-xs text-slate-400 hover:text-red-500 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-red-50"
                         >
                             Salir
-                        </Link>
+                        </SignOutButton>
                     </div>
 
                 </div>

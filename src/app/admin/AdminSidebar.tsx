@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   Layers, Calendar, BarChart3, Menu, X, LogOut, ClipboardList,
 } from "lucide-react";
+import { SignOutButton } from "@/components/SignOutButton";
 
 const NAV_ITEMS = [
   { href: "/admin",          label: "Dashboard",  icon: LayoutDashboard },
@@ -37,7 +38,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
             <span className="text-white font-black text-sm">U</span>
           </div>
           <div>
-            <p className="text-white font-bold text-sm leading-none">UPT Eval</p>
+            <p className="text-white font-bold text-sm leading-none">UPTEX Eval</p>
             <p className="text-blue-300 text-[10px] mt-0.5">Panel Administrador</p>
           </div>
         </div>
@@ -82,13 +83,12 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
       {/* Footer */}
       <div className="px-4 py-4 border-t border-white/10 space-y-2">
         <p className="text-slate-500 text-[10px] truncate">{userEmail}</p>
-        <Link
-          href="/api/auth/signout"
-          className="flex items-center gap-2 text-slate-400 hover:text-red-400 transition-colors text-xs font-medium"
+        <SignOutButton
+          className="flex flex-row items-center gap-2 text-slate-400 hover:text-red-400 transition-colors text-xs font-medium bg-transparent border-none p-0"
         >
           <LogOut size={14} />
           Cerrar sesión
-        </Link>
+        </SignOutButton>
       </div>
     </div>
   );

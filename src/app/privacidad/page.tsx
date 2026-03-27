@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ShieldCheck, Database, Lock, UserCheck } from "lucide-react";
 
 export const metadata = {
-  title: "Políticas de Privacidad | UPT Eval",
+  title: "Políticas de Privacidad | UPTEX Eval",
 };
 
 export default function PrivacidadPage() {

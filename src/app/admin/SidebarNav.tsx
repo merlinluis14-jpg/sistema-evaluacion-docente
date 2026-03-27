@@ -12,6 +12,7 @@ import {
     BarChart3,
     LogOut,
 } from "lucide-react";
+import { SignOutButton } from "@/components/SignOutButton";
 
 const navItems = [
     { href: "/admin",          Icon: LayoutDashboard, label: "Dashboard" },
@@ -54,12 +55,11 @@ export function SidebarNav({ email }: { email: string }) {
 
             <div className="px-4 py-4 border-t border-white/10 space-y-2">
                 <p className="text-slate-500 text-[10px] truncate">{email}</p>
-                <Link
-                    href="/api/auth/signout"
-                    className="flex items-center gap-2 text-[#94A3B8] hover:text-red-400 transition-colors text-xs font-medium"
+                <SignOutButton
+                    className="flex flex-row items-center gap-2 text-[#94A3B8] hover:text-red-400 transition-colors text-xs font-medium bg-transparent border-none p-0 cursor-pointer"
                 >
                     <LogOut size={14} /> Cerrar sesión
-                </Link>
+                </SignOutButton>
             </div>
         </>
     );

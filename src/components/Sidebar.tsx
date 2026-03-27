@@ -19,7 +19,7 @@ export default function Sidebar() {
             <div className="mb-10">
                 <div className="flex items-center gap-3 mb-1">
                     <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-lg">🎓</div>
-                    <h2 className="text-lg font-black tracking-tight">UPT Eval</h2>
+                    <h2 className="text-lg font-black tracking-tight">UPTEX Eval</h2>
                 </div>
                 <p className="text-[11px] text-blue-300 font-medium pl-12">Sistema FDA-24.5</p>
             </div>
@@ -54,7 +54,7 @@ export default function Sidebar() {
             {/* Footer */}
             <div className="pt-6 border-t border-white/10">
                 <p className="text-[10px] text-blue-400 text-center font-medium leading-relaxed">
-                    Tesina · UPT<br />Sistema de Evaluación Docente
+                    Tesina · UPTEX<br />Sistema de Evaluación Docente
                 </p>
             </div>
         </aside>

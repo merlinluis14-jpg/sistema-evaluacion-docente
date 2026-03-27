@@ -1,103 +1,188 @@
+"use client";
+
+import { useState } from "react";
+import { signIn, getSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const result = await signIn("credentials", {
+      username,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error || !result?.ok) {
+      setError("Credenciales inválidas. Verifica tu usuario y contraseña.");
+      setLoading(false);
+      return;
+    }
+
+    const session = await getSession();
+    const role = (session?.user as { role?: string })?.role;
+
+    if (role === "ADMIN") router.push("/admin");
+    else if (role === "DOCENTE") router.push("/docente");
+    else if (role === "ALUMNO") router.push("/alumno");
+    else router.push("/admin");
+  };
+
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-900 overflow-hidden">
-      {/* Navegación Superpuesta */}
-      <nav className="flex items-center justify-between px-8 py-8 max-w-7xl mx-auto relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-xl shadow-xl shadow-indigo-200 transform -rotate-3 hover:rotate-0 transition-transform cursor-pointer">🎓</div>
-          <div className="flex flex-col">
-            <span className="text-xl font-black tracking-tight text-slate-900 leading-none">UPT <span className="text-indigo-600">Eval</span></span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">U. Politécnica de Texcoco</span>
+    <div className="min-h-screen bg-[#fafafa] text-slate-900 font-sans flex flex-col p-4 sm:p-8">
+      
+      {/* Contenedor flexible para centrar la tarjeta */}
+      <div className="flex-1 flex items-center justify-center py-6">
+        {/* Contenedor principal estilo tarjeta clara */}
+      <div className="w-full max-w-7xl h-[85vh] min-h-[600px] border border-slate-200/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] bg-white flex flex-col lg:flex-row overflow-hidden relative">
+        
+        {/* Top bar (oculta en móvil si la movemos al formulario, o la mantenemos relativa) */}
+        {/* Mejor movermos el logo dentro de la columna del formulario para el móvil */}
+
+        {/* --- Columna Izquierda: Imagen (Ocupa 55%) --- */}
+        <div className="hidden lg:block w-[55%] relative h-full p-4">
+          <div className="w-full h-full relative rounded-[2rem] overflow-hidden shadow-inner">
+            {/* Imagen autogenerada para el tema claro */}
+            <Image 
+              src="/login.jpeg" 
+              alt="Administración UPT Eval" 
+              fill
+              className="object-cover animate-in fade-in duration-1000"
+              priority
+            />
+            {/* Gradiente sutil para suavizar bordes */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/10 via-transparent"></div>
           </div>
         </div>
-        <Link href="/login" className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-sm hover:bg-indigo-600 transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-slate-200">
-          Entrar al Sistema
-        </Link>
-      </nav>
 
-      <main className="max-w-7xl mx-auto px-8 py-12 flex flex-col lg:flex-row items-center gap-16 relative">
-        {/* Decoración de fondo */}
-        <div className="absolute top-20 right-0 w-96 h-96 bg-indigo-100 rounded-full filter blur-3xl opacity-40 -z-10 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-100 rounded-full filter blur-3xl opacity-30 -z-10"></div>
-
-        <div className="flex-1 space-y-8 animate-in fade-in slide-in-from-left duration-1000">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-5 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm">
-            🚀 Instrumento FDA-24.5 Oficial
-          </div>
-          <h1 className="text-6xl lg:text-[5.5rem] font-black text-slate-900 leading-[0.95] tracking-tight">
-            Mejora la <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-500">Educación</span> <br />
-            con un clic.
-          </h1>
-          <p className="text-xl text-slate-500 max-w-xl leading-relaxed font-medium">
-            Plataforma avanzada de evaluación docente diseñada para elevar los estándares académicos de la Universidad Politécnica de Texcoco.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-5 pt-6">
-            <Link href="/login" className="bg-indigo-600 text-white px-12 py-5 rounded-3xl font-black text-xl hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-indigo-300 transform hover:-translate-y-1 text-center">
-              Comenzar Ahora
-            </Link>
-            <div className="flex flex-col justify-center px-2">
-              <div className="flex -space-x-3 mb-2">
-                {['bg-slate-300', 'bg-slate-400', 'bg-slate-500', 'bg-slate-600'].map((bg, i) => (
-                  <div key={i} className={`w-8 h-8 rounded-full border-2 border-white ${bg} shadow-sm`}></div>
-                ))}
+        {/* --- Columna Derecha: Formulario (Ocupa 45%) --- */}
+        <div className="flex-1 flex flex-col relative z-10 px-5 sm:px-8 lg:px-16 py-8 lg:py-10">
+          
+          <div className="flex-1 flex flex-col justify-center items-center">
+            <div className="w-full max-w-[360px] animate-in slide-in-from-bottom-8 duration-700 font-sans">
+              
+              {/* Logo integrado en el flujo para móvil, centrado o alineado */}
+              <div className="flex items-center justify-center lg:justify-start gap-2 mb-8 lg:absolute lg:top-8 lg:left-10">
+                <div className="px-2.5 h-9 bg-black text-white rounded-xl flex items-center justify-center font-black text-sm shadow-md">
+                  UPTEX
+                </div>
+                <span className="font-bold tracking-tight text-slate-800">Evaluación Docente</span>
               </div>
-              <span className="text-xs font-black text-slate-800 uppercase tracking-tight">+1,200 Alumnos Activos</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Mockup visual representativo */}
-        <div className="flex-1 w-full max-w-2xl animate-in fade-in slide-in-from-right duration-1000 delay-200">
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden min-h-[450px] flex flex-col justify-between">
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <div className="h-4 w-32 bg-slate-100 rounded-full animate-pulse"></div>
-                  <div className="h-8 w-8 bg-indigo-50 rounded-xl"></div>
-                </div>
-                <div className="h-16 w-full bg-indigo-50/50 rounded-3xl border border-indigo-100 border-dashed flex items-center px-6">
-                  <div className="h-2 w-2/3 bg-indigo-200 rounded-full"></div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="h-32 bg-slate-50 rounded-3xl p-6 flex flex-col justify-between">
-                    <div className="h-2 w-1/2 bg-slate-200 rounded-full"></div>
-                    <div className="h-8 w-8 bg-white rounded-xl shadow-sm"></div>
-                  </div>
-                  <div className="h-32 bg-slate-900 rounded-3xl p-6 flex flex-col justify-between">
-                    <div className="h-2 w-1/2 bg-slate-700 rounded-full"></div>
-                    <div className="h-8 w-8 bg-indigo-500 rounded-xl shadow-lg"></div>
+              <div className="text-center mb-10 mt-4 lg:mt-0">
+                <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">¡Bienvenido!</h1>
+                <p className="text-sm font-medium text-slate-500 tracking-wide">
+                  Sistema de Evaluación Académica UPTX
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                
+                <div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-5 pr-11 py-3.5 sm:py-4 bg-[#f4f4f5] border border-transparent rounded-xl text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-4 focus:ring-slate-100 outline-none transition-all font-medium text-sm"
+                      placeholder="Identificador o correo"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                      autoComplete="username"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="pt-8">
-                <div className="h-3 w-full bg-slate-50 rounded-full overflow-hidden">
-                  <div className="h-full w-3/4 bg-indigo-600 rounded-full"></div>
+
+                <div>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      className="w-full pl-5 pr-11 py-3.5 sm:py-4 bg-[#f4f4f5] border border-transparent rounded-xl text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-4 focus:ring-slate-100 outline-none transition-all font-medium text-sm"
+                      placeholder="Contraseña"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between mt-3">
-                  <div className="h-2 w-16 bg-slate-100 rounded-full"></div>
-                  <div className="h-2 w-10 bg-slate-100 rounded-full"></div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-100 text-red-600 text-xs p-3 rounded-xl text-center font-medium mt-1">
+                    {error}
+                  </div>
+                )}
+
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 rounded-xl text-sm font-bold text-white bg-[#0f172a] hover:bg-black focus:ring-4 focus:ring-slate-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-slate-200 active:scale-[0.98]"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Verificando...
+                      </span>
+                    ) : (
+                      "Iniciar Sesión"
+                    )}
+                  </button>
                 </div>
+
+              </form>
+
+              <div className="mt-8 pt-6 border-t border-slate-100/60">
+                <p className="text-center text-[11px] text-slate-400 font-medium tracking-wide uppercase">
+                  Solo acceso autorizado por el administrador
+                </p>
               </div>
+
             </div>
           </div>
+          
         </div>
-      </main>
-
-      {/* Footer minimalista */}
-      <footer className="max-w-7xl mx-auto px-8 py-12 mt-12 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6">
-        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-loose">
-          © 2026 Sistema de Evaluación Docente <br />
-          <span className="text-slate-300">Universidad Politécnica de Texcoco · Proyecto de Tesina</span>
-        </p>
-        <div className="flex gap-8 text-xs font-black text-slate-400 uppercase tracking-widest">
-          <Link href="/privacidad" className="hover:text-indigo-600 cursor-pointer">Privacidad</Link>
-          <span className="hover:text-indigo-600 cursor-pointer">Soporte Técnico</span>
+      </div>
+      </div>
+      
+      {/* Footer minimalista, ahora en el flujo normal para evitar solapamientos en móvil */}
+      <footer className="w-full text-center mt-auto pt-8 pb-2">
+        <div className="inline-flex flex-wrap justify-center items-center gap-x-6 gap-y-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest px-6 py-3 rounded-2xl sm:rounded-full bg-white/60 shadow-sm border border-slate-200/50">
+          <span>© 2026 UPTX</span>
+          <div className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full"></div>
+          <Link href="/privacidad" className="hover:text-slate-800 transition-colors">
+            Avisos de Privacidad
+          </Link>
+          <div className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full"></div>
+          <span className="hover:text-slate-800 cursor-pointer transition-colors">
+            Soporte Técnico
+          </span>
         </div>
       </footer>
+
     </div>
   );
 }

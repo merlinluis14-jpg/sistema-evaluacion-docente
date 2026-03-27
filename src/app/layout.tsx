@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema de Evaluación Docente UPT",
-  description: "Plataforma de evaluación docente institucional UPT",
+  title: "Sistema de Evaluación Docente UPTEX",
+  description: "Plataforma de evaluación docente institucional UPTEX",
 };
 
 export default function RootLayout({
@@ -24,9 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         <NextAuthProvider>
           {children}
