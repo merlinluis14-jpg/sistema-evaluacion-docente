@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Plus, Pencil, BookOpen, Inbox, Upload } from "lucide-react";
+import { Plus, Pencil, BookOpen, Upload } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,7 @@ export default async function MateriasAdminPage({
     const totalMaterias = await prisma.subject.count();
 
     return (
-        <div className="p-8 space-y-6 max-w-7xl mx-auto">
+        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
 
             <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
@@ -51,16 +51,16 @@ export default async function MateriasAdminPage({
                         {totalMaterias} materias registradas en el sistema
                     </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                     <Link
                         href="/admin/materias/importar"
-                        className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all font-sans"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 transition-all hover:bg-indigo-100 sm:w-auto"
                     >
                         <Upload size={16} /> Importar CSV
                     </Link>
                     <Link
                         href="/admin/materias/nueva"
-                        className="flex items-center gap-2 bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 active:scale-95 transition-all shadow-lg shadow-blue-700/20"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-700/20 transition-all hover:bg-blue-800 active:scale-95 sm:w-auto"
                     >
                         <Plus size={16} /> Nueva Materia
                     </Link>

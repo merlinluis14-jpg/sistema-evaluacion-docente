@@ -59,7 +59,7 @@ export default async function DocentesPage({
     });
 
     return (
-        <div className="p-8 pb-20 sm:p-12 animate-in fade-in zoom-in duration-500 max-w-7xl mx-auto">
+        <div className="mx-auto max-w-7xl animate-in fade-in zoom-in p-4 pb-20 duration-500 sm:p-6 lg:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">
@@ -69,17 +69,17 @@ export default async function DocentesPage({
                         Administra los catedraticos registrados en el sistema de evaluacion.
                     </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                     <Link
                         href="/admin/docentes/importar"
-                        className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all font-sans"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 transition-all hover:bg-indigo-100 sm:w-auto"
                     >
                         <Upload size={16} />
                         Importar CSV
                     </Link>
                     <Link
                         href="/admin/docentes/nuevo"
-                        className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700 active:scale-95 sm:w-auto"
                     >
                         <Plus size={16} />
                         Nuevo Docente

@@ -1,4 +1,3 @@
-// src/app/alumno/layout.tsx
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -7,71 +6,76 @@ import { ReactNode } from "react";
 import { SignOutButton } from "@/components/SignOutButton";
 
 export default async function AlumnoLayout({ children }: { children: ReactNode }) {
-    const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
-    if (!session || (session.user as { role?: string }).role !== "ALUMNO") {
-        redirect("/login");
-    }
+  if (!session || (session.user as { role?: string }).role !== "ALUMNO") {
+    redirect("/login");
+  }
 
-    return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-
-            {/* Encabezado Principal */}
-            <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-                <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between">
-
-                    {/* Logo */}
-                    <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-black text-xs">U</span>
-                        </div>
-                        <div>
-                            <p className="font-bold text-slate-800 text-sm leading-none">UPTEX Eval</p>
-                            <p className="text-slate-400 text-[10px]">Evaluación Docente</p>
-                        </div>
-                    </div>
-
-                    {/* Nav */}
-                    <nav className="flex items-center gap-1">
-                        <Link
-                            href="/alumno"
-                            className="px-3 py-1.5 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all font-medium"
-                        >
-                            Mis Materias
-                        </Link>
-                    </nav>
-
-                    {/* Usuario + logout */}
-                    <div className="flex items-center gap-3">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-xs font-bold text-slate-700">{session.user.name || session.user.email}</p>
-                            <p className="text-[10px] text-slate-400">Alumno</p>
-                        </div>
-                        <SignOutButton
-                            className="text-xs text-slate-400 hover:text-red-500 transition-colors font-medium px-2 py-1 rounded-lg hover:bg-red-50"
-                        >
-                            Salir
-                        </SignOutButton>
-                    </div>
-
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <header className="sticky top-0 z-10 border-b border-gray-100 bg-white">
+        <div className="mx-auto max-w-4xl px-4 py-3 sm:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600">
+                  <span className="text-xs font-black text-white">U</span>
                 </div>
-            </header>
-
-            {/* Área de Contenido */}
-            <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
-                {children}
-            </main>
-
-            {/* Pie de Página */}
-            <footer className="border-t border-gray-100 bg-white mt-auto">
-                <div className="max-w-4xl mx-auto px-6 py-3 flex items-center gap-2">
-                    <span className="text-blue-500 text-sm">🔒</span>
-                    <p className="text-xs text-slate-400">
-                        Tu evaluación es <strong className="text-slate-600">completamente anónima</strong>. Los docentes no pueden identificarte.
-                    </p>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold leading-none text-slate-800">UPTEX Eval</p>
+                  <p className="text-[10px] text-slate-400">Evaluacion Docente</p>
                 </div>
-            </footer>
+              </div>
 
+              <div className="sm:hidden">
+                <SignOutButton className="rounded-lg px-2 py-1 text-xs font-medium text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500">
+                  Salir
+                </SignOutButton>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 sm:gap-3">
+              <nav className="flex items-center gap-1">
+                <Link
+                  href="/alumno"
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-600"
+                >
+                  Mis Materias
+                </Link>
+              </nav>
+
+              <div className="hidden items-center gap-3 sm:flex">
+                <div className="hidden text-right md:block">
+                  <p className="text-xs font-bold text-slate-700">
+                    {session.user.name || session.user.email}
+                  </p>
+                  <p className="text-[10px] text-slate-400">Alumno</p>
+                </div>
+                <SignOutButton className="rounded-lg px-2 py-1 text-xs font-medium text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500">
+                  Salir
+                </SignOutButton>
+              </div>
+            </div>
+          </div>
         </div>
-    );
+      </header>
+
+      <main className="mx-auto flex-1 w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-8">
+        {children}
+      </main>
+
+      <footer className="mt-auto border-t border-gray-100 bg-white">
+        <div className="mx-auto flex max-w-4xl items-start gap-2 px-4 py-3 sm:items-center sm:px-6">
+          <span className="flex-shrink-0 text-xs font-bold uppercase tracking-wide text-blue-500">
+            Seguro
+          </span>
+          <p className="text-xs leading-relaxed text-slate-400">
+            Tu evaluacion es <strong className="text-slate-600">completamente anonima</strong>.
+            Los docentes no pueden identificarte.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
 }

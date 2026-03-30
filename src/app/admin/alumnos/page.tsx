@@ -1,6 +1,7 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Upload, AlertTriangle, GraduationCap, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Upload, GraduationCap, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default async function AlumnosPage({
     searchParams,
@@ -26,7 +27,7 @@ export default async function AlumnosPage({
     });
 
     // Construir filtro de alumnos
-    const whereAlumnos: any = { isActive: true };
+    const whereAlumnos: Prisma.StudentWhereInput = { isActive: true };
     if (carrera) whereAlumnos.careerId = carrera;
     if (grupo) {
         whereAlumnos.groups = {
@@ -61,7 +62,7 @@ export default async function AlumnosPage({
     const totalAlumnos = await prisma.student.count({ where: { isActive: true } });
 
     return (
-        <div className="p-8 space-y-6">
+        <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
 
             <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
@@ -72,16 +73,16 @@ export default async function AlumnosPage({
                         {totalAlumnos} alumnos registrados en el sistema
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
                     <Link
                         href="/admin/alumnos/nuevo"
-                        className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700 active:scale-95 sm:w-auto"
                     >
                         <Plus size={16} /> Nuevo Alumno
                     </Link>
                     <Link
                         href="/admin/alumnos/importar"
-                        className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all font-sans"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 transition-all hover:bg-indigo-100 sm:w-auto"
                     >
                         <Upload size={16} /> Importar CSV
                     </Link>

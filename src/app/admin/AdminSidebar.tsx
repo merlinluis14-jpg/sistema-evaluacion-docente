@@ -111,7 +111,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed left-3 top-3 z-50 flex h-9 w-9 items-center justify-center rounded-xl bg-[#1E3A5F] text-white shadow-lg md:hidden"
+        className="fixed left-3 top-3 z-50 flex h-10 w-10 items-center justify-center rounded-xl bg-[#1E3A5F] text-white shadow-lg md:hidden"
       >
         <Menu size={20} />
       </button>
@@ -124,7 +124,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
       ) : null}
 
       <div
-        className={`fixed left-0 top-0 z-50 h-full w-64 transition-transform duration-300 md:hidden ${
+        className={`fixed left-0 top-0 z-50 h-full w-[86vw] max-w-xs transition-transform duration-300 md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ background: "#1E3A5F" }}
@@ -133,7 +133,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
       </div>
 
       <div
-        className="hidden h-full flex-shrink-0 flex-col md:flex md:w-56"
+        className="hidden h-full flex-shrink-0 flex-col md:flex md:w-56 lg:w-64"
         style={{ background: "#1E3A5F" }}
       >
         <SidebarContent isActive={isActive} onClose={() => setOpen(false)} userEmail={userEmail} />

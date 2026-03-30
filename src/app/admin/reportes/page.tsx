@@ -128,6 +128,36 @@ function getReferenceBucket(score: number) {
   return Math.min(5, Math.max(1, Math.round(score)));
 }
 
+function getCompactCareerLabel(code: string, name: string) {
+  const simplifiedName = name
+    .replace(/^Ingenieria en\s+/i, "")
+    .replace(/^Licenciatura en\s+/i, "");
+  const compactName =
+    simplifiedName.length > 28 ? `${simplifiedName.slice(0, 25)}...` : simplifiedName;
+
+  return `${code} - ${compactName}`;
+}
+
+function getCompactPeriodLabel(name: string, isActive: boolean) {
+  const compactName = name
+    .replace("Cuatrimestre ", "Cuat. ")
+    .replace("Enero-Abril", "Ene-Abr")
+    .replace("Mayo-Agosto", "May-Ago")
+    .replace("Septiembre-Diciembre", "Sep-Dic");
+
+  return isActive ? `${compactName} - Activo` : compactName;
+}
+
+function getCompactGroupLabel(name: string, careerCode: string, period: string) {
+  const compactPeriod = period
+    .replace("Cuatrimestre ", "")
+    .replace("Enero-Abril", "Ene-Abr")
+    .replace("Mayo-Agosto", "May-Ago")
+    .replace("Septiembre-Diciembre", "Sep-Dic");
+
+  return `${name} - ${careerCode} - ${compactPeriod}`;
+}
+
 export default async function ReportesPage({
   searchParams,
 }: {
@@ -546,21 +576,21 @@ export default async function ReportesPage({
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-800">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-black leading-tight text-slate-800 sm:text-3xl">
             Reportes de <span className="text-blue-600">Evaluacion</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="mt-1 break-words text-sm text-slate-400">
             Instrumento FDA-24.5 - {periodoNombre}
             {materiaNombre ? ` - ${materiaNombre}` : ""}
             {grupoNombre ? ` - Grupo ${grupoNombre.name} (${grupoNombre.career.code})` : ""}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 justify-end">
+        <div className="flex w-full flex-wrap gap-2 justify-stretch sm:w-auto sm:justify-end">
           <Link
             href="/admin/reportes/importar-jefatura"
-            className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
+            className="inline-flex w-full items-center justify-center rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200 sm:w-auto"
           >
             Importar Eval. Coordinacion
           </Link>
@@ -572,34 +602,34 @@ export default async function ReportesPage({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
         <form className="flex gap-3 flex-wrap items-end">
-          <div>
+          <div className="w-full sm:flex-1 sm:min-w-[220px]">
             <label className="block text-xs font-bold text-slate-500 mb-1.5">Periodo</label>
             <select
               name="periodoId"
               defaultValue={periodoId}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+              className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">Todos los periodos</option>
               {periodos.map((periodo) => (
                 <option key={periodo.id} value={periodo.id}>
-                  {periodo.name} {periodo.isActive ? "- Activo" : ""}
+                  {getCompactPeriodLabel(periodo.name, periodo.isActive)}
                 </option>
               ))}
             </select>
           </div>
 
-          <div>
+          <div className="w-full sm:flex-1 sm:min-w-[220px]">
             <label className="block text-xs font-bold text-slate-500 mb-1.5">Carrera</label>
             <select
               name="carreraId"
               defaultValue={selectedCareerValue}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
-          >
+              className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            >
               {officialCareer && (
                 <option value={officialCareer.id}>
-                  {officialCareer.code} - {officialCareer.name}
+                  {getCompactCareerLabel(officialCareer.code, officialCareer.name)}
                 </option>
               )}
               <option value={ALL_CAREERS_VALUE}>Todas las carreras</option>
@@ -607,18 +637,18 @@ export default async function ReportesPage({
                 .filter((career) => career.id !== officialCareer?.id)
                 .map((career) => (
                   <option key={career.id} value={career.id}>
-                    {career.code} - {career.name}
+                    {getCompactCareerLabel(career.code, career.name)}
                   </option>
                 ))}
             </select>
           </div>
 
-          <div>
+          <div className="w-full sm:flex-1 sm:min-w-[220px]">
             <label className="block text-xs font-bold text-slate-500 mb-1.5">Materia</label>
             <select
               name="materiaId"
               defaultValue={materiaId}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+              className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">Todas las materias</option>
               {materias.map((subject) => (
@@ -629,28 +659,28 @@ export default async function ReportesPage({
             </select>
           </div>
 
-          <div>
+          <div className="w-full sm:flex-1 sm:min-w-[220px]">
             <label className="block text-xs font-bold text-slate-500 mb-1.5">Grupo</label>
             <select
               name="grupoId"
               defaultValue={grupoId}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+              className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">Todos los grupos</option>
               {grupos.map((group) => (
                 <option key={group.id} value={group.id}>
-                  {group.name} - {group.career.code} - {group.period}
+                  {getCompactGroupLabel(group.name, group.career.code, group.period)}
                 </option>
               ))}
             </select>
           </div>
 
-          <div>
+          <div className="w-[calc(50%-0.375rem)] sm:w-auto">
             <label className="block text-xs font-bold text-slate-500 mb-1.5">Calif. /5</label>
             <select
               name="calificacion"
               defaultValue={calificacion ?? ""}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
               <option value="">Todas</option>
               <option value="5">5</option>
@@ -661,12 +691,12 @@ export default async function ReportesPage({
             </select>
           </div>
 
-          <div>
+          <div className="w-[calc(50%-0.375rem)] sm:w-auto">
             <label className="block text-xs font-bold text-slate-500 mb-1.5">Orden</label>
             <select
               name="orden"
               defaultValue={sortOrder}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
               <option value="desc">Mayor a menor</option>
               <option value="asc">Menor a mayor</option>
@@ -675,7 +705,7 @@ export default async function ReportesPage({
 
           <button
             type="submit"
-            className="bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 transition-all"
+            className="w-full rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-800 sm:w-auto"
           >
             Filtrar
           </button>
@@ -683,7 +713,7 @@ export default async function ReportesPage({
           {hasFilters && (
             <Link
               href="/admin/reportes"
-              className="px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
+              className="w-full rounded-xl bg-slate-100 px-5 py-2.5 text-center text-sm font-bold text-slate-700 transition-all hover:bg-slate-200 sm:w-auto"
             >
               Limpiar
             </Link>

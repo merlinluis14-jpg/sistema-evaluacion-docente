@@ -47,7 +47,7 @@ export default async function LogsPage({
     const entidades = ["ADMIN", "DOCENTE", "MATERIA", "PERIODO", "ALUMNO", "EVALUACION"];
 
     return (
-        <div className="p-8 space-y-6 max-w-6xl mx-auto">
+        <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
             <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">

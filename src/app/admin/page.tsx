@@ -143,7 +143,7 @@ export default async function AdminPage() {
   };
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
 
 
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -166,7 +166,7 @@ export default async function AdminPage() {
       </div>
 
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {stats.map(({ label, value, Icon, color, border }) => (
           <div key={label} className={`bg-white rounded-2xl p-6 shadow-sm border ${border}`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
@@ -181,7 +181,7 @@ export default async function AdminPage() {
 
       <div>
         <h2 className="text-lg font-bold text-slate-700 mb-4">Accesos rápidos</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {quickLinks.map(({ href, label, Icon }, i) => (
             <React.Fragment key={href}>
               {i === 1 && <ImportDropdown />}
