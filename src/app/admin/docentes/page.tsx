@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FilterX, Plus, Upload, UserCog } from "lucide-react";
+import { BookOpen, FilterX, Layers3, Plus, Upload, UserCog } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { DeleteTeacherButton } from "./DeleteTeacherButton";
 import { ResetPasswordButton } from "./ResetPasswordButton";
@@ -15,16 +15,48 @@ export default async function DocentesPage({
 
     const teachers = await prisma.teacher.findMany({
         where: careerId ? { careerId } : undefined,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ lastName: "asc" }, { name: "asc" }],
         include: {
             career: true,
             user: { select: { email: true } },
+            subjects: {
+                where: { isActive: true },
+                include: {
+                    groups: {
+                        include: {
+                            group: true,
+                        },
+                    },
+                },
+            },
         },
     });
 
     const activeCareer = careerId
         ? await prisma.career.findUnique({ where: { id: careerId }, select: { name: true, code: true } })
         : null;
+
+    const teacherRows = teachers.map((teacher) => {
+        const groupMap = new Map<string, { id: string; name: string; period: string }>();
+
+        for (const subject of teacher.subjects) {
+            for (const groupSubject of subject.groups) {
+                groupMap.set(groupSubject.group.id, {
+                    id: groupSubject.group.id,
+                    name: groupSubject.group.name,
+                    period: groupSubject.group.period,
+                });
+            }
+        }
+
+        return {
+            ...teacher,
+            activeSubjects: teacher.subjects
+                .map((subject) => ({ id: subject.id, code: subject.code, name: subject.name }))
+                .sort((a, b) => a.name.localeCompare(b.name, "es")),
+            assignedGroups: Array.from(groupMap.values()).sort((a, b) => a.name.localeCompare(b.name, "es")),
+        };
+    });
 
     return (
         <div className="p-8 pb-20 sm:p-12 animate-in fade-in zoom-in duration-500 max-w-7xl mx-auto">
@@ -88,6 +120,9 @@ export default async function DocentesPage({
                                     Tipo
                                 </th>
                                 <th className="px-3 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    Asignaciones
+                                </th>
+                                <th className="px-3 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     Estado
                                 </th>
                                 <th className="relative py-4 pl-3 pr-6">
@@ -98,7 +133,7 @@ export default async function DocentesPage({
                         <tbody className="divide-y divide-gray-200 bg-white">
                             {teachers.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="py-16 text-center text-gray-400 font-medium">
+                                    <td colSpan={7} className="py-16 text-center text-gray-400 font-medium">
                                         <UserCog className="w-10 h-10 mb-2 text-slate-300 mx-auto" />
                                         No hay docentes registrados aun.{" "}
                                         <Link href="/admin/docentes/nuevo" className="text-blue-600 hover:underline font-semibold">
@@ -107,7 +142,7 @@ export default async function DocentesPage({
                                     </td>
                                 </tr>
                             )}
-                            {teachers.map((teacher) => (
+                            {teacherRows.map((teacher) => (
                                 <tr key={teacher.id} className="hover:bg-gray-50/50 transition-colors group">
                                     <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm">
                                         <div className="flex items-center">
@@ -145,6 +180,41 @@ export default async function DocentesPage({
                                         </span>
                                         <div className="text-gray-400 text-xs mt-1">
                                             {teacher.position === "PTC" ? "Tiempo completo" : "Asignatura"}
+                                        </div>
+                                    </td>
+                                    <td className="px-3 py-4 text-sm">
+                                        <div className="space-y-2">
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 text-violet-700 px-2.5 py-1 text-xs font-bold">
+                                                    <BookOpen size={12} />
+                                                    {teacher.activeSubjects.length} materias
+                                                </span>
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 px-2.5 py-1 text-xs font-bold">
+                                                    <Layers3 size={12} />
+                                                    {teacher.assignedGroups.length} grupos
+                                                </span>
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-1.5 max-w-[260px]">
+                                                {teacher.assignedGroups.length > 0 ? (
+                                                    teacher.assignedGroups.slice(0, 4).map((group) => (
+                                                        <span
+                                                            key={group.id}
+                                                            className="inline-flex items-center rounded-full bg-slate-100 text-slate-600 px-2.5 py-1 text-xs font-bold"
+                                                            title={group.period}
+                                                        >
+                                                            {group.name}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-xs text-gray-400">Sin grupos enlazados</span>
+                                                )}
+                                                {teacher.assignedGroups.length > 4 && (
+                                                    <span className="inline-flex items-center rounded-full bg-slate-100 text-slate-600 px-2.5 py-1 text-xs font-bold">
+                                                        +{teacher.assignedGroups.length - 4}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-4 text-sm">

@@ -1,5 +1,6 @@
-import Link from "next/link";
-import { BarChart2, Calendar, ClipboardList, Inbox, UserCog } from "lucide-react";
+﻿import Link from "next/link";
+import { BarChart2, BookOpen, Building2, Calendar, ClipboardList, Inbox, Layers3, UserCog, Users } from "lucide-react";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   buildInstitutionalFinalScore,
@@ -31,6 +32,85 @@ const NIVEL_BADGE: Record<string, string> = {
   amber: "bg-amber-50 text-amber-700",
   red: "bg-red-50 text-red-700",
   slate: "bg-slate-50 text-slate-500",
+};
+
+type GroupSummaryAccumulator = {
+  id: string;
+  name: string;
+  careerCode: string;
+  careerName: string;
+  totalEvals: number;
+  teacherScores: Map<string, { referenceScore: number; studentScore: number }>;
+};
+
+type CareerSummaryAccumulator = {
+  id: string;
+  code: string;
+  name: string;
+  totalEvals: number;
+  teacherScores: Map<string, { referenceScore: number; studentScore: number }>;
+  groupIds: Set<string>;
+};
+
+type SubjectSummaryAccumulator = {
+  id: string;
+  code: string;
+  name: string;
+  careerId: string;
+  careerCode: string;
+  careerName: string;
+  totalEvals: number;
+  teacherNames: Set<string>;
+  teacherScores: Map<string, { referenceScore: number; studentScore: number }>;
+  groupIds: Set<string>;
+  evals: EvaluationWithRelations[];
+};
+
+type EvaluationWithRelations = Prisma.EvaluationGetPayload<{
+  include: {
+    teacher: { include: { career: true } };
+    student: {
+      include: {
+        groups: {
+          include: {
+            group: {
+              include: {
+                career: true;
+                subjects: {
+                  select: { subjectId: true };
+                };
+                _count: {
+                  select: { enrollments: true };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+    subject: {
+      include: {
+        career: true;
+      };
+    };
+    period: true;
+  };
+}>;
+
+type AssignmentAccumulator = {
+  key: string;
+  teacherId: string;
+  teacherName: string;
+  teacherLastName: string;
+  careerId: string;
+  careerCode: string;
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  groupId: string;
+  groupName: string;
+  expectedStudents: number;
+  evals: EvaluationWithRelations[];
 };
 
 function getReferenceScore(studentAverage: number, careerHeadAverage: number) {
@@ -103,7 +183,7 @@ export default async function ReportesPage({
   const evaluaciones = await prisma.evaluation.findMany({
     where: {
       ...(periodoId ? { periodId: periodoId } : {}),
-      ...(carreraId ? { teacher: { careerId: carreraId } } : {}),
+      ...(carreraId ? { subject: { careerId: carreraId } } : {}),
       ...(materiaId ? { subjectId: materiaId } : {}),
       ...(grupoId
         ? {
@@ -115,7 +195,30 @@ export default async function ReportesPage({
     },
     include: {
       teacher: { include: { career: true } },
-      subject: true,
+      student: {
+        include: {
+          groups: {
+            include: {
+              group: {
+                include: {
+                  career: true,
+                  subjects: {
+                    select: { subjectId: true },
+                  },
+                  _count: {
+                    select: { enrollments: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      subject: {
+        include: {
+          career: true,
+        },
+      },
       period: true,
     },
   });
@@ -124,35 +227,42 @@ export default async function ReportesPage({
     string,
     {
       teacher: (typeof evaluaciones)[number]["teacher"];
+      career: (typeof evaluaciones)[number]["subject"]["career"];
       evals: typeof evaluaciones;
     }
   >();
 
   for (const evaluation of evaluaciones) {
-    const key = evaluation.teacherId;
+    const key = `${evaluation.teacherId}:${evaluation.subject.careerId}`;
     if (!docenteMap.has(key)) {
-      docenteMap.set(key, { teacher: evaluation.teacher, evals: [] });
+      docenteMap.set(key, {
+        teacher: evaluation.teacher,
+        career: evaluation.subject.career,
+        evals: [],
+      });
     }
     docenteMap.get(key)!.evals.push(evaluation);
   }
 
-  const teacherIds = Array.from(docenteMap.keys());
-  const careerHeadEvaluations = teacherIds.length > 0 && periodoId
+  const teacherIds = [...new Set(Array.from(docenteMap.values()).map((item) => item.teacher.id))];
+  const contextCareerIds = [...new Set(Array.from(docenteMap.values()).map((item) => item.career.id))];
+  const careerHeadEvaluations = teacherIds.length > 0 && contextCareerIds.length > 0 && periodoId
     ? await prisma.careerHeadEvaluation.findMany({
         where: {
           periodId: periodoId,
           teacherId: { in: teacherIds },
+          careerId: { in: contextCareerIds },
         },
       })
     : [];
 
   const careerHeadMap = new Map(
-    careerHeadEvaluations.map((evaluation) => [evaluation.teacherId, evaluation]),
+    careerHeadEvaluations.map((evaluation) => [`${evaluation.teacherId}:${evaluation.careerId}`, evaluation]),
   );
 
-  const reporteDocentesBase = Array.from(docenteMap.values()).map(({ teacher, evals }) => {
+  const reporteDocentesBase = Array.from(docenteMap.values()).map(({ teacher, career, evals }) => {
     const { promedios } = buildStudentReport(evals);
-    const careerHeadEvaluation = careerHeadMap.get(teacher.id) ?? null;
+    const careerHeadEvaluation = careerHeadMap.get(`${teacher.id}:${career.id}`) ?? null;
     const careerHeadAvg = getCareerHeadAverage(careerHeadEvaluation, teacher.position);
     const institutionalScore = buildInstitutionalFinalScore(careerHeadAvg, promedios.global);
     const referenceScore = getReferenceScore(promedios.global, careerHeadAvg);
@@ -161,6 +271,7 @@ export default async function ReportesPage({
 
     return {
       teacher,
+      contextCareer: career,
       totalEvals: evals.length,
       facAvg: promedios.fac.toFixed(2),
       habAvg: promedios.hab.toFixed(2),
@@ -195,7 +306,230 @@ export default async function ReportesPage({
   const scoreFilter = Number(calificacion || "");
   const sortOrder = orden === "asc" ? "asc" : "desc";
 
+  const teacherReportMap = new Map(
+    reporteDocentesBase.map((docente) => [
+      `${docente.teacher.id}:${docente.contextCareer.id}`,
+      {
+        referenceScore: parseFloat(docente.referenceScore),
+        studentScore: parseFloat(docente.globalAvg),
+        careerHeadAvg: parseFloat(docente.careerHeadAvg),
+      },
+    ]),
+  );
+
+  const assignmentSummaryMap = new Map<string, AssignmentAccumulator>();
+  const groupSummaryMap = new Map<string, GroupSummaryAccumulator>();
+  const careerSummaryMap = new Map<string, CareerSummaryAccumulator>();
+  const subjectSummaryMap = new Map<string, SubjectSummaryAccumulator>();
+
+  for (const evaluation of evaluaciones) {
+    const teacherScore = teacherReportMap.get(`${evaluation.teacherId}:${evaluation.subject.careerId}`);
+    if (!teacherScore) {
+      continue;
+    }
+
+    const careerId = evaluation.subject.career.id;
+    let careerSummary = careerSummaryMap.get(careerId);
+    if (!careerSummary) {
+      careerSummary = {
+        id: careerId,
+        code: evaluation.subject.career.code,
+        name: evaluation.subject.career.name,
+        totalEvals: 0,
+        teacherScores: new Map(),
+        groupIds: new Set(),
+      };
+      careerSummaryMap.set(careerId, careerSummary);
+    }
+
+    careerSummary.totalEvals += 1;
+    careerSummary.teacherScores.set(`${evaluation.teacherId}:${careerId}`, teacherScore);
+
+    let subjectSummary = subjectSummaryMap.get(evaluation.subjectId);
+    if (!subjectSummary) {
+      subjectSummary = {
+        id: evaluation.subjectId,
+        code: evaluation.subject.code,
+        name: evaluation.subject.name,
+        careerId,
+        careerCode: evaluation.subject.career.code,
+        careerName: evaluation.subject.career.name,
+        totalEvals: 0,
+        teacherNames: new Set(),
+        teacherScores: new Map(),
+        groupIds: new Set(),
+        evals: [],
+      };
+      subjectSummaryMap.set(evaluation.subjectId, subjectSummary);
+    }
+
+    subjectSummary.totalEvals += 1;
+    subjectSummary.teacherNames.add(`${evaluation.teacher.name} ${evaluation.teacher.lastName}`);
+    subjectSummary.teacherScores.set(`${evaluation.teacherId}:${careerId}`, teacherScore);
+    subjectSummary.evals.push(evaluation);
+
+    const matchingEnrollments = evaluation.student.groups.filter((enrollment) =>
+      enrollment.group.subjects.some((groupSubject) => groupSubject.subjectId === evaluation.subjectId),
+    );
+
+    for (const enrollment of matchingEnrollments) {
+      const group = enrollment.group;
+      careerSummary.groupIds.add(group.id);
+      subjectSummary.groupIds.add(group.id);
+
+      const assignmentKey = `${evaluation.teacherId}:${evaluation.subjectId}:${group.id}`;
+      let assignmentSummary = assignmentSummaryMap.get(assignmentKey);
+      if (!assignmentSummary) {
+        assignmentSummary = {
+          key: assignmentKey,
+          teacherId: evaluation.teacherId,
+          teacherName: evaluation.teacher.name,
+          teacherLastName: evaluation.teacher.lastName,
+          careerId: evaluation.subject.career.id,
+          careerCode: evaluation.subject.career.code,
+          subjectId: evaluation.subjectId,
+          subjectName: evaluation.subject.name,
+          subjectCode: evaluation.subject.code,
+          groupId: group.id,
+          groupName: group.name,
+          expectedStudents: group._count.enrollments,
+          evals: [],
+        };
+        assignmentSummaryMap.set(assignmentKey, assignmentSummary);
+      }
+      assignmentSummary.evals.push(evaluation);
+
+      let groupSummary = groupSummaryMap.get(group.id);
+      if (!groupSummary) {
+        groupSummary = {
+          id: group.id,
+          name: group.name,
+          careerCode: group.career.code,
+          careerName: group.career.name,
+          totalEvals: 0,
+          teacherScores: new Map(),
+        };
+        groupSummaryMap.set(group.id, groupSummary);
+      }
+
+      groupSummary.totalEvals += 1;
+      groupSummary.teacherScores.set(`${evaluation.teacherId}:${careerId}`, teacherScore);
+    }
+  }
+
+  const groupSummaries = Array.from(groupSummaryMap.values())
+    .map((group) => {
+      const teacherScores = Array.from(group.teacherScores.values());
+      const referenceAverage = teacherScores.length > 0
+        ? teacherScores.reduce((acc, score) => acc + score.referenceScore, 0) / teacherScores.length
+        : 0;
+      const studentAverage = teacherScores.length > 0
+        ? teacherScores.reduce((acc, score) => acc + score.studentScore, 0) / teacherScores.length
+        : 0;
+
+      return {
+        ...group,
+        totalTeachers: group.teacherScores.size,
+        referenceAverage: referenceAverage.toFixed(2),
+        studentAverage: studentAverage.toFixed(2),
+      };
+    })
+    .sort((a, b) => Number(b.referenceAverage) - Number(a.referenceAverage));
+
+  const careerSummaries = Array.from(careerSummaryMap.values())
+    .map((career) => {
+      const teacherScores = Array.from(career.teacherScores.values());
+      const referenceAverage = teacherScores.length > 0
+        ? teacherScores.reduce((acc, score) => acc + score.referenceScore, 0) / teacherScores.length
+        : 0;
+      const studentAverage = teacherScores.length > 0
+        ? teacherScores.reduce((acc, score) => acc + score.studentScore, 0) / teacherScores.length
+        : 0;
+
+      return {
+        ...career,
+        totalTeachers: career.teacherScores.size,
+        totalGroups: career.groupIds.size,
+        referenceAverage: referenceAverage.toFixed(2),
+        studentAverage: studentAverage.toFixed(2),
+      };
+    })
+    .sort((a, b) => Number(b.referenceAverage) - Number(a.referenceAverage));
+
+  const subjectSummaries = Array.from(subjectSummaryMap.values())
+    .map((subject) => {
+      const { promedios } = buildStudentReport(subject.evals);
+      const teacherScores = Array.from(subject.teacherScores.values());
+      const referenceAverage = teacherScores.length > 0
+        ? teacherScores.reduce((acc, score) => acc + score.referenceScore, 0) / teacherScores.length
+        : promedios.global;
+
+      return {
+        ...subject,
+        totalTeachers: subject.teacherNames.size,
+        teacherLabel: Array.from(subject.teacherNames).slice(0, 2).join(", "),
+        studentAverage: promedios.global.toFixed(2),
+        referenceAverage: referenceAverage.toFixed(2),
+        totalGroups: subject.groupIds.size,
+      };
+    })
+    .sort((a, b) => Number(b.referenceAverage) - Number(a.referenceAverage));
+
+  const assignmentSummaries = Array.from(assignmentSummaryMap.values())
+    .map((assignment) => {
+      const { promedios } = buildStudentReport(assignment.evals);
+      const teacherScore = teacherReportMap.get(`${assignment.teacherId}:${assignment.careerId}`);
+      const referenceAverage = getReferenceScore(
+        promedios.global,
+        teacherScore?.careerHeadAvg ?? 0,
+      );
+      const progress = assignment.expectedStudents > 0
+        ? Number(((assignment.evals.length / assignment.expectedStudents) * 100).toFixed(1))
+        : 0;
+
+      const progressLabel = progress >= 80
+        ? "Alto avance"
+        : progress >= 40
+          ? "En seguimiento"
+          : "Bajo avance";
+      const progressTone = progress >= 80
+        ? "bg-emerald-50 text-emerald-700"
+        : progress >= 40
+          ? "bg-amber-50 text-amber-700"
+          : "bg-red-50 text-red-700";
+
+      return {
+        ...assignment,
+        totalEvals: assignment.evals.length,
+        studentAverage: promedios.global.toFixed(2),
+        referenceAverage: referenceAverage.toFixed(2),
+        progress: progress.toFixed(1),
+        progressLabel,
+        progressTone,
+      };
+    })
+    .sort((a, b) => {
+      const progressDiff = Number(a.progress) - Number(b.progress);
+      if (progressDiff !== 0) return progressDiff;
+      return a.teacherLastName.localeCompare(b.teacherLastName, "es");
+    });
+
+  const teacherGroupsMap = new Map<string, string[]>();
+  for (const assignment of assignmentSummaries) {
+    const teacherKey = `${assignment.teacherId}:${assignment.careerId}`;
+    const currentGroups = teacherGroupsMap.get(teacherKey) ?? [];
+    if (!currentGroups.includes(assignment.groupName)) {
+      currentGroups.push(assignment.groupName);
+      currentGroups.sort((a, b) => a.localeCompare(b, "es"));
+      teacherGroupsMap.set(teacherKey, currentGroups);
+    }
+  }
+
   const reporteDocentes = reporteDocentesBase
+    .map((docente) => ({
+      ...docente,
+      grupos: teacherGroupsMap.get(`${docente.teacher.id}:${docente.contextCareer.id}`) ?? [],
+    }))
     .filter((docente) => (scoreFilter ? docente.referenceBucket === scoreFilter : true))
     .sort((a, b) => {
       const difference = parseFloat(b.referenceScore) - parseFloat(a.referenceScore);
@@ -217,9 +551,9 @@ export default async function ReportesPage({
             Reportes de <span className="text-blue-600">Evaluacion</span>
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Instrumento FDA-24.5 · {periodoNombre}
-            {materiaNombre ? ` · ${materiaNombre}` : ""}
-            {grupoNombre ? ` · Grupo ${grupoNombre.name} (${grupoNombre.career.code})` : ""}
+            Instrumento FDA-24.5 - {periodoNombre}
+            {materiaNombre ? ` - ${materiaNombre}` : ""}
+            {grupoNombre ? ` - Grupo ${grupoNombre.name} (${grupoNombre.career.code})` : ""}
           </p>
         </div>
 
@@ -228,7 +562,7 @@ export default async function ReportesPage({
             href="/admin/reportes/importar-jefatura"
             className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
           >
-            Importar Eval. Jefatura
+            Importar Eval. Coordinacion
           </Link>
           <ExportButtons
             data={reporteDocentes}
@@ -250,7 +584,7 @@ export default async function ReportesPage({
               <option value="">Todos los periodos</option>
               {periodos.map((periodo) => (
                 <option key={periodo.id} value={periodo.id}>
-                  {periodo.name} {periodo.isActive ? "• Activo" : ""}
+                  {periodo.name} {periodo.isActive ? "- Activo" : ""}
                 </option>
               ))}
             </select>
@@ -305,7 +639,7 @@ export default async function ReportesPage({
               <option value="">Todos los grupos</option>
               {grupos.map((group) => (
                 <option key={group.id} value={group.id}>
-                  {group.name} - {group.career.code} · {group.period}
+                  {group.name} - {group.career.code} - {group.period}
                 </option>
               ))}
             </select>
@@ -393,6 +727,224 @@ export default async function ReportesPage({
         </div>
       </div>
 
+      {evaluaciones.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <h2 className="font-bold text-slate-700">Seguimiento por Grupo y Materia</h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Control operativo por asignacion docente. Muestra avance de evaluacion y promedio total por grupo.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Docente</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Materia</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Grupo</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Esperados</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Recibidas</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Avance</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Alumnos /5</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Total /5</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {assignmentSummaries.map((assignment) => (
+                  <tr key={assignment.key} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm">
+                          {assignment.teacherName} {assignment.teacherLastName}
+                        </p>
+                        <p className="text-xs text-slate-400">{assignment.careerCode}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-indigo-400" />
+                        <div>
+                          <p className="font-bold text-slate-700 text-sm">{assignment.subjectName}</p>
+                          <p className="text-xs text-slate-400">{assignment.subjectCode}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                        {assignment.groupName}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-center font-bold text-slate-600">{assignment.expectedStudents}</td>
+                    <td className="px-4 py-4 text-center font-bold text-slate-600">{assignment.totalEvals}</td>
+                    <td className="px-4 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-black text-slate-700">{assignment.progress}%</span>
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${assignment.progressTone}`}>
+                          {assignment.progressLabel}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-center font-black text-indigo-600">{assignment.studentAverage}</td>
+                    <td className="px-4 py-4 text-center font-black text-blue-700">{assignment.referenceAverage}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {evaluaciones.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-indigo-500" />
+              <h2 className="font-bold text-slate-700">Resumen por Materia</h2>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Concentrado por materia con grupos atendidos, docentes involucrados y promedio total /5.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Materia</th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Carrera</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Grupos</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Docentes</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Evals.</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Alumnos /5</th>
+                  <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Total /5</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {subjectSummaries.map((subject) => (
+                  <tr key={subject.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm">{subject.name}</p>
+                        <p className="text-xs text-slate-400">{subject.code}</p>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          {subject.teacherLabel}
+                          {subject.totalTeachers > 2 ? ` +${subject.totalTeachers - 2}` : ""}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="bg-indigo-50 text-indigo-700 font-black text-xs px-2 py-1 rounded-lg">
+                        {subject.careerCode}
+                      </span>
+                      <p className="text-[11px] text-slate-400 mt-1">{subject.careerName}</p>
+                    </td>
+                    <td className="px-4 py-4 text-center font-bold text-slate-600">{subject.totalGroups}</td>
+                    <td className="px-4 py-4 text-center font-bold text-slate-600">{subject.totalTeachers}</td>
+                    <td className="px-4 py-4 text-center font-bold text-slate-600">{subject.totalEvals}</td>
+                    <td className="px-4 py-4 text-center font-black text-indigo-600">{subject.studentAverage}</td>
+                    <td className="px-4 py-4 text-center font-black text-blue-700">{subject.referenceAverage}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {evaluaciones.length > 0 && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Layers3 className="w-4 h-4 text-blue-500" />
+                <h2 className="font-bold text-slate-700">Resumen por Grupo</h2>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Promedio de referencia /5 por grupo considerando a los docentes evaluados.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Grupo</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Evals.</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Docentes</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Alumnos /5</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Total /5</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {groupSummaries.map((group) => (
+                    <tr key={group.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                            <Users className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 text-sm">{group.name}</p>
+                            <p className="text-xs text-slate-400">{group.careerCode} - {group.careerName}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center font-bold text-slate-600">{group.totalEvals}</td>
+                      <td className="px-4 py-4 text-center font-bold text-slate-600">{group.totalTeachers}</td>
+                      <td className="px-4 py-4 text-center font-black text-indigo-600">{group.studentAverage}</td>
+                      <td className="px-4 py-4 text-center font-black text-blue-700">{group.referenceAverage}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-violet-500" />
+                <h2 className="font-bold text-slate-700">Resumen por Carrera</h2>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Vista concentrada por carrera con grupos atendidos y calificacion total promedio.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Carrera</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Grupos</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Docentes</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Evals.</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Total /5</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {careerSummaries.map((career) => (
+                    <tr key={career.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="font-bold text-slate-800 text-sm">{career.code}</p>
+                          <p className="text-xs text-slate-400">{career.name}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center font-bold text-slate-600">{career.totalGroups}</td>
+                      <td className="px-4 py-4 text-center font-bold text-slate-600">{career.totalTeachers}</td>
+                      <td className="px-4 py-4 text-center font-bold text-slate-600">{career.totalEvals}</td>
+                      <td className="px-4 py-4 text-center font-black text-violet-700">{career.referenceAverage}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
           <h2 className="font-bold text-slate-700">Resultados por Docente</h2>
@@ -457,13 +1009,34 @@ export default async function ReportesPage({
                             {docente.materias.slice(0, 2).join(", ")}
                             {docente.materias.length > 2 ? ` +${docente.materias.length - 2}` : ""}
                           </p>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {docente.grupos.length > 0 ? (
+                              <>
+                                {docente.grupos.slice(0, 3).map((groupName) => (
+                                  <span
+                                    key={`${docente.teacher.id}-${docente.contextCareer.id}-${groupName}`}
+                                    className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[11px] font-bold"
+                                  >
+                                    {groupName}
+                                  </span>
+                                ))}
+                                {docente.grupos.length > 3 && (
+                                  <span className="inline-flex items-center rounded-full bg-slate-100 text-slate-600 px-2 py-0.5 text-[11px] font-bold">
+                                    +{docente.grupos.length - 3}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 font-medium">Sin grupos detectados</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
 
                     <td className="px-4 py-4">
                       <span className="bg-indigo-50 text-indigo-700 font-black text-xs px-2 py-1 rounded-lg">
-                        {docente.teacher.career.code}
+                        {docente.contextCareer.code}
                       </span>
                     </td>
 
@@ -500,10 +1073,13 @@ export default async function ReportesPage({
 
                     <td className="px-4 py-4">
                       <Link
-                        href={`/admin/reportes/${docente.teacher.id}${periodoId ? `?periodoId=${periodoId}` : ""}`}
+                        href={`/admin/reportes/${docente.teacher.id}?${[
+                          periodoId ? `periodoId=${periodoId}` : "",
+                          `careerId=${docente.contextCareer.id}`,
+                        ].filter(Boolean).join("&")}`}
                         className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                       >
-                        Ver detalle →
+                        Ver detalle
                       </Link>
                     </td>
                   </tr>
@@ -516,3 +1092,4 @@ export default async function ReportesPage({
     </div>
   );
 }
+

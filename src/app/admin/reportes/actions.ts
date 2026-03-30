@@ -31,10 +31,11 @@ export async function saveCareerHeadEvaluation(formData: FormData) {
   }
 
   const teacherId = String(formData.get("teacherId") || "").trim();
+  const careerId = String(formData.get("careerId") || "").trim();
   const periodId = String(formData.get("periodId") || "").trim();
   const position = String(formData.get("position") || "").trim() as TeacherPosition;
 
-  if (!teacherId || !periodId || !position) {
+  if (!teacherId || !careerId || !periodId || !position) {
     throw new Error("Faltan datos para guardar la evaluación de coordinación.");
   }
 
@@ -60,7 +61,7 @@ export async function saveCareerHeadEvaluation(formData: FormData) {
 
   await prisma.careerHeadEvaluation.upsert({
     where: {
-      teacherId_periodId: { teacherId, periodId },
+      teacherId_careerId_periodId: { teacherId, careerId, periodId },
     },
     update: {
       evaluatorName: String(formData.get("evaluatorName") || "").trim() || null,
@@ -69,6 +70,7 @@ export async function saveCareerHeadEvaluation(formData: FormData) {
     },
     create: {
       teacherId,
+      careerId,
       periodId,
       evaluatorName: String(formData.get("evaluatorName") || "").trim() || null,
       comments: String(formData.get("comments") || "").trim() || null,

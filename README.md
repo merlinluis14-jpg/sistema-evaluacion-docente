@@ -1,69 +1,113 @@
-# Sistema Web de Evaluación Docente — UPTX
+# Sistema Web de Evaluacion Docente - UPTX
 
-## Proyecto de Tesina para Titulación
+## Proyecto de tesina
 
-### Información General
-*   **Institución:** Universidad Politécnica de Texcoco (UPTEX)
-*    **desarrolladores:** Espinoza Merlin Luis José, keny Alexa Gonzales Becerril
-*   **Asesor de Tesina:** Gerardo Miguel Sanchez
-*   **Coautor:** LUNA BECERRIL EDURNET JHAQUELIN
+Sistema web para automatizar la evaluacion del desempeno docente en la Universidad Politecnica de Texcoco mediante el instrumento FDA-24.5. El proyecto contempla captura de evaluaciones por alumnos, seguimiento administrativo, evaluacion de coordinacion, reportes institucionales y exportacion de evidencias.
 
----
+## Alcance funcional
 
-##  Descripción del Proyecto
-Este sistema ha sido desarrollado para automatizar y modernizar el proceso de evaluación del desempeño docente en la UPTX. Implementa el instrumento oficial **FDA-24.5**, garantizando la integridad de los datos, la anonimidad de las respuestas y la generación eficiente de reportes institucionales.
+- Autenticacion por roles: `ADMIN`, `DOCENTE` y `ALUMNO`
+- Gestion de carreras, docentes, alumnos, grupos, materias y periodos
+- Importacion masiva por CSV para docentes, materias, alumnos y evaluacion de coordinacion
+- Evaluacion estudiantil con validaciones en servidor y una sola captura por materia y periodo
+- Reportes por docente, materia, grupo y carrera
+- Exportacion de `PDF alumnos`, `PDF institucional` y `Excel`
+- Bitacora administrativa (`AdminLog`) y bitacora de importaciones (`ImportLog`)
+- Administracion de cuentas admin con reautenticacion
+- Politica de privacidad y resguardo de anonimato
 
-### Módulos Principales
-*   **Módulo de Administrador:** Gestión de carreras, docentes, alumnos, periodos académicos e importación masiva de datos vía CSV con auditoría de cambios.
-*   **Módulo de Alumno:** Interfaz intuitiva para responder evaluaciones asignadas a su grupo, con verificación de cumplimiento único por periodo/materia.
-*   **Módulo de Docente:** Acceso a resultados detallados de evaluaciones, promedios por materia y visualización de comentarios con preservación de anonimato estudiantil.
+## Stack tecnologico
 
----
+- Next.js 16 (App Router, Server Actions)
+- React 19
+- PostgreSQL
+- Prisma ORM
+- NextAuth
+- Tailwind CSS
+- jsPDF / jspdf-autotable
+- Jest + Testing Library
 
-## Stack Tecnológico
-*   **Framework:** [Next.js 14+](https://nextjs.org) (App Router, Server Actions)
-*   **Base de Datos:** [PostgreSQL](https://www.postgresql.org) con [Prisma ORM](https://www.prisma.io)
-*   **Autenticación:** [NextAuth.js](https://next-auth.js.org) (JWT, Roles: ADMIN, DOCENTE, ALUMNO)
-*   **Estilos:** [Tailwind CSS](https://tailwindcss.com) y Lucide Icons
-*   **Reportes:** [jsPDF](https://github.com/parallax/jsPDF) para generación de PDFs institucionales (Client-side)
-*   **Gráficas:** [Recharts](https://recharts.org) para analítica visual del desempeño
+## Requisitos previos
 
----
+- Node.js 20 o superior
+- npm 10 o superior
+- PostgreSQL
+- Prisma CLI disponible via dependencias del proyecto
+- `pg_dump` y `pg_restore` si se van a usar respaldos y restauraciones
 
-## 📌 Características Destacadas para Evaluadores
-1.  **Instrumento FDA-24.5:** Implementación fiel de los 33 ítems divididos en 5 secciones teóricas y prácticas.
-2.  **Seguridad por Roles:** Middleware de Next.js para protección estricta de rutas y APIs.
-3.  **Auditoría de Datos:** Registro automático de acciones administrativas (`AdminLog`) e importaciones (`ImportLog`).
-4.  **Escalabilidad:** Arquitectura preparada para el manejo de múltiples carreras y grandes volúmenes de estudiantes vía importación asíncrona.
-5.  **Accesibilidad:** Diseño Responsivo compatible con dispositivos móviles y escritorio.
+## Configuracion del entorno
 
----
+1. Instalar dependencias:
 
-## ⚙️ Configuración del Entorno de Desarrollo
+```bash
+npm install
+```
 
-1.  **Clonar el repositorio:**
-    ```bash
-    git clone [url-del-repositorio]
-    ```
+2. Crear el archivo `.env` a partir de `.env.example`.
 
-2.  **Instalar dependencias:**
-    ```bash
-    npm install
-    ```
+3. Configurar la base de datos:
 
-3.  **Variables de Entorno (.env):**
-    Configurar `DATABASE_URL` (PostgreSQL) y `NEXTAUTH_SECRET`.
+```bash
+npx prisma db push
+npx prisma db seed
+```
 
-4.  **Sincronizar DB y Seed:**
-    ```bash
-    npx prisma db push
-    npx prisma db seed
-    ```
+4. Iniciar el proyecto:
 
-5.  **Iniciar Servidor:**
-    ```bash
-    npm run dev
-    ```
+```bash
+npm run dev
+```
 
----
-© 2026 Sistema de Evaluación Docente — UPTX. Todos los derechos reservados.
+## Variables de entorno
+
+Referencia en [./.env.example](./.env.example):
+
+- `DATABASE_URL`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+
+## Comandos utiles
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run typecheck
+npm run test
+```
+
+## Respaldo y recuperacion
+
+El proyecto incluye scripts para respaldo y restauracion:
+
+- Windows:
+  - [./scripts/backup.bat](./scripts/backup.bat)
+  - [./scripts/restore.bat](./scripts/restore.bat)
+- Linux/macOS:
+  - [./scripts/backup.sh](./scripts/backup.sh)
+  - [./scripts/restore.sh](./scripts/restore.sh)
+
+Guia completa en [./docs/respaldos-y-recuperacion.md](./docs/respaldos-y-recuperacion.md).
+
+## Documentacion para entrega
+
+- [./docs/matriz-cumplimiento.md](./docs/matriz-cumplimiento.md)
+- [./docs/operacion-admin.md](./docs/operacion-admin.md)
+- [./docs/respaldos-y-recuperacion.md](./docs/respaldos-y-recuperacion.md)
+- [./docs/plan-pruebas.md](./docs/plan-pruebas.md)
+
+## Calidad y validacion
+
+El proyecto se valida con:
+
+- TypeScript estricto (`npx tsc --noEmit`)
+- tipado validado con `npm run typecheck`
+- ESLint
+- pruebas con Jest
+- validaciones de acceso por roles
+- validaciones de negocio en servidor
+- indices y consultas optimizadas en Prisma/PostgreSQL
+
+## Nota para evaluacion de tesina
+
+El sistema esta preparado para operar a nivel universidad. Durante la etapa actual de validacion se puede cargar informacion real o de prueba por carrera sin cambiar la arquitectura principal.

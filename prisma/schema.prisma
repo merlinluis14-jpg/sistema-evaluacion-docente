@@ -59,6 +59,7 @@ model Career {
   students  Student[]
   groups    Group[]
   subjects  Subject[]
+  careerHeadEvaluations CareerHeadEvaluation[]
 }
 
 // TEACHER: Perfil de docente
@@ -186,6 +187,8 @@ model CareerHeadEvaluation {
   id                  String   @id @default(cuid())
   teacherId           String
   teacher             Teacher  @relation(fields: [teacherId], references: [id])
+  careerId            String
+  career              Career   @relation(fields: [careerId], references: [id])
   periodId            String
   period              Period   @relation(fields: [periodId], references: [id])
   evaluatorName       String?
@@ -202,8 +205,9 @@ model CareerHeadEvaluation {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  @@unique([teacherId, periodId])
-  @@index([periodId, teacherId])
+  @@unique([teacherId, careerId, periodId])
+  @@index([careerId, periodId])
+  @@index([periodId, teacherId, careerId])
 }
 
 // EVALUATION: Implementación del Instrumento FDA-24.5 completo

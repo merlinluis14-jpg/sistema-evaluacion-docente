@@ -19,11 +19,22 @@ type EvaluationValueMap = Partial<Record<CareerHeadFactorKey, number | null>> & 
 
 type Props = {
   teacherId: string;
+  careerId: string;
+  careerCode: string;
+  careerName: string;
   periodId?: string;
   position: TeacherPosition;
   teacherName: string;
   periodName?: string;
   initialEvaluation: EvaluationValueMap | null;
+  assignmentOverview: Array<{
+    key: string;
+    subjectCode: string;
+    subjectName: string;
+    groupName: string;
+    evaluationsCount: number;
+    studentAverage: string;
+  }>;
 };
 
 const scoreKeys: CareerHeadFactorKey[] = [
@@ -40,11 +51,15 @@ const scoreKeys: CareerHeadFactorKey[] = [
 
 export default function CareerHeadEvaluationForm({
   teacherId,
+  careerId,
+  careerCode,
+  careerName,
   periodId,
   position,
   teacherName,
   periodName,
   initialEvaluation,
+  assignmentOverview,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -96,8 +111,62 @@ export default function CareerHeadEvaluationForm({
         className="space-y-5"
       >
         <input type="hidden" name="teacherId" value={teacherId} />
+        <input type="hidden" name="careerId" value={careerId} />
         <input type="hidden" name="periodId" value={periodId} />
         <input type="hidden" name="position" value={position} />
+
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-4">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Contexto de evaluacion</p>
+              <p className="text-sm font-black text-slate-700 mt-1">{careerCode} - {careerName}</p>
+              <p className="text-xs text-slate-500 mt-1">
+                La coordinacion se guardara para esta carrera dentro del periodo seleccionado.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-3 py-1 text-xs font-bold">
+                {assignmentOverview.length} asignaciones
+              </span>
+              <span className="inline-flex items-center rounded-full bg-indigo-50 text-indigo-700 px-3 py-1 text-xs font-bold">
+                {new Set(assignmentOverview.map((item) => item.groupName)).size} grupos
+              </span>
+            </div>
+          </div>
+
+          {assignmentOverview.length > 0 ? (
+            <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
+              <table className="w-full min-w-[680px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Materia</th>
+                    <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Grupo</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Evals.</th>
+                    <th className="text-center px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">Prom. alumnos</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {assignmentOverview.map((item) => (
+                    <tr key={item.key}>
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-bold text-slate-700">{item.subjectName}</p>
+                        <p className="text-xs text-slate-400">{item.subjectCode}</p>
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-600">{item.groupName}</td>
+                      <td className="px-4 py-3 text-center text-sm font-bold text-slate-600">{item.evaluationsCount}</td>
+                      <td className="px-4 py-3 text-center text-sm font-black text-indigo-600">{item.studentAverage}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400">
+              Aun no hay asignaciones detectadas en esta carrera para este periodo. La coordinacion se puede capturar,
+              pero conviene revisar primero las materias y grupos enlazados del docente.
+            </p>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">

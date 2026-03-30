@@ -16,6 +16,10 @@ import {
   AlertTriangle,
   ArrowRight,
   ScrollText,
+  ShieldCheck,
+  Lightbulb,
+  CheckCircle2,
+  Database,
 } from "lucide-react";
 
 const ACTION_STYLES: Record<string, { bg: string; text: string; label: string }> = {
@@ -28,6 +32,7 @@ const ACTION_STYLES: Record<string, { bg: string; text: string; label: string }>
 };
 
 const ENTITY_STYLES: Record<string, { bg: string; text: string }> = {
+  ADMIN:      { bg: "bg-blue-50",    text: "text-blue-700"    },
   DOCENTE:    { bg: "bg-blue-50",    text: "text-blue-700"    },
   MATERIA:    { bg: "bg-indigo-50",  text: "text-indigo-700"  },
   PERIODO:    { bg: "bg-amber-50",   text: "text-amber-700"   },
@@ -38,10 +43,11 @@ const ENTITY_STYLES: Record<string, { bg: string; text: string }> = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const session = await getServerSession(authOptions);
+  await getServerSession(authOptions);
 
-  const [totalDocentes, totalAlumnos, totalMaterias, totalEvaluaciones, periodoActivo, recentLogs] =
+  const [totalAdmins, totalDocentes, totalAlumnos, totalMaterias, totalEvaluaciones, periodoActivo, recentLogs] =
     await Promise.all([
+      prisma.user.count({ where: { role: "ADMIN", isActive: true } }),
       prisma.teacher.count({ where: { isActive: true } }),
       prisma.student.count({ where: { isActive: true } }),
       prisma.subject.count({ where: { isActive: true } }),
@@ -63,6 +69,7 @@ export default async function AdminPage() {
   const userMap = new Map(users.map(u => [u.id, u.email ?? u.username ?? "Admin"]));
 
   const stats = [
+    { label: "Admins",      value: totalAdmins,      Icon: ShieldCheck,   color: "bg-slate-50 text-slate-700", border: "border-slate-200" },
     { label: "Docentes",    value: totalDocentes,    Icon: UserCog,       color: "bg-blue-50 text-blue-700",   border: "border-blue-100" },
     { label: "Alumnos",     value: totalAlumnos,     Icon: GraduationCap, color: "bg-indigo-50 text-indigo-700", border: "border-indigo-100" },
     { label: "Materias",    value: totalMaterias,    Icon: BookOpen,      color: "bg-violet-50 text-violet-700", border: "border-violet-100" },
@@ -71,9 +78,69 @@ export default async function AdminPage() {
 
   const quickLinks = [
     { href: "/admin/docentes/nuevo",  label: "Nuevo Docente",    Icon: UserPlus  },
+    { href: "/admin/administradores", label: "Administradores",  Icon: ShieldCheck },
     { href: "/admin/periodos",        label: "Gestionar Periodos",Icon: Calendar  },
     { href: "/admin/reportes",        label: "Ver Reportes",     Icon: BarChart2 },
   ];
+  const recommendations = [
+    {
+      title: periodoActivo ? "Periodo listo para evaluar" : "Activa un periodo antes de abrir evaluaciones",
+      description: periodoActivo
+        ? `El periodo ${periodoActivo.name} ya esta disponible para operar.`
+        : "Sin un periodo activo, los alumnos no podran capturar evaluaciones.",
+      tone: periodoActivo ? "emerald" : "amber",
+      Icon: Calendar,
+    },
+    {
+      title: "Carga masiva recomendada",
+      description: "Importa primero docentes, luego materias y finalmente alumnos para enlazar mejor los grupos.",
+      tone: totalDocentes > 0 && totalMaterias > 0 && totalAlumnos > 0 ? "blue" : "slate",
+      Icon: Database,
+    },
+    {
+      title: totalEvaluaciones > 0 ? "Reportes listos para seguimiento" : "Realiza una prueba de evaluacion",
+      description: totalEvaluaciones > 0
+        ? "Ya puedes revisar resultados por docente, materia, grupo y carrera en reportes."
+        : "Captura al menos una evaluacion de prueba para validar reportes y exportaciones.",
+      tone: totalEvaluaciones > 0 ? "blue" : "amber",
+      Icon: BarChart2,
+    },
+    {
+      title: totalAdmins > 1 ? "Control administrativo respaldado" : "Agrega una segunda cuenta admin",
+      description: totalAdmins > 1
+        ? "Ya cuentas con respaldo administrativo y trazabilidad en logs."
+        : "Conviene tener otra cuenta autorizada para continuidad operativa y control.",
+      tone: totalAdmins > 1 ? "emerald" : "slate",
+      Icon: ShieldCheck,
+    },
+  ];
+
+  const tipStyles: Record<string, { card: string; icon: string; title: string; text: string }> = {
+    emerald: {
+      card: "border-emerald-100 bg-emerald-50",
+      icon: "bg-emerald-100 text-emerald-700",
+      title: "text-emerald-800",
+      text: "text-emerald-700",
+    },
+    amber: {
+      card: "border-amber-100 bg-amber-50",
+      icon: "bg-amber-100 text-amber-700",
+      title: "text-amber-800",
+      text: "text-amber-700",
+    },
+    blue: {
+      card: "border-blue-100 bg-blue-50",
+      icon: "bg-blue-100 text-blue-700",
+      title: "text-blue-800",
+      text: "text-blue-700",
+    },
+    slate: {
+      card: "border-slate-100 bg-slate-50",
+      icon: "bg-white text-slate-600",
+      title: "text-slate-800",
+      text: "text-slate-600",
+    },
+  };
 
   return (
     <div className="p-8 space-y-8">
@@ -99,7 +166,7 @@ export default async function AdminPage() {
       </div>
 
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {stats.map(({ label, value, Icon, color, border }) => (
           <div key={label} className={`bg-white rounded-2xl p-6 shadow-sm border ${border}`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
@@ -114,7 +181,7 @@ export default async function AdminPage() {
 
       <div>
         <h2 className="text-lg font-bold text-slate-700 mb-4">Accesos rápidos</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {quickLinks.map(({ href, label, Icon }, i) => (
             <React.Fragment key={href}>
               {i === 1 && <ImportDropdown />}
@@ -132,6 +199,53 @@ export default async function AdminPage() {
         </div>
       </div>
 
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="w-5 h-5 text-amber-500" />
+            <h2 className="font-bold text-slate-700">Recomendaciones de uso</h2>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Sugerencias practicas para operar el sistema con orden y reducir errores en captura y reportes.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+          {recommendations.map(({ title, description, tone, Icon }) => {
+            const style = tipStyles[tone];
+            return (
+              <div key={title} className={`rounded-2xl border p-5 ${style.card}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${style.icon}`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <p className={`mt-4 text-sm font-black ${style.title}`}>{title}</p>
+                <p className={`mt-1 text-sm leading-relaxed ${style.text}`}>{description}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="border-t border-slate-100 bg-slate-50/70 px-6 py-5">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-blue-600" />
+            <h3 className="text-sm font-bold text-slate-700">Flujo sugerido para administracion diaria</h3>
+          </div>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="rounded-xl bg-white border border-slate-100 px-4 py-3">
+              <p className="text-xs font-black uppercase tracking-wide text-slate-500">1. Configuracion</p>
+              <p className="mt-1 text-sm text-slate-600">Verifica periodo activo, cuentas admin y catalogos base antes de abrir captura.</p>
+            </div>
+            <div className="rounded-xl bg-white border border-slate-100 px-4 py-3">
+              <p className="text-xs font-black uppercase tracking-wide text-slate-500">2. Operacion</p>
+              <p className="mt-1 text-sm text-slate-600">Importa datos en el orden recomendado y valida con una evaluacion de prueba.</p>
+            </div>
+            <div className="rounded-xl bg-white border border-slate-100 px-4 py-3">
+              <p className="text-xs font-black uppercase tracking-wide text-slate-500">3. Cierre</p>
+              <p className="mt-1 text-sm text-slate-600">Revisa reportes por docente, materia, grupo y carrera antes de exportar PDFs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Actividad reciente */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">

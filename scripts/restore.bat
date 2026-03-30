@@ -2,13 +2,25 @@
 setlocal enableextensions enabledelayedexpansion
 
 REM ============================================================
-REM Respaldo de PostgreSQL para Windows
+REM Restauracion de PostgreSQL para Windows
 REM Sistema de Evaluacion Docente - UPTX
 REM ============================================================
 
+if "%~1"=="" (
+  echo Uso:
+  echo   scripts\restore.bat "C:\ruta\al\backup.dump"
+  exit /b 1
+)
+
+set "BACKUP_FILE=%~1"
+if not exist "%BACKUP_FILE%" (
+  echo [ERROR] El archivo de respaldo no existe:
+  echo %BACKUP_FILE%
+  exit /b 1
+)
+
 set "SCRIPT_DIR=%~dp0"
 for %%I in ("%SCRIPT_DIR%..") do set "PROJECT_DIR=%%~fI"
-set "BACKUP_DIR=%PROJECT_DIR%\backups"
 set "ENV_FILE=%PROJECT_DIR%\.env"
 set "DB_URL="
 
@@ -21,26 +33,21 @@ if exist "%ENV_FILE%" (
 if not defined DB_URL set "DB_URL=postgresql://postgres:password@localhost:5432/sistema_evaluacion"
 set "DB_URL=%DB_URL:"=%"
 
-where pg_dump >nul 2>nul
+where pg_restore >nul 2>nul
 if errorlevel 1 (
-  echo [ERROR] No se encontro pg_dump en el PATH.
-  echo Instala PostgreSQL Client Tools o agrega pg_dump al PATH del sistema.
+  echo [ERROR] No se encontro pg_restore en el PATH.
+  echo Instala PostgreSQL Client Tools o agrega pg_restore al PATH del sistema.
   exit /b 1
 )
 
-if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
-
-for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd_HH-mm-ss"') do set "TIMESTAMP=%%I"
-set "BACKUP_FILE=%BACKUP_DIR%\backup_%TIMESTAMP%.dump"
-
-echo Iniciando respaldo de la base de datos...
-pg_dump "%DB_URL%" -F c -f "%BACKUP_FILE%"
+echo Restaurando respaldo...
+pg_restore --clean --if-exists --no-owner --no-privileges -d "%DB_URL%" "%BACKUP_FILE%"
 
 if errorlevel 1 (
-  echo [ERROR] Fallo al generar el respaldo.
+  echo [ERROR] Fallo la restauracion.
   exit /b 1
 )
 
-echo [OK] Respaldo generado en:
+echo [OK] Restauracion completada desde:
 echo %BACKUP_FILE%
 exit /b 0

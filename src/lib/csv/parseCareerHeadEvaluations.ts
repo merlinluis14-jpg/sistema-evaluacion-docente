@@ -3,9 +3,10 @@ import type { TeacherPosition } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 type CsvRow = {
+  numero_empleado?: string;
   nombre_docente: string;
   puesto: string;
-  carrera_code: string;
+  carrera_code?: string;
   evaluador?: string;
   elaborado_por?: string;
   periodo_origen?: string;
@@ -95,58 +96,94 @@ export async function parseAndImportCareerHeadEvaluations(
 
   const teachers = await prisma.teacher.findMany({
     where: { isActive: true },
-    include: { career: true },
+    include: {
+      career: true,
+      subjects: {
+        where: { isActive: true },
+        select: { careerId: true },
+      },
+    },
   });
 
   const teacherMap = new Map<string, (typeof teachers)[number]>();
+  const teacherByEmployeeId = new Map<string, (typeof teachers)[number]>();
   for (const teacher of teachers) {
     const forward = normalizeName(`${teacher.name} ${teacher.lastName}`);
     const backward = normalizeName(`${teacher.lastName} ${teacher.name}`);
     teacherMap.set(`${teacher.career.code}:${forward}`, teacher);
     teacherMap.set(`${teacher.career.code}:${backward}`, teacher);
+    for (const subject of teacher.subjects) {
+      const subjectCareer = careers.find((career) => career.id === subject.careerId);
+      if (!subjectCareer) continue;
+      teacherMap.set(`${subjectCareer.code}:${forward}`, teacher);
+      teacherMap.set(`${subjectCareer.code}:${backward}`, teacher);
+    }
+    teacherByEmployeeId.set(teacher.employeeId.toUpperCase(), teacher);
   }
 
   for (let index = 0; index < rows.length; index++) {
     const rowNumber = index + 2;
     const row = rows[index];
 
-    const requiredFields = ["nombre_docente", "puesto", "carrera_code"] as const;
-    const missingFields = requiredFields.filter((field) => !row[field]);
+    const requiredFields = ["puesto", "carrera_code"] as const;
+    const needsTeacherName = !row.numero_empleado?.trim();
+    const allRequiredFields = needsTeacherName
+      ? [...requiredFields, "nombre_docente"] as const
+      : requiredFields;
+    const missingFields = allRequiredFields.filter((field) => !row[field]);
     if (missingFields.length > 0) {
       errors.push({
         row: rowNumber,
-        identifier: row.nombre_docente || "(vacio)",
+        identifier: row.numero_empleado || row.nombre_docente || "(vacio)",
         reason: `Campos faltantes: ${missingFields.join(", ")}`,
       });
       continue;
     }
 
-    const careerCode = row.carrera_code.toUpperCase();
+    const careerCode = row.carrera_code?.toUpperCase();
     const position = row.puesto.toUpperCase() as TeacherPosition;
     if (position !== "PA" && position !== "PTC") {
       errors.push({
         row: rowNumber,
-        identifier: row.nombre_docente,
+        identifier: row.numero_empleado || row.nombre_docente,
         reason: "puesto debe ser PA o PTC",
       });
       continue;
     }
 
-    if (!careerMap.get(careerCode)) {
+    if (careerCode && !careerMap.get(careerCode)) {
       errors.push({
         row: rowNumber,
-        identifier: row.nombre_docente,
+        identifier: row.numero_empleado || row.nombre_docente,
         reason: `Carrera "${careerCode}" no existe`,
       });
       continue;
     }
 
-    const teacher = teacherMap.get(`${careerCode}:${normalizeName(row.nombre_docente)}`);
+    const teacher = row.numero_empleado?.trim()
+      ? teacherByEmployeeId.get(row.numero_empleado.trim().toUpperCase())
+      : careerCode
+        ? teacherMap.get(`${careerCode}:${normalizeName(row.nombre_docente)}`)
+        : undefined;
+
     if (!teacher) {
       errors.push({
         row: rowNumber,
-        identifier: row.nombre_docente,
-        reason: "No se encontro un docente activo que coincida con el nombre en esa carrera",
+        identifier: row.numero_empleado || row.nombre_docente,
+        reason: row.numero_empleado
+          ? "No se encontro un docente activo que coincida con ese numero de empleado"
+          : "No se encontro un docente activo que coincida con el nombre en esa carrera",
+      });
+      continue;
+    }
+
+    const teacherCareerIds = new Set([teacher.careerId, ...teacher.subjects.map((subject) => subject.careerId)]);
+    const selectedCareerId = careerMap.get(careerCode!);
+    if (selectedCareerId && !teacherCareerIds.has(selectedCareerId)) {
+      errors.push({
+        row: rowNumber,
+        identifier: row.numero_empleado || row.nombre_docente,
+        reason: `El docente no tiene asignaciones activas en la carrera ${careerCode}`,
       });
       continue;
     }
@@ -154,7 +191,7 @@ export async function parseAndImportCareerHeadEvaluations(
     if (teacher.position !== position) {
       errors.push({
         row: rowNumber,
-        identifier: row.nombre_docente,
+        identifier: row.numero_empleado || row.nombre_docente,
         reason: `El puesto del sistema (${teacher.position}) no coincide con el archivo (${position})`,
       });
       continue;
@@ -163,8 +200,9 @@ export async function parseAndImportCareerHeadEvaluations(
     try {
       await prisma.careerHeadEvaluation.upsert({
         where: {
-          teacherId_periodId: {
+          teacherId_careerId_periodId: {
             teacherId: teacher.id,
+            careerId: careerMap.get(careerCode!)!,
             periodId,
           },
         },
@@ -183,6 +221,7 @@ export async function parseAndImportCareerHeadEvaluations(
         },
         create: {
           teacherId: teacher.id,
+          careerId: careerMap.get(careerCode!)!,
           periodId,
           evaluatorName: row.elaborado_por || row.evaluador || null,
           comments: buildAuditComment(row),
@@ -203,7 +242,7 @@ export async function parseAndImportCareerHeadEvaluations(
       const message = error instanceof Error ? error.message : "Error desconocido";
       errors.push({
         row: rowNumber,
-        identifier: row.nombre_docente,
+        identifier: row.numero_empleado || row.nombre_docente,
         reason: `Error: ${message}`,
       });
     }

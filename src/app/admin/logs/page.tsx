@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ClipboardList, Filter, ArrowLeft, Shield, UserCog } from "lucide-react";
+import { ClipboardList, Filter, Shield, UserCog } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,7 @@ const ACTION_STYLES: Record<string, { bg: string; text: string; label: string }>
 };
 
 const ENTITY_STYLES: Record<string, { bg: string; text: string }> = {
+    ADMIN:      { bg: "bg-blue-50",    text: "text-blue-700"    },
     DOCENTE:    { bg: "bg-blue-50",    text: "text-blue-700"    },
     MATERIA:    { bg: "bg-indigo-50",  text: "text-indigo-700"  },
     PERIODO:    { bg: "bg-amber-50",   text: "text-amber-700"   },
@@ -43,7 +44,7 @@ export default async function LogsPage({
     });
     const userMap = new Map(users.map(u => [u.id, u.email ?? u.username ?? "Admin"]));
 
-    const entidades = ["DOCENTE", "MATERIA", "PERIODO", "ALUMNO"];
+    const entidades = ["ADMIN", "DOCENTE", "MATERIA", "PERIODO", "ALUMNO", "EVALUACION"];
 
     return (
         <div className="p-8 space-y-6 max-w-6xl mx-auto">

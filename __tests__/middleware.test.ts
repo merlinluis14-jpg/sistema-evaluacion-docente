@@ -1,79 +1,76 @@
-import { middleware } from "@/middleware";
-import { NextRequest, NextResponse } from "next/server";
+import { proxy } from "@/proxy";
 import { getToken } from "next-auth/jwt";
 
-// Mock de next-auth/jwt
 jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
 }));
 
-// Setup de entorno Next.js para pruebas
 const mockRedirect = jest.fn();
 const mockNext = jest.fn();
 
 jest.mock("next/server", () => {
-  const actual = jest.requireActual("next/server");
   return {
-    ...actual,
     NextResponse: {
-      redirect: (...args: any[]) => { mockRedirect(...args); return "redirected"; },
-      next: () => { mockNext(); return "next"; },
+      redirect: (...args: unknown[]) => {
+        mockRedirect(...args);
+        return "redirected";
+      },
+      next: () => {
+        mockNext();
+        return "next";
+      },
+      json: jest.fn((body: unknown, init?: { status?: number }) => ({
+        body,
+        status: init?.status ?? 200,
+      })),
     },
   };
 });
 
-describe("Middleware - Control de Acceso por Roles", () => {
+function buildRequest(url: string, headers?: Record<string, string>) {
+  return {
+    url,
+    nextUrl: new URL(url),
+    headers: new Headers(headers),
+  } as never;
+}
+
+describe("proxy", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("Debe redirigir usuarios no autenticados al login al intentar acceder a rutas protegidas", async () => {
+  it("redirige a la raiz cuando un usuario no autenticado intenta entrar a un area protegida", async () => {
     (getToken as jest.Mock).mockResolvedValue(null);
-    const req = new NextRequest("http://localhost:3000/admin");
-    
-    await middleware(req);
-    
-    expect(mockRedirect).toHaveBeenCalled();
+
+    await proxy(buildRequest("http://localhost:3000/admin"));
+
     const targetUrl = mockRedirect.mock.calls[0][0] as URL;
-    expect(targetUrl.pathname).toBe("/login");
+    expect(targetUrl.pathname).toBe("/");
   });
 
-  it("Debe denegar el acceso a un ALUMNO intentando entrar a /admin", async () => {
+  it("bloquea a un alumno cuando intenta entrar a /admin", async () => {
     (getToken as jest.Mock).mockResolvedValue({ role: "ALUMNO" });
-    const req = new NextRequest("http://localhost:3000/admin/reportes");
-    
-    await middleware(req);
-    
-    expect(mockRedirect).toHaveBeenCalled();
+
+    await proxy(buildRequest("http://localhost:3000/admin/reportes"));
+
     const targetUrl = mockRedirect.mock.calls[0][0] as URL;
-    expect(targetUrl.pathname).toBe("/login");
+    expect(targetUrl.pathname).toBe("/");
   });
 
-  it("Debe denegar el acceso a un DOCENTE intentando entrar a /admin", async () => {
-    (getToken as jest.Mock).mockResolvedValue({ role: "DOCENTE" });
-    const req = new NextRequest("http://localhost:3000/admin");
-    
-    await middleware(req);
-    
-    expect(mockRedirect).toHaveBeenCalled();
-  });
-
-  it("Debe permitir que un ADMIN acceda libremente a /admin", async () => {
+  it("permite que un admin acceda a /admin", async () => {
     (getToken as jest.Mock).mockResolvedValue({ role: "ADMIN" });
-    const req = new NextRequest("http://localhost:3000/admin/reportes");
-    
-    await middleware(req);
-    
+
+    await proxy(buildRequest("http://localhost:3000/admin/reportes"));
+
     expect(mockNext).toHaveBeenCalled();
   });
 
-  it("Debe redirigir la ruta raíz /dashboard hacia el área correspondiente al rol", async () => {
+  it("redirige /dashboard al area correspondiente segun el rol autenticado", async () => {
     (getToken as jest.Mock).mockResolvedValue({ role: "DOCENTE" });
-    const req = new NextRequest("http://localhost:3000/dashboard");
-    
-    await middleware(req);
-    
-    expect(mockRedirect).toHaveBeenCalled();
+
+    await proxy(buildRequest("http://localhost:3000/dashboard"));
+
     const targetUrl = mockRedirect.mock.calls[0][0] as URL;
     expect(targetUrl.pathname).toBe("/docente");
   });

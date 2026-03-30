@@ -10,6 +10,7 @@ import {
     Layers,
     Calendar,
     BarChart3,
+    ShieldCheck,
     LogOut,
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
@@ -23,6 +24,7 @@ const navItems = [
     { href: "/admin/materias", Icon: BookOpen,        label: "Materias"  },
     { href: "/admin/periodos", Icon: Calendar,        label: "Periodos"  },
     { href: "/admin/reportes", Icon: BarChart3,       label: "Reportes"  },
+    { href: "/admin/administradores", Icon: ShieldCheck, label: "Administradores" },
 ];
 
 export function SidebarNav({ email }: { email: string }) {

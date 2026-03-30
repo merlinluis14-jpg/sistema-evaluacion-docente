@@ -28,8 +28,8 @@ type DocenteData = {
     name: string;
     lastName: string;
     position: TeacherPosition;
-    career: { code: string; name: string };
   };
+  contextCareer: { code: string; name: string };
   totalEvals: number;
   globalAvg: string;
   careerHeadAvg: string;
@@ -76,19 +76,19 @@ export async function POST(req: NextRequest) {
       );
       const evaluatorName = teacherReport.careerHeadEvaluation?.evaluatorName?.trim() || "Pendiente de captura";
       const comments = teacherReport.careerHeadEvaluation?.comments?.trim()
-        || "Sin comentarios registrados por coordinación.";
+        || "Sin comentarios registrados por coordinacion.";
 
       return `
         ${index > 0 ? '<div class="page-break"></div>' : ""}
         <section class="sheet">
           <table class="main-header">
             <tr>
-              <td colspan="3" class="title">Evaluación de Desempeño</td>
+              <td colspan="3" class="title">Evaluacion de Desempeno</td>
             </tr>
             <tr>
-              <td>Área: Dirección Académica</td>
+              <td>Area: Direccion Academica</td>
               <td>Vigencia: ${escapeHtml(periodo)}</td>
-              <td>Código: FDA-24.5</td>
+              <td>Codigo: FDA-24.5</td>
             </tr>
           </table>
 
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
             <tr>
               <td class="label-cell">NOMBRE:</td>
               <td class="value-cell">${escapeHtml(teacherName)}</td>
-              <td class="score-label">Calificación Final</td>
+              <td class="score-label">Calificacion Final</td>
               <td class="score-final" rowspan="4">${formatScore(finalScore, 2)}</td>
             </tr>
             <tr>
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
             <tr>
               <td class="label-cell">EVALUADOR/A:</td>
               <td class="value-cell">${escapeHtml(evaluatorName)}</td>
-              <td class="score-label">Calificación II. ESTUDIANTE</td>
+              <td class="score-label">Calificacion II. ESTUDIANTE</td>
             </tr>
             <tr>
               <td class="label-cell">PERIODO A EVALUAR:</td>
@@ -116,13 +116,13 @@ export async function POST(req: NextRequest) {
             </tr>
           </table>
 
-          <div class="section-title">Sección. Evaluación de la Presentación y Trabajo de Documentos</div>
+          <div class="section-title">Seccion. Evaluacion de la Presentacion y Trabajo de Documentos</div>
 
           <table class="factors-table">
             <thead>
               <tr>
                 <th>FACTOR</th>
-                <th>DEFINICIÓN</th>
+                <th>DEFINICION</th>
                 <th>CALIF.</th>
               </tr>
             </thead>
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
               <td>${formatScore(finalScore, 2)}</td>
             </tr>
             <tr>
-              <td class="summary-label">Calificación:</td>
+              <td class="summary-label">Calificacion:</td>
               <td colspan="3" class="summary-final">${formatScore(finalScore, 2)}</td>
             </tr>
           </table>
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
             </tr>
             <tr>
               <td>Carrera:</td>
-              <td>${escapeHtml(teacherReport.teacher.career.code)} · ${escapeHtml(teacherReport.teacher.career.name)}</td>
+              <td>${escapeHtml(teacherReport.contextCareer.code)} · ${escapeHtml(teacherReport.contextCareer.name)}</td>
             </tr>
           </table>
 
@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
             <div class="signature-box">
               <div class="signature-line"></div>
               <p class="signature-name">${escapeHtml(evaluatorName)}</p>
-              <p class="signature-role">Nombre y firma de quien elaboró</p>
+              <p class="signature-role">Nombre y firma de quien elaboro</p>
             </div>
           </div>
         </section>
@@ -187,19 +187,36 @@ export async function POST(req: NextRequest) {
       <html lang="es">
         <head>
           <meta charset="UTF-8" />
+          <meta name="color-scheme" content="light" />
           <title>Reporte institucional</title>
           <style>
             * { box-sizing: border-box; }
+            html,
+            body,
+            table,
+            thead,
+            tbody,
+            tr,
+            td,
+            th,
+            div,
+            p,
+            span {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
             body {
               margin: 0;
               font-family: Arial, sans-serif;
               font-size: 11px;
               color: #111827;
-              background: white;
+              background: #ffffff;
             }
             .sheet {
               width: 100%;
               padding: 18px 20px;
+              background: #ffffff;
             }
             table {
               width: 100%;
@@ -330,8 +347,26 @@ export async function POST(req: NextRequest) {
               margin: 10mm;
             }
             @media print {
+              html,
+              body,
+              table,
+              thead,
+              tbody,
+              tr,
+              td,
+              th,
+              div,
+              p,
+              span {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
               body {
-                background: white;
+                background: #ffffff !important;
+              }
+              .sheet {
+                background: #ffffff !important;
               }
             }
           </style>

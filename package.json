@@ -8,6 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
     "postinstall": "prisma generate"
   },
   "prisma": {

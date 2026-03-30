@@ -16,8 +16,8 @@ type ImportError = { row: number; identifier: string; reason: string };
 type ImportResult = { total: number; success: number; errors: ImportError[] };
 type PeriodOption = { id: string; name: string; isActive: boolean };
 
-const CSV_TEMPLATE = `nombre_docente,puesto,carrera_code,evaluador,elaborado_por,periodo_origen,plan_course_score,competency_eval_score,research_score,tutoring_score,advisory_score,platform_usage_score,problem_solving_score,punctuality_score,teamwork_score,resp_pe_avg,student_avg,source_final_avg,source_sheet,comments
-ROBLES CANO FRANCISCO ISMAEL,PA,ISC,Edurnet Jhaquelin Luna Becerril,Edurnet Jhaquelin Luna Becerril,Mayo - Agosto 2025-2,5,3,N/A,N/A,N/A,4,4,5,4,4.1667,4.1,8.2667,CANO,Importado desde Excel institucional`;
+const EXAMPLE_PREVIEW = `numero_empleado,nombre_docente,puesto,carrera_code,evaluador,elaborado_por,plan_course_score,competency_eval_score,research_score,tutoring_score,advisory_score,platform_usage_score,problem_solving_score,punctuality_score,teamwork_score,comments
+EMP1001,Juan Perez,PA,ISC,Dra. Maria Lopez,Dra. Maria Lopez,5,4,N/A,N/A,N/A,4,4,5,4,Buen cumplimiento general`;
 
 export default function ImportarJefaturaPage() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -86,14 +86,23 @@ export default function ImportarJefaturaPage() {
     }
   };
 
-  const downloadTemplate = () => {
-    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "template_evaluacion_jefatura.csv";
-    anchor.click();
-    URL.revokeObjectURL(url);
+  const downloadTemplate = async () => {
+    try {
+      const response = await fetch("/api/admin/reportes/template-jefatura");
+      if (!response.ok) {
+        throw new Error("No fue posible generar la plantilla");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "template_evaluacion_coordinacion.csv";
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : "No fue posible descargar la plantilla");
+    }
   };
 
   return (
@@ -109,10 +118,10 @@ export default function ImportarJefaturaPage() {
 
       <div className="mb-8">
         <h1 className="text-3xl font-black text-slate-800">
-          Importar <span className="text-blue-600">Evaluacion de Jefatura</span>
+          Importar <span className="text-blue-600">Evaluacion de Coordinacion</span>
         </h1>
         <p className="text-slate-400 text-sm mt-1">
-          Carga en bloque la evaluacion institucional extraida desde el archivo XLSX oficial de ISC.
+          Carga en bloque la evaluacion de la jefa de carrera o coordinacion con una plantilla estandar del sistema.
         </p>
       </div>
 
@@ -134,13 +143,17 @@ export default function ImportarJefaturaPage() {
 
             <div className="space-y-3 text-sm text-slate-600">
               <p>
-                Este CSV se genera desde el script `scripts/export-career-head-from-xlsx.ps1` y conserva
-                los puntajes institucionales del formato Excel por docente.
+                La plantilla se descarga ya precargada con los docentes activos, su numero de empleado,
+                tipo de docente y carrera para que solo captures las calificaciones.
               </p>
               <p>
-                El periodo del sistema se elige aqui al importar. El valor `periodo_origen` solo se guarda
-                como referencia historica dentro de comentarios.
+                Para `PA` los campos `research_score`, `tutoring_score` y `advisory_score` salen como `N/A`.
+                Para `PTC` esos campos quedan vacios para que la coordinacion los capture.
               </p>
+              <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto">
+                <p className="text-slate-400 text-[10px] font-bold mb-2 uppercase tracking-widest">Ejemplo</p>
+                <pre className="text-emerald-400 text-xs font-mono whitespace-pre leading-relaxed">{EXAMPLE_PREVIEW}</pre>
+              </div>
             </div>
           </div>
         </div>
@@ -238,11 +251,11 @@ export default function ImportarJefaturaPage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Importando evaluacion de jefatura...
+                  Importando evaluacion de coordinacion...
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <Upload className="w-4 h-4" /> Iniciar Importacion
+                  <Upload className="w-4 h-4" /> Iniciar importacion
                 </span>
               )}
             </button>
