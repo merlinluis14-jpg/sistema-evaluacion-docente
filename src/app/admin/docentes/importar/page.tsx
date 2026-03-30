@@ -1,20 +1,28 @@
 "use client";
 
-import { useState, useRef } from "react";
 import Link from "next/link";
-import { Upload, CheckCircle2, FolderOpen, AlertTriangle, BarChart2, Download, ArrowLeft } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+    AlertTriangle,
+    ArrowLeft,
+    BarChart2,
+    CheckCircle2,
+    Download,
+    FolderOpen,
+    Upload,
+} from "lucide-react";
 
 type ImportError = { row: number; identifier: string; reason: string };
 type ImportResult = { total: number; success: number; errors: ImportError[] };
 
-const CSV_TEMPLATE = `nombre,apellido,email,numero_empleado,carrera_code,password
-Carlos,Ramírez,c.ramirez@uptex.edu.mx,DOC001,ISC,uptx2026
-María,González,m.gonzalez@uptex.edu.mx,DOC002,ISC,
-Pedro,Sánchez,p.sanchez@uptex.edu.mx,DOC003,IET,uptx2026`;
+const CSV_TEMPLATE = `nombre,apellido,email,numero_empleado,carrera_code,tipo_docente,password
+Carlos,Ramirez,c.ramirez@uptex.edu.mx,DOC001,ISC,PA,uptx2026
+Maria,Gonzalez,m.gonzalez@uptex.edu.mx,DOC002,ISC,PTC,
+Pedro,Sanchez,p.sanchez@uptex.edu.mx,DOC003,IET,PA,uptx2026`;
 
-const EXAMPLE_PREVIEW = `nombre,apellido,email,numero_empleado,carrera_code,password
-Carlos,Ramírez,c.ramirez@uptex.edu.mx,DOC001,ISC,uptx2026
-María,González,m.gonzalez@uptex.edu.mx,DOC002,ISC,`;
+const EXAMPLE_PREVIEW = `nombre,apellido,email,numero_empleado,carrera_code,tipo_docente,password
+Carlos,Ramirez,c.ramirez@uptex.edu.mx,DOC001,ISC,PA,uptx2026
+Maria,Gonzalez,m.gonzalez@uptex.edu.mx,DOC002,ISC,PTC,`;
 
 export default function ImportarDocentesPage() {
     const [file, setFile] = useState<File | null>(null);
@@ -24,39 +32,61 @@ export default function ImportarDocentesPage() {
     const [dragOver, setDragOver] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const handleFile = (f: File) => {
-        if (!f.name.endsWith(".csv")) { setError("El archivo debe ser formato CSV (.csv)"); return; }
-        if (f.size > 5 * 1024 * 1024) { setError("El archivo no puede superar 5 MB"); return; }
-        setFile(f); setError(null); setResult(null);
+    const handleFile = (selectedFile: File) => {
+        if (!selectedFile.name.endsWith(".csv")) {
+            setError("El archivo debe ser formato CSV (.csv)");
+            return;
+        }
+        if (selectedFile.size > 5 * 1024 * 1024) {
+            setError("El archivo no puede superar 5 MB");
+            return;
+        }
+        setFile(selectedFile);
+        setError(null);
+        setResult(null);
     };
 
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault(); setDragOver(false);
-        const f = e.dataTransfer.files[0];
-        if (f) handleFile(f);
+    const handleDrop = (event: React.DragEvent) => {
+        event.preventDefault();
+        setDragOver(false);
+        const droppedFile = event.dataTransfer.files[0];
+        if (droppedFile) handleFile(droppedFile);
     };
 
     const handleSubmit = async () => {
         if (!file) return;
-        setLoading(true); setError(null); setResult(null);
+        setLoading(true);
+        setError(null);
+        setResult(null);
+
         try {
             const text = await file.text();
-            const res = await fetch("/api/import/docentes", {
+            const response = await fetch("/api/import/docentes", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ csv: text }),
             });
-            if (!res.ok) { const err = await res.json(); throw new Error(err.message || "Error en el servidor"); }
-            setResult(await res.json());
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Error inesperado");
-        } finally { setLoading(false); }
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || "Error en el servidor");
+            }
+
+            setResult(await response.json());
+        } catch (submissionError: unknown) {
+            setError(submissionError instanceof Error ? submissionError.message : "Error inesperado");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const downloadTemplate = () => {
         const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.href = url; a.download = "template_docentes_uptx.csv"; a.click();
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "template_docentes_uptx.csv";
+        anchor.click();
         URL.revokeObjectURL(url);
     };
 
@@ -69,12 +99,10 @@ export default function ImportarDocentesPage() {
             </div>
             <div className="mb-8">
                 <h1 className="text-3xl font-black text-slate-800">Importar <span className="text-blue-600">Docentes</span></h1>
-                <p className="text-slate-400 text-sm mt-1">Carga masiva de docentes desde archivo CSV — se crean cuentas de usuario automáticamente</p>
+                <p className="text-slate-400 text-sm mt-1">Carga masiva de docentes desde archivo CSV - se crean cuentas de usuario automaticamente</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-
-                {/* LEFT: Formato (solo tabla) */}
                 <div className="flex flex-col">
                     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4 h-full">
                         <div className="flex items-center justify-between">
@@ -92,22 +120,23 @@ export default function ImportarDocentesPage() {
                                     <tr className="bg-slate-50">
                                         <th className="text-left px-4 py-2 text-xs font-bold text-slate-500 rounded-l-xl">Columna</th>
                                         <th className="text-center px-4 py-2 text-xs font-bold text-slate-500">Requerido</th>
-                                        <th className="text-left px-4 py-2 text-xs font-bold text-slate-500 rounded-r-xl">Descripción</th>
+                                        <th className="text-left px-4 py-2 text-xs font-bold text-slate-500 rounded-r-xl">Descripcion</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {[
                                         ["nombre", true, "Nombre(s) del docente"],
                                         ["apellido", true, "Apellido(s) del docente"],
-                                        ["email", true, "Email institucional — se usa como login"],
-                                        ["numero_empleado", true, "Identificador único del empleado"],
-                                        ["carrera_code", true, "Código de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
-                                        ["password", false, "Contraseña inicial — si se omite, se usa numero_empleado"],
-                                    ].map(([col, req, desc]) => (
-                                        <tr key={col as string}>
-                                            <td className="px-4 py-2"><code className="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">{col as string}</code></td>
-                                            <td className="px-4 py-2 text-center"><span className={`text-xs font-bold ${req ? "text-red-500" : "text-slate-400"}`}>{req ? "Sí" : "No"}</span></td>
-                                            <td className="px-4 py-2 text-xs text-slate-500">{desc as string}</td>
+                                        ["email", true, "Email institucional - se usa como login"],
+                                        ["numero_empleado", true, "Identificador unico del empleado"],
+                                        ["carrera_code", true, "Codigo de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
+                                        ["tipo_docente", true, "PA para asignatura o PTC para tiempo completo"],
+                                        ["password", false, "Contrasena inicial - si se omite, se usa numero_empleado"],
+                                    ].map(([column, required, description]) => (
+                                        <tr key={column as string}>
+                                            <td className="px-4 py-2"><code className="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">{column as string}</code></td>
+                                            <td className="px-4 py-2 text-center"><span className={`text-xs font-bold ${required ? "text-red-500" : "text-slate-400"}`}>{required ? "Si" : "No"}</span></td>
+                                            <td className="px-4 py-2 text-xs text-slate-500">{description as string}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -116,7 +145,6 @@ export default function ImportarDocentesPage() {
                     </div>
                 </div>
 
-                {/* RIGHT: Ejemplo + Upload + Resultados */}
                 <div className="space-y-6">
                     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
                         <div className="flex items-center gap-2 mb-1">
@@ -130,29 +158,38 @@ export default function ImportarDocentesPage() {
                         </div>
 
                         <div
-                            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                            onDragOver={(event) => { event.preventDefault(); setDragOver(true); }}
                             onDragLeave={() => setDragOver(false)}
                             onDrop={handleDrop}
                             onClick={() => inputRef.current?.click()}
-                            className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${dragOver
-                                ? "border-blue-400 bg-blue-50" : file
-                                    ? "border-emerald-400 bg-emerald-50" : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"}`}
+                            className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
+                                dragOver
+                                    ? "border-blue-400 bg-blue-50"
+                                    : file
+                                        ? "border-emerald-400 bg-emerald-50"
+                                        : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                            }`}
                         >
-                            <input ref={inputRef} type="file" accept=".csv" className="hidden"
-                                onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
+                            <input
+                                ref={inputRef}
+                                type="file"
+                                accept=".csv"
+                                className="hidden"
+                                onChange={(event) => { if (event.target.files?.[0]) handleFile(event.target.files[0]); }}
+                            />
                             {file ? (
                                 <div className="space-y-1">
                                     <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
                                     <p className="font-bold text-emerald-700">{file.name}</p>
                                     <p className="text-xs text-emerald-600">{(file.size / 1024).toFixed(1)} KB · Listo para importar</p>
-                                    <button onClick={e => { e.stopPropagation(); setFile(null); }} className="text-xs text-slate-400 hover:text-red-500 mt-2 underline">Cambiar archivo</button>
+                                    <button onClick={(event) => { event.stopPropagation(); setFile(null); }} className="text-xs text-slate-400 hover:text-red-500 mt-2 underline">Cambiar archivo</button>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
                                     <FolderOpen className="w-10 h-10 text-slate-300 mx-auto" />
-                                    <p className="font-bold text-slate-600">Arrastra tu CSV aquí</p>
+                                    <p className="font-bold text-slate-600">Arrastra tu CSV aqui</p>
                                     <p className="text-sm text-slate-400">o haz clic para seleccionar</p>
-                                    <p className="text-xs text-slate-300 mt-2">Máximo 5 MB</p>
+                                    <p className="text-xs text-slate-300 mt-2">Maximo 5 MB</p>
                                 </div>
                             )}
                         </div>
@@ -164,24 +201,29 @@ export default function ImportarDocentesPage() {
                             </div>
                         )}
 
-                        <button onClick={handleSubmit} disabled={!file || loading}
-                            className={`w-full py-3.5 rounded-xl text-sm font-black transition-all ${!file || loading
-                                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                : "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] shadow-lg shadow-blue-500/20"}`}>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={!file || loading}
+                            className={`w-full py-3.5 rounded-xl text-sm font-black transition-all ${
+                                !file || loading
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                    : "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] shadow-lg shadow-blue-500/20"
+                            }`}
+                        >
                             {loading ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                     Importando docentes...
                                 </span>
                             ) : (
-                                <span className="flex items-center justify-center gap-2"><Upload className="w-4 h-4" /> Iniciar Importación</span>
+                                <span className="flex items-center justify-center gap-2"><Upload className="w-4 h-4" /> Iniciar Importacion</span>
                             )}
                         </button>
                     </div>
 
                     {result && (
                         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                            <h2 className="font-bold text-slate-700 flex items-center gap-2"><BarChart2 className="w-4 h-4" /> Resultado de la importación</h2>
+                            <h2 className="font-bold text-slate-700 flex items-center gap-2"><BarChart2 className="w-4 h-4" /> Resultado de la importacion</h2>
                             <div className="grid grid-cols-3 gap-3">
                                 <div className="bg-slate-50 rounded-xl p-4 text-center">
                                     <p className="text-2xl font-black text-slate-700">{result.total}</p>
@@ -206,17 +248,19 @@ export default function ImportarDocentesPage() {
                                     <p className="text-sm font-bold text-red-600 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> {result.errors.length} fila(s) con errores</p>
                                     <div className="bg-slate-50 rounded-xl overflow-hidden">
                                         <table className="w-full text-xs">
-                                            <thead><tr className="bg-slate-100">
-                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Fila</th>
-                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Identificador</th>
-                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Motivo</th>
-                                            </tr></thead>
+                                            <thead>
+                                                <tr className="bg-slate-100">
+                                                    <th className="text-left px-4 py-2 font-bold text-slate-500">Fila</th>
+                                                    <th className="text-left px-4 py-2 font-bold text-slate-500">Identificador</th>
+                                                    <th className="text-left px-4 py-2 font-bold text-slate-500">Motivo</th>
+                                                </tr>
+                                            </thead>
                                             <tbody className="divide-y divide-slate-100">
-                                                {result.errors.map((err, i) => (
-                                                    <tr key={i}>
-                                                        <td className="px-4 py-2 text-slate-500">#{err.row}</td>
-                                                        <td className="px-4 py-2 font-mono text-slate-700">{err.identifier}</td>
-                                                        <td className="px-4 py-2 text-red-600">{err.reason}</td>
+                                                {result.errors.map((rowError, index) => (
+                                                    <tr key={index}>
+                                                        <td className="px-4 py-2 text-slate-500">#{rowError.row}</td>
+                                                        <td className="px-4 py-2 font-mono text-slate-700">{rowError.identifier}</td>
+                                                        <td className="px-4 py-2 text-red-600">{rowError.reason}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -225,8 +269,8 @@ export default function ImportarDocentesPage() {
                                 </div>
                             )}
                             <div className="flex gap-3 pt-2">
-                                <Link href="/admin/docentes" className="flex-1 text-center py-2.5 rounded-xl bg-blue-700 text-white text-sm font-bold hover:bg-blue-800 transition-all">Ver docentes importados →</Link>
-                                <button onClick={() => { setFile(null); setResult(null); }} className="px-5 py-2.5 rounded-xl bg-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-200 transition-all">Nueva importación</button>
+                                <Link href="/admin/docentes" className="flex-1 text-center py-2.5 rounded-xl bg-blue-700 text-white text-sm font-bold hover:bg-blue-800 transition-all">Ver docentes importados -&gt;</Link>
+                                <button onClick={() => { setFile(null); setResult(null); }} className="px-5 py-2.5 rounded-xl bg-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-200 transition-all">Nueva importacion</button>
                             </div>
                         </div>
                     )}

@@ -45,11 +45,11 @@ function BarraItem({ label, valor, max, color, index }: {
   const c = COLOR_MAP[color];
 
   return (
-    <div className="flex items-center gap-3 group">
-      <span className="text-xs text-slate-300 font-bold w-5 text-right flex-shrink-0">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[auto,minmax(0,1fr),minmax(0,1fr),auto] sm:items-center sm:gap-3 group">
+      <span className="text-xs text-slate-300 font-bold w-5 text-left sm:text-right flex-shrink-0">
         {index + 1}
       </span>
-      <p className="text-xs text-slate-600 w-52 flex-shrink-0 leading-tight group-hover:text-slate-800 transition-colors">
+      <p className="text-xs text-slate-600 leading-tight group-hover:text-slate-800 transition-colors sm:max-w-xs">
         {label}
       </p>
       <div className={`flex-1 h-5 ${c.bg} rounded-full overflow-hidden`}>
@@ -58,7 +58,7 @@ function BarraItem({ label, valor, max, color, index }: {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className={`text-xs font-black ${c.text} w-14 text-right flex-shrink-0`}>
+      <span className={`text-xs font-black ${c.text} text-left sm:w-14 sm:text-right flex-shrink-0`}>
         {valor} <span className="font-normal text-slate-400">/{max}</span>
       </span>
     </div>
@@ -73,17 +73,17 @@ function SeccionGrafica({ titulo, subtitulo, items, color, promedio, max }: {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className={`${c.header} px-6 py-4 flex items-center justify-between`}>
+      <div className={`${c.header} px-4 sm:px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}>
         <div>
           <h3 className="font-black text-white">{titulo}</h3>
           <p className="text-white/60 text-xs mt-0.5">{subtitulo}</p>
         </div>
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <p className="text-2xl font-black text-white">{promedio}</p>
           <p className="text-white/60 text-xs">/{max} promedio</p>
         </div>
       </div>
-      <div className="p-6 space-y-3">
+      <div className="p-4 sm:p-6 space-y-3">
         {items.map((item, idx) => (
           <BarraItem key={idx} label={item.label} valor={item.valor} max={item.max} color={color} index={idx} />
         ))}
@@ -101,7 +101,7 @@ function ResumenSecciones({ promedios }: { promedios: Props["promedios"] }) {
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6">
       <h3 className="font-black text-slate-700 mb-4">Resumen por Sección</h3>
       <div className="space-y-4">
         {secciones.map(({ label, valor, max, color }) => {
@@ -197,12 +197,12 @@ function RadarSecciones({ promedios }: { promedios: Props["promedios"] }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-6">
       <h3 className="font-black text-slate-700 mb-1">Gráfica Radar — Perfil por Sección</h3>
       <p className="text-xs text-slate-400 mb-4">
         Valores normalizados a porcentaje para comparar secciones con distintas escalas
       </p>
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto w-full">
         <Radar data={data} options={options} />
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">

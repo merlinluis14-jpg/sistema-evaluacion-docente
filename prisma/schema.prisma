@@ -1,4 +1,7 @@
-// Schema v2: Multi-carrera, 3 Roles, Grupos, FDA-24.5 (33 ítems)
+// ==========================================
+// SCHEMA V2: Sistema de Evaluación Docente — UPTX
+// Multi-carrera, 3 Roles, Grupos, Instrumento FDA-24.5 (33 ítems)
+// ==========================================
 
 generator client {
   provider = "prisma-client-js"
@@ -8,11 +11,21 @@ datasource db {
   provider = "postgresql"
 }
 
+// ==========================================
+// CAPA DE SEGURIDAD Y USUARIOS
+// ==========================================
+
 // Enumeración de Roles
+// Roles definidos en la especificación del sistema
 enum Role {
-  ADMIN
-  DOCENTE
-  ALUMNO
+  ADMIN     // Acceso total a gestión y reportes institucionales
+  DOCENTE   // Consulta de resultados propios (anónimos)
+  ALUMNO    // Realización de evaluaciones asignadas
+}
+
+enum TeacherPosition {
+  PA
+  PTC
 }
 
 // USER: Base de autenticación universal
@@ -29,6 +42,10 @@ model User {
   teacher   Teacher?
   student   Student?
 }
+
+// ==========================================
+// CAPA ACADÉMICA Y ESTRUCTURA
+// ==========================================
 
 // CAREER: Carreras de la UPTX (e.g. ISC, IIT, IGA)
 model Career {
@@ -54,12 +71,17 @@ model Teacher {
   employeeId String   @unique  // Número de empleado institucional
   careerId   String
   career     Career   @relation(fields: [careerId], references: [id])
+  position   TeacherPosition @default(PA)
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  subjects    Subject[]
-  evaluations Evaluation[]
+  subjects              Subject[]
+  evaluations           Evaluation[]
+  careerHeadEvaluations CareerHeadEvaluation[]
+
+  @@index([careerId, position, isActive])
+  @@index([lastName, name])
 }
 
 // STUDENT: Perfil de alumno importado vía CSV
@@ -92,6 +114,8 @@ model Group {
 
   enrollments GroupEnrollment[]  // Alumnos en este grupo
   subjects    GroupSubject[]     // Materias asignadas al grupo
+
+  @@index([careerId, period])
 }
 
 // GROUP ENROLLMENT: Tabla pivote Alumno-Grupo
@@ -104,6 +128,7 @@ model GroupEnrollment {
   createdAt DateTime @default(now())
 
   @@unique([studentId, groupId])
+  @@index([groupId, studentId])
 }
 
 // SUBJECT: Materias vinculadas a carreras y docentes
@@ -124,6 +149,8 @@ model Subject {
   evaluations Evaluation[]
 
   @@unique([code, careerId]) // Mismo código puede existir en distintas carreras
+  @@index([teacherId, isActive])
+  @@index([careerId, isActive])
 }
 
 // GROUP SUBJECT: Tabla pivote Grupo-Materia
@@ -138,6 +165,10 @@ model GroupSubject {
   @@unique([groupId, subjectId])
 }
 
+// ==========================================
+// CAPA DE EVALUACIÓN Y RESULTADOS
+// ==========================================
+
 // PERIOD: Gestión temporal de disponibilidad de evaluación
 model Period {
   id        String   @id @default(cuid())
@@ -147,10 +178,37 @@ model Period {
   isActive  Boolean  @default(false) // Solo uno activo a la vez
   createdAt DateTime @default(now())
 
-  evaluations Evaluation[]
+  evaluations           Evaluation[]
+  careerHeadEvaluations CareerHeadEvaluation[]
 }
 
-// EVALUATION: Instrumento FDA-24.5 completo (33 ítems y comentarios)
+model CareerHeadEvaluation {
+  id                  String   @id @default(cuid())
+  teacherId           String
+  teacher             Teacher  @relation(fields: [teacherId], references: [id])
+  periodId            String
+  period              Period   @relation(fields: [periodId], references: [id])
+  evaluatorName       String?
+  comments            String?  @db.Text
+  planCourseScore     Float?
+  competencyEvalScore Float?
+  researchScore       Float?
+  tutoringScore       Float?
+  advisoryScore       Float?
+  platformUsageScore  Float?
+  problemSolvingScore Float?
+  punctualityScore    Float?
+  teamworkScore       Float?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([teacherId, periodId])
+  @@index([periodId, teacherId])
+}
+
+// EVALUATION: Implementación del Instrumento FDA-24.5 completo
+// Este modelo almacena la respuesta de los alumnos a cada pregunta.
+// El sistema garantiza anonimato al no exponer directamente los IDs en reportes docentes.
 model Evaluation {
   id        String  @id @default(cuid())
 
@@ -232,7 +290,7 @@ model Evaluation {
   comentario_fortalezas String? @db.Text  // Fortalezas y sugerencias al docente
   comentario_adicional  String? @db.Text  // Comentario adicional libre
 
-  // Separación explícita para garantizar privacidad a nivel auditoría
+  // Campo explícito para auditoría de cumplimiento de anonimato
   isAnonymous Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -240,9 +298,17 @@ model Evaluation {
 
   // RF7: Un alumno evalúa UNA SOLA VEZ por materia por periodo
   @@unique([studentId, subjectId, periodId])
+  @@index([periodId, teacherId])
+  @@index([periodId, subjectId])
+  @@index([teacherId, periodId])
+  @@index([studentId, periodId])
 }
 
-// IMPORT LOG: Registro para auditorías de CSV
+// ==========================================
+// LOGS DE AUDITORÍA: Garantizan trazabilidad según requerimientos técnicos
+// ==========================================
+
+// IMPORT LOG: Registro para auditorías de importaciones masivas (CSV)
 model ImportLog {
   id          String   @id @default(cuid())
   type        String   // "ALUMNOS", "DOCENTES", "MATERIAS"

@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import GraficasDetalle from "./GraficasDetalle";
 import ExportTeacherPdf from "./ExportTeacherPdf";
+import CareerHeadEvaluationForm from "./CareerHeadEvaluationForm";
+import { buildStudentReport, getPerformanceLevel, getTeacherPositionLabel } from "@/lib/reportes";
 import { Target, Lightbulb, Monitor, ClipboardCheck, Inbox, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +46,17 @@ export default async function ReporteDocenteDetallePage({
     ? await prisma.period.findUnique({ where: { id: periodoId } })
     : periodoActivo;
 
+  const careerHeadEvaluation = periodoId
+    ? await prisma.careerHeadEvaluation.findUnique({
+      where: {
+        teacherId_periodId: {
+          teacherId,
+          periodId: periodoId,
+        },
+      },
+    })
+    : null;
+
   // Evaluaciones del docente en el periodo
   const evaluaciones = await prisma.evaluation.findMany({
     where: {
@@ -70,79 +83,27 @@ export default async function ReporteDocenteDetallePage({
     );
   }
 
-  // Procesamiento de promedios para las gráficas
   const n = evaluaciones.length;
-  const sum = (key: keyof typeof evaluaciones[0]) =>
-    evaluaciones.reduce((acc, e) => acc + (Number(e[key]) || 0), 0);
-  const avg = (key: keyof typeof evaluaciones[0]) =>
-    parseFloat((sum(key) / n).toFixed(2));
-
-  // Sección 1 — Facilitador (11 ítems, escala /4)
-  const facilitador = [
-    { label: "Orientó sobre unidades al inicio", valor: avg("fac_item01"), max: 4 },
-    { label: "Domina los contenidos", valor: avg("fac_item02"), max: 4 },
-    { label: "Resumió temas por sesión", valor: avg("fac_item03"), max: 4 },
-    { label: "Resumió temas por unidad", valor: avg("fac_item04"), max: 4 },
-    { label: "Aclaró dudas", valor: avg("fac_item05"), max: 4 },
-    { label: "Impartió asesorías", valor: avg("fac_item06"), max: 4 },
-    { label: "Entregó resultados oportunamente", valor: avg("fac_item07"), max: 4 },
-    { label: "Logró objetivos del cuatrimestre", valor: avg("fac_item08"), max: 4 },
-    { label: "Promovió respeto y disciplina", valor: avg("fac_item09"), max: 4 },
-    { label: "Puntualidad del facilitador", valor: avg("fac_item10"), max: 4 },
-    { label: "Puntualidad del alumno (manejo)", valor: avg("fac_item11"), max: 4 },
-  ];
-
-  // Sección 2 — Habilidades (4 ítems, escala /5)
-  const habilidades = [
-    { label: "Manejo del lenguaje apropiado", valor: avg("hab_item01"), max: 5 },
-    { label: "Conducción al desarrollo profesional", valor: avg("hab_item02"), max: 5 },
-    { label: "Capacidad para captar atención", valor: avg("hab_item03"), max: 5 },
-    { label: "Relación con competencias del modelo", valor: avg("hab_item04"), max: 5 },
-  ];
-
-  // Sección 3 — Medios didácticos (6 ítems, escala /5)
-  const medios = [
-    { label: "Pizarrón", valor: avg("med_item01"), max: 5 },
-    { label: "TV / Pantalla", valor: avg("med_item02"), max: 5 },
-    { label: "Cañón / Proyector", valor: avg("med_item03"), max: 5 },
-    { label: "Webquest / Plataformas dig.", valor: avg("med_item04"), max: 5 },
-    { label: "Guías de trabajo", valor: avg("med_item05"), max: 5 },
-    { label: "Libros y bibliografía", valor: avg("med_item06"), max: 5 },
-  ];
-
-  // Sección 5 — Autoevaluación (11 ítems, escala /5)
-  const autoevaluacion = [
-    { label: "Participó en clase", valor: avg("auto_item01"), max: 5 },
-    { label: "Se ausentó a clases", valor: avg("auto_item02"), max: 5 },
-    { label: "Realizó todos los trabajos", valor: avg("auto_item03"), max: 5 },
-    { label: "Solicitó asesoría", valor: avg("auto_item04"), max: 5 },
-    { label: "Aplicó técnicas de autoestudio", valor: avg("auto_item05"), max: 5 },
-    { label: "Realizó investigación extra", valor: avg("auto_item06"), max: 5 },
-    { label: "Asistió con material necesario", valor: avg("auto_item07"), max: 5 },
-    { label: "Se preparó para exámenes", valor: avg("auto_item08"), max: 5 },
-    { label: "Puso en práctica conocimientos", valor: avg("auto_item09"), max: 5 },
-    { label: "Mantuvo atención en clase", valor: avg("auto_item10"), max: 5 },
-    { label: "Desarrolló competencias", valor: avg("auto_item11"), max: 5 },
-  ];
-
-  // Promedios por sección
-  const promedioFac = parseFloat((facilitador.reduce((a, i) => a + i.valor, 0) / facilitador.length).toFixed(2));
-  const promedioHab = parseFloat((habilidades.reduce((a, i) => a + i.valor, 0) / habilidades.length).toFixed(2));
-  const promedioMed = parseFloat((medios.reduce((a, i) => a + i.valor, 0) / medios.length).toFixed(2));
-  const promedioAuto = parseFloat((autoevaluacion.reduce((a, i) => a + i.valor, 0) / autoevaluacion.length).toFixed(2));
-  const promedioGlobal = parseFloat(((promedioFac + promedioHab + promedioMed) / 3).toFixed(2));
-
-  // Nivel cualitativo
-  const nivel = promedioGlobal >= 3.5 ? "Excelente"
-    : promedioGlobal >= 2.5 ? "Bueno"
-      : promedioGlobal >= 1.5 ? "Regular"
-        : "Deficiente";
+  const {
+    facilitador,
+    habilidades,
+    medios,
+    autoevaluacion,
+    promedios: {
+      fac: promedioFac,
+      hab: promedioHab,
+      med: promedioMed,
+      auto: promedioAuto,
+      global: promedioGlobal,
+    },
+  } = buildStudentReport(evaluaciones);
+  const nivel = getPerformanceLevel(promedioGlobal);
 
   // Materias evaluadas
   const materias = [...new Map(evaluaciones.map(e => [e.subjectId, e.subject])).values()];
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
 
       {/* Navegación y Exportación */}
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -180,6 +141,9 @@ export default async function ReporteDocenteDetallePage({
               </h1>
               <p className="text-slate-400 text-sm">
                 {teacher.career.name} · {teacher.employeeId}
+              </p>
+              <p className="text-slate-400 text-xs mt-0.5">
+                {getTeacherPositionLabel(teacher.position)}
               </p>
               <p className="text-slate-400 text-xs mt-0.5">
                 {periodo?.name} · {n} evaluación{n !== 1 ? "es" : ""} recibida{n !== 1 ? "s" : ""}
@@ -231,6 +195,15 @@ export default async function ReporteDocenteDetallePage({
           ))}
         </div>
       </div>
+
+      <CareerHeadEvaluationForm
+        teacherId={teacher.id}
+        teacherName={`${teacher.name} ${teacher.lastName}`}
+        periodId={periodoId}
+        periodName={periodo?.name ?? "Sin periodo"}
+        position={teacher.position}
+        initialEvaluation={careerHeadEvaluation}
+      />
 
       {/* Visualización Gráfica */}
       <GraficasDetalle

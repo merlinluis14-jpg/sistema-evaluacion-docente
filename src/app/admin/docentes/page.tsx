@@ -1,9 +1,8 @@
-
-import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { FilterX, Plus, Upload, UserCog } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 import { DeleteTeacherButton } from "./DeleteTeacherButton";
 import { ResetPasswordButton } from "./ResetPasswordButton";
-import { UserCog, Plus, Upload, FilterX } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +14,7 @@ export default async function DocentesPage({
     const { career: careerId } = await searchParams;
 
     const teachers = await prisma.teacher.findMany({
-        where: careerId ? { careerId: careerId } : undefined,
+        where: careerId ? { careerId } : undefined,
         orderBy: { createdAt: "desc" },
         include: {
             career: true,
@@ -23,7 +22,6 @@ export default async function DocentesPage({
         },
     });
 
-    // Load career name for the banner when filtering
     const activeCareer = careerId
         ? await prisma.career.findUnique({ where: { id: careerId }, select: { name: true, code: true } })
         : null;
@@ -33,10 +31,10 @@ export default async function DocentesPage({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">
-                        Gestión de <span className="text-blue-600">Docentes</span>
+                        Gestion de <span className="text-blue-600">Docentes</span>
                     </h1>
                     <p className="text-gray-500 mt-2">
-                        Administra los catedráticos registrados en el sistema de evaluación.
+                        Administra los catedraticos registrados en el sistema de evaluacion.
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -57,12 +55,11 @@ export default async function DocentesPage({
                 </div>
             </div>
 
-            {/* Active career filter banner */}
             {activeCareer && (
                 <div className="mb-6 flex items-center gap-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl px-5 py-3 text-sm font-medium">
                     <FilterX size={16} className="shrink-0 text-blue-500" />
                     <span>
-                        Mostrando docentes de la carrera: <strong>{activeCareer.code} — {activeCareer.name}</strong>
+                        Mostrando docentes de la carrera: <strong>{activeCareer.code} - {activeCareer.name}</strong>
                     </span>
                     <Link
                         href="/admin/docentes"
@@ -88,6 +85,9 @@ export default async function DocentesPage({
                                     Carrera
                                 </th>
                                 <th className="px-3 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    Tipo
+                                </th>
+                                <th className="px-3 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     Estado
                                 </th>
                                 <th className="relative py-4 pl-3 pr-6">
@@ -98,9 +98,9 @@ export default async function DocentesPage({
                         <tbody className="divide-y divide-gray-200 bg-white">
                             {teachers.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="py-16 text-center text-gray-400 font-medium">
+                                    <td colSpan={6} className="py-16 text-center text-gray-400 font-medium">
                                         <UserCog className="w-10 h-10 mb-2 text-slate-300 mx-auto" />
-                                        No hay docentes registrados aún.{" "}
+                                        No hay docentes registrados aun.{" "}
                                         <Link href="/admin/docentes/nuevo" className="text-blue-600 hover:underline font-semibold">
                                             Registra el primero
                                         </Link>
@@ -109,7 +109,6 @@ export default async function DocentesPage({
                             )}
                             {teachers.map((teacher) => (
                                 <tr key={teacher.id} className="hover:bg-gray-50/50 transition-colors group">
-                                    {/* Avatar + Nombre */}
                                     <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm">
                                         <div className="flex items-center">
                                             <div className="h-10 w-10 shrink-0">
@@ -124,29 +123,42 @@ export default async function DocentesPage({
                                             </div>
                                         </div>
                                     </td>
-                                    {/* Email / No. Empleado */}
                                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                        <div className="text-gray-700 text-xs">{teacher.user.email ?? "—"}</div>
+                                        <div className="text-gray-700 text-xs">{teacher.user.email ?? "-"}</div>
                                         <div className="font-mono text-xs text-gray-400 mt-0.5">{teacher.employeeId}</div>
                                     </td>
-                                    {/* Carrera */}
                                     <td className="whitespace-nowrap px-3 py-4 text-sm">
                                         <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">
                                             {teacher.career.code}
                                         </span>
                                         <div className="text-gray-400 text-xs mt-1 truncate max-w-[160px]">{teacher.career.name}</div>
                                     </td>
-                                    {/* Estado */}
                                     <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border ${teacher.isActive
-                                            ? "bg-blue-50 text-blue-700 border-blue-200"
-                                            : "bg-slate-100 text-slate-500 border-slate-200"
-                                            }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${teacher.isActive ? "bg-emerald-500" : "bg-red-500"}`}></span>
+                                        <span
+                                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold border ${
+                                                teacher.position === "PTC"
+                                                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                                                    : "bg-sky-50 text-sky-700 border-sky-200"
+                                            }`}
+                                        >
+                                            {teacher.position}
+                                        </span>
+                                        <div className="text-gray-400 text-xs mt-1">
+                                            {teacher.position === "PTC" ? "Tiempo completo" : "Asignatura"}
+                                        </div>
+                                    </td>
+                                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                        <span
+                                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border ${
+                                                teacher.isActive
+                                                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                                                    : "bg-slate-100 text-slate-500 border-slate-200"
+                                            }`}
+                                        >
+                                            <span className={`w-1.5 h-1.5 rounded-full ${teacher.isActive ? "bg-emerald-500" : "bg-red-500"}`} />
                                             {teacher.isActive ? "Activo" : "Inactivo"}
                                         </span>
                                     </td>
-                                    {/* Acciones */}
                                     <td className="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                         <div className="flex items-center justify-end gap-2">
                                             <ResetPasswordButton teacherId={teacher.id} teacherName={`${teacher.name} ${teacher.lastName}`} />

@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 type DetailItem = { label: string; valor: number; max: number };
+type PdfWithAutoTable = jsPDF & { lastAutoTable?: { finalY?: number } };
 
 type Props = {
   teacher: { name: string; lastName: string; employeeId: string; career: { name: string; code: string } };
@@ -94,7 +95,7 @@ export default function ExportTeacherPdf({ teacher, periodo, evaluacionesCount, 
       addSection("Sección V. Autoevaluación del Alumno", autoevaluacion, 5);
 
       // Bloque final de firmas
-      const finalY = (doc as any).lastAutoTable.finalY + 20;
+      const finalY = ((doc as PdfWithAutoTable).lastAutoTable?.finalY ?? 180) + 20;
       
       doc.setFontSize(8);
       doc.text("Elaborado por:", 40, finalY);
@@ -115,10 +116,10 @@ export default function ExportTeacherPdf({ teacher, periodo, evaluacionesCount, 
     <button
       onClick={exportPdf}
       disabled={loading}
-      className="inline-flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 active:scale-95 transition-all outline-none disabled:opacity-50"
+      className="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 active:scale-95 transition-all outline-none disabled:opacity-50"
     >
       <Download size={16} />
-      {loading ? "Generando Formato..." : "Descargar Formato Oficial PDF"}
+      {loading ? "Generando PDF..." : "PDF Evaluación de Alumnos"}
     </button>
   );
 }

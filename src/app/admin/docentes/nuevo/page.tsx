@@ -1,10 +1,10 @@
 "use client";
 
-import { createTeacher } from "../actions";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { createTeacher } from "../actions";
 
 type Career = { id: string; code: string; name: string };
 
@@ -14,7 +14,7 @@ export default function NuevoDocentePage() {
     const router = useRouter();
 
     useEffect(() => {
-        fetch("/api/careers").then(r => r.json()).then(setCareers).catch(() => setCareers([]));
+        fetch("/api/careers").then((response) => response.json()).then(setCareers).catch(() => setCareers([]));
     }, []);
 
     async function handleSubmit(formData: FormData) {
@@ -50,13 +50,12 @@ export default function NuevoDocentePage() {
                     Registrar Nuevo Docente
                 </h1>
                 <p className="text-gray-500 mt-2">
-                    Se creará un usuario con rol DOCENTE. La contraseña temporal será su número de empleado.
+                    Se creara un usuario con rol DOCENTE. La contrasena temporal sera su numero de empleado.
                 </p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                 <form action={handleSubmit} className="p-8 space-y-6">
-                    {/* Nombre y Apellidos */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label htmlFor="name" className={labelClass}>Nombre(s)</label>
@@ -64,33 +63,40 @@ export default function NuevoDocentePage() {
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="lastName" className={labelClass}>Apellidos</label>
-                            <input type="text" id="lastName" name="lastName" required className={inputClass} placeholder="Ej. Pérez García" />
+                            <input type="text" id="lastName" name="lastName" required className={inputClass} placeholder="Ej. Perez Garcia" />
                         </div>
                     </div>
 
-                    {/* Email */}
                     <div className="space-y-2">
-                        <label htmlFor="email" className={labelClass}>Correo Electrónico Institucional</label>
+                        <label htmlFor="email" className={labelClass}>Correo Electronico Institucional</label>
                         <input type="email" id="email" name="email" required className={inputClass} placeholder="juan.perez@uptx.edu.mx" />
-                        <p className="text-xs text-gray-400">Este será el usuario de inicio de sesión del docente.</p>
+                        <p className="text-xs text-gray-400">Este sera el usuario de inicio de sesion del docente.</p>
                     </div>
 
-                    {/* Núm. Empleado y Carrera */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="employeeId" className={labelClass}>Número de Empleado</label>
+                            <label htmlFor="employeeId" className={labelClass}>Numero de Empleado</label>
                             <input type="text" id="employeeId" name="employeeId" required className={inputClass} placeholder="Ej. E1234567" />
-                            <p className="text-xs text-gray-400">También será la contraseña temporal.</p>
+                            <p className="text-xs text-gray-400">Tambien sera la contrasena temporal.</p>
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="careerId" className={labelClass}>Carrera Principal</label>
                             <select id="careerId" name="careerId" required className={inputClass}>
                                 <option value="">Selecciona una carrera</option>
-                                {careers.map(c => (
-                                    <option key={c.id} value={c.id}>{c.code} — {c.name}</option>
+                                {careers.map((career) => (
+                                    <option key={career.id} value={career.id}>{career.code} - {career.name}</option>
                                 ))}
                             </select>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="position" className={labelClass}>Tipo de Docente</label>
+                        <select id="position" name="position" required className={inputClass} defaultValue="PA">
+                            <option value="PA">PA - Profesor(a) de Asignatura</option>
+                            <option value="PTC">PTC - Profesor(a) de Tiempo Completo</option>
+                        </select>
+                        <p className="text-xs text-gray-400">Este dato se usa en la evaluacion y reportes institucionales.</p>
                     </div>
 
                     <div className="pt-4 flex items-center justify-end gap-4">

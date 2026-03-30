@@ -9,7 +9,8 @@ import { authOptions } from "@/lib/auth";
 
 export async function createTeacher(formData: FormData) {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (!session || role !== 'ADMIN') {
         return { success: false, error: "No autorizado" };
     }
 
@@ -18,9 +19,14 @@ export async function createTeacher(formData: FormData) {
     const email = formData.get("email") as string;
     const employeeId = formData.get("employeeId") as string;
     const careerId = formData.get("careerId") as string;
+    const position = (formData.get("position") as string | null)?.toUpperCase();
 
-    if (!name || !lastName || !email || !employeeId || !careerId) {
+    if (!name || !lastName || !email || !employeeId || !careerId || !position) {
         return { success: false, error: "Todos los campos son obligatorios" };
+    }
+
+    if (position !== "PA" && position !== "PTC") {
+        return { success: false, error: "El tipo de docente debe ser PA o PTC" };
     }
 
     try {
@@ -42,13 +48,14 @@ export async function createTeacher(formData: FormData) {
                 lastName,
                 employeeId,
                 careerId,
+                position,
                 isActive: true,
             },
         });
 
         await logAdminAction({
             action: "CREATE", entity: "DOCENTE", entityId: user.id,
-            detail: `Docente creado: ${name} ${lastName} (${employeeId})`,
+            detail: `Docente creado: ${name} ${lastName} (${employeeId}, ${position})`,
         });
         revalidatePath("/admin/docentes");
         return { success: true };
@@ -82,7 +89,8 @@ export async function deleteTeacher(id: string) {
 
 export async function resetTeacherPassword(id: string) {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (!session || role !== 'ADMIN') {
         return { success: false, error: "No autorizado" };
     }
 
