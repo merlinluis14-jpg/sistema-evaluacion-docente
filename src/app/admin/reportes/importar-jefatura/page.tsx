@@ -11,6 +11,9 @@ import {
   FolderOpen,
   Upload,
 } from "lucide-react";
+import ImportProgressPanel from "@/components/ui/ImportProgressPanel";
+import { runStreamedImport } from "@/lib/import/client";
+import type { ImportProgressState } from "@/lib/import/progress";
 
 type ImportError = { row: number; identifier: string; reason: string };
 type ImportResult = { total: number; success: number; errors: ImportError[] };
@@ -23,6 +26,7 @@ export default function ImportarJefaturaPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState<ImportProgressState | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -43,6 +47,7 @@ export default function ImportarJefaturaPage() {
   }, []);
 
   const handleFile = (nextFile: File) => {
+    if (loading) return;
     if (!nextFile.name.endsWith(".csv")) {
       setError("El archivo debe ser formato CSV (.csv)");
       return;
@@ -56,6 +61,7 @@ export default function ImportarJefaturaPage() {
     setFile(nextFile);
     setError(null);
     setResult(null);
+    setProgress(null);
   };
 
   const handleSubmit = async () => {
@@ -64,23 +70,22 @@ export default function ImportarJefaturaPage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setProgress(null);
 
     try {
       const csv = await file.text();
-      const response = await fetch("/api/import/evaluacion-jefatura", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csv, periodId }),
+      const nextResult = await runStreamedImport<ImportResult>({
+        url: "/api/import/evaluacion-jefatura",
+        body: { csv, periodId },
+        onProgress: setProgress,
       });
-
-      if (!response.ok) {
-        const serverError = await response.json();
-        throw new Error(serverError.message || "Error en el servidor");
-      }
-
-      setResult(await response.json());
+      setResult(nextResult);
     } catch (submissionError: unknown) {
-      setError(submissionError instanceof Error ? submissionError.message : "Error inesperado");
+      setError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : "Error inesperado",
+      );
     } finally {
       setLoading(false);
     }
@@ -101,16 +106,20 @@ export default function ImportarJefaturaPage() {
       anchor.click();
       URL.revokeObjectURL(url);
     } catch (downloadError) {
-      setError(downloadError instanceof Error ? downloadError.message : "No fue posible descargar la plantilla");
+      setError(
+        downloadError instanceof Error
+          ? downloadError.message
+          : "No fue posible descargar la plantilla",
+      );
     }
   };
 
   return (
-    <div className="p-8 pb-20 sm:p-12 max-w-7xl mx-auto">
-      <div className="flex items-center gap-4 mb-2">
+    <div className="mx-auto max-w-7xl p-8 pb-20 sm:p-12">
+      <div className="mb-2 flex items-center gap-4">
         <Link
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-slate-600"
           href="/admin/reportes"
-          className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium"
         >
           <ArrowLeft size={15} /> Volver a Reportes
         </Link>
@@ -120,57 +129,67 @@ export default function ImportarJefaturaPage() {
         <h1 className="text-3xl font-black text-slate-800">
           Importar <span className="text-blue-600">Evaluacion de Coordinacion</span>
         </h1>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="mt-1 text-sm text-slate-400">
           Carga en bloque la evaluacion de la jefa de carrera o coordinacion con una plantilla estandar del sistema.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+      <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2">
         <div className="flex flex-col">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4 h-full">
+          <div className="h-full space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-black flex items-center justify-center">1</span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">
+                  1
+                </span>
                 <h2 className="font-bold text-slate-700">Formato del archivo CSV</h2>
               </div>
               <button
+                className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-blue-600 transition-all hover:bg-blue-50"
                 onClick={downloadTemplate}
-                className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl transition-all"
               >
-                <Download className="w-4 h-4" /> Descargar template
+                <Download className="h-4 w-4" /> Descargar template
               </button>
             </div>
 
             <div className="space-y-3 text-sm text-slate-600">
               <p>
-                La plantilla se descarga ya precargada con los docentes activos, su numero de empleado,
+                La plantilla se descarga precargada con los docentes activos, su numero de empleado,
                 tipo de docente y carrera para que solo captures las calificaciones.
               </p>
               <p>
                 Para `PA` los campos `research_score`, `tutoring_score` y `advisory_score` salen como `N/A`.
                 Para `PTC` esos campos quedan vacios para que la coordinacion los capture.
               </p>
-              <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto">
-                <p className="text-slate-400 text-[10px] font-bold mb-2 uppercase tracking-widest">Ejemplo</p>
-                <pre className="text-emerald-400 text-xs font-mono whitespace-pre leading-relaxed">{EXAMPLE_PREVIEW}</pre>
+              <div className="overflow-x-auto rounded-xl bg-slate-900 p-4">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Ejemplo
+                </p>
+                <pre className="whitespace-pre text-xs leading-relaxed text-emerald-400">
+                  {EXAMPLE_PREVIEW}
+                </pre>
               </div>
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-black flex items-center justify-center">2</span>
+          <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">
+                2
+              </span>
               <h2 className="font-bold text-slate-700">Sube tu archivo CSV</h2>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1.5">Periodo del sistema</label>
+              <label className="mb-1.5 block text-xs font-bold text-slate-500">
+                Periodo del sistema
+              </label>
               <select
-                value={periodId}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 onChange={(event) => setPeriodId(event.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                value={periodId}
               >
                 <option value="">Selecciona un periodo</option>
                 {periods.map((period) => (
@@ -182,122 +201,177 @@ export default function ImportarJefaturaPage() {
             </div>
 
             <div
-              onDragOver={(event) => {
-                event.preventDefault();
-                setDragOver(true);
+              className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all ${
+                loading
+                  ? "pointer-events-none opacity-70"
+                  : dragOver
+                    ? "border-blue-400 bg-blue-50"
+                    : file
+                      ? "border-emerald-400 bg-emerald-50"
+                      : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+              }`}
+              onClick={() => {
+                if (!loading) {
+                  inputRef.current?.click();
+                }
               }}
               onDragLeave={() => setDragOver(false)}
+              onDragOver={(event) => {
+                event.preventDefault();
+                if (!loading) {
+                  setDragOver(true);
+                }
+              }}
               onDrop={(event) => {
                 event.preventDefault();
                 setDragOver(false);
+                if (loading) return;
                 const droppedFile = event.dataTransfer.files[0];
                 if (droppedFile) {
                   handleFile(droppedFile);
                 }
               }}
-              onClick={() => inputRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
-                dragOver
-                  ? "border-blue-400 bg-blue-50"
-                  : file
-                    ? "border-emerald-400 bg-emerald-50"
-                    : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
-              }`}
             >
               <input
                 ref={inputRef}
-                type="file"
                 accept=".csv"
                 className="hidden"
+                disabled={loading}
                 onChange={(event) => {
                   if (event.target.files?.[0]) {
                     handleFile(event.target.files[0]);
                   }
                 }}
+                type="file"
               />
 
               {file ? (
                 <div className="space-y-1">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+                  <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
                   <p className="font-bold text-emerald-700">{file.name}</p>
-                  <p className="text-xs text-emerald-600">{(file.size / 1024).toFixed(1)} KB · Listo para importar</p>
+                  <p className="text-xs text-emerald-600">
+                    {(file.size / 1024).toFixed(1)} KB · Listo para importar
+                  </p>
+                  {!loading && (
+                    <button
+                      className="mt-2 text-xs text-slate-400 underline hover:text-red-500"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setFile(null);
+                        setProgress(null);
+                      }}
+                    >
+                      Cambiar archivo
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <FolderOpen className="w-10 h-10 text-slate-300 mx-auto" />
+                  <FolderOpen className="mx-auto h-10 w-10 text-slate-300" />
                   <p className="font-bold text-slate-600">Arrastra tu CSV aqui</p>
                   <p className="text-sm text-slate-400">o haz clic para seleccionar</p>
-                  <p className="text-xs text-slate-300 mt-2">Maximo 5 MB</p>
+                  <p className="mt-2 text-xs text-slate-300">Maximo 5 MB</p>
                 </div>
               )}
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-start gap-3">
-                <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-red-600 font-medium">{error}</p>
+              <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                <p className="text-sm font-medium text-red-600">{error}</p>
               </div>
             )}
 
+            {loading && progress && (
+              <ImportProgressPanel
+                label="Importando evaluacion de coordinacion"
+                progress={progress}
+              />
+            )}
+
             <button
-              onClick={handleSubmit}
-              disabled={!file || !periodId || loading}
-              className={`w-full py-3.5 rounded-xl text-sm font-black transition-all ${
+              className={`w-full rounded-xl py-3.5 text-sm font-black transition-all ${
                 !file || !periodId || loading
-                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] shadow-lg shadow-blue-500/20"
+                  ? "cursor-not-allowed bg-slate-100 text-slate-400"
+                  : "bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-[0.99]"
               }`}
+              disabled={!file || !periodId || loading}
+              onClick={handleSubmit}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Importando evaluacion de coordinacion...
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Importando evaluacion de coordinacion... {progress?.percentage ?? 0}%
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <Upload className="w-4 h-4" /> Iniciar importacion
+                  <Upload className="h-4 w-4" /> Iniciar importacion
                 </span>
               )}
             </button>
           </div>
 
           {result && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-              <h2 className="font-bold text-slate-700 flex items-center gap-2">
-                <BarChart2 className="w-4 h-4" /> Resultado de la importacion
+            <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+              <h2 className="flex items-center gap-2 font-bold text-slate-700">
+                <BarChart2 className="h-4 w-4" /> Resultado de la importacion
               </h2>
 
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-slate-50 rounded-xl p-4 text-center">
+                <div className="rounded-xl bg-slate-50 p-4 text-center">
                   <p className="text-2xl font-black text-slate-700">{result.total}</p>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">Total filas</p>
+                  <p className="mt-0.5 text-xs font-medium text-slate-400">Total filas</p>
                 </div>
-                <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                <div className="rounded-xl bg-emerald-50 p-4 text-center">
                   <p className="text-2xl font-black text-emerald-600">{result.success}</p>
-                  <p className="text-xs text-emerald-500 font-medium mt-0.5">Importadas</p>
+                  <p className="mt-0.5 text-xs font-medium text-emerald-500">Importadas</p>
                 </div>
-                <div className={`rounded-xl p-4 text-center ${result.errors.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
-                  <p className={`text-2xl font-black ${result.errors.length > 0 ? "text-red-500" : "text-slate-400"}`}>
+                <div
+                  className={`rounded-xl p-4 text-center ${
+                    result.errors.length > 0 ? "bg-red-50" : "bg-slate-50"
+                  }`}
+                >
+                  <p
+                    className={`text-2xl font-black ${
+                      result.errors.length > 0 ? "text-red-500" : "text-slate-400"
+                    }`}
+                  >
                     {result.errors.length}
                   </p>
-                  <p className={`text-xs font-medium mt-0.5 ${result.errors.length > 0 ? "text-red-400" : "text-slate-400"}`}>
+                  <p
+                    className={`mt-0.5 text-xs font-medium ${
+                      result.errors.length > 0 ? "text-red-400" : "text-slate-400"
+                    }`}
+                  >
                     Errores
                   </p>
                 </div>
               </div>
 
+              {result.success > 0 && result.errors.length === 0 && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                  <p className="flex items-center gap-2 text-sm font-bold text-emerald-700">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Todos los registros fueron importados correctamente
+                  </p>
+                </div>
+              )}
+
               {result.errors.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-bold text-red-600 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" /> {result.errors.length} fila(s) con errores
+                  <p className="flex items-center gap-2 text-sm font-bold text-red-600">
+                    <AlertTriangle className="h-4 w-4" />
+                    {result.errors.length} fila(s) con errores
                   </p>
-                  <div className="bg-slate-50 rounded-xl overflow-hidden">
+                  <div className="overflow-hidden rounded-xl bg-slate-50">
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="bg-slate-100">
-                          <th className="text-left px-4 py-2 font-bold text-slate-500">Fila</th>
-                          <th className="text-left px-4 py-2 font-bold text-slate-500">Identificador</th>
-                          <th className="text-left px-4 py-2 font-bold text-slate-500">Motivo</th>
+                          <th className="px-4 py-2 text-left font-bold text-slate-500">Fila</th>
+                          <th className="px-4 py-2 text-left font-bold text-slate-500">
+                            Identificador
+                          </th>
+                          <th className="px-4 py-2 text-left font-bold text-slate-500">Motivo</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -313,6 +387,25 @@ export default function ImportarJefaturaPage() {
                   </div>
                 </div>
               )}
+
+              <div className="flex gap-3 pt-2">
+                <Link
+                  className="flex-1 rounded-xl bg-blue-700 py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-blue-800"
+                  href="/admin/reportes"
+                >
+                  Volver a reportes -&gt;
+                </Link>
+                <button
+                  className="rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
+                  onClick={() => {
+                    setFile(null);
+                    setResult(null);
+                    setProgress(null);
+                  }}
+                >
+                  Nueva importacion
+                </button>
+              </div>
             </div>
           )}
         </div>

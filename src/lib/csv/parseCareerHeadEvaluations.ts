@@ -1,6 +1,10 @@
 import Papa from "papaparse";
 import type { TeacherPosition } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  buildImportProgress,
+  type ImportProgressOptions,
+} from "@/lib/import/progress";
 
 type CsvRow = {
   numero_empleado?: string;
@@ -67,6 +71,7 @@ function buildAuditComment(row: CsvRow) {
 export async function parseAndImportCareerHeadEvaluations(
   csvText: string,
   periodId: string,
+  options?: ImportProgressOptions,
 ): Promise<ImportResult> {
   const parsed = Papa.parse<CsvRow>(csvText.trim(), {
     header: true,
@@ -121,83 +126,93 @@ export async function parseAndImportCareerHeadEvaluations(
     teacherByEmployeeId.set(teacher.employeeId.toUpperCase(), teacher);
   }
 
+  const reportProgress = (processed: number) =>
+    options?.onProgress?.(
+      buildImportProgress(processed, rows.length, success, errors.length),
+    );
+
+  await reportProgress(0);
+
   for (let index = 0; index < rows.length; index++) {
     const rowNumber = index + 2;
     const row = rows[index];
 
-    const requiredFields = ["puesto", "carrera_code"] as const;
-    const needsTeacherName = !row.numero_empleado?.trim();
-    const allRequiredFields = needsTeacherName
-      ? [...requiredFields, "nombre_docente"] as const
-      : requiredFields;
-    const missingFields = allRequiredFields.filter((field) => !row[field]);
-    if (missingFields.length > 0) {
-      errors.push({
-        row: rowNumber,
-        identifier: row.numero_empleado || row.nombre_docente || "(vacio)",
-        reason: `Campos faltantes: ${missingFields.join(", ")}`,
-      });
-      continue;
-    }
-
-    const careerCode = row.carrera_code?.toUpperCase();
-    const position = row.puesto.toUpperCase() as TeacherPosition;
-    if (position !== "PA" && position !== "PTC") {
-      errors.push({
-        row: rowNumber,
-        identifier: row.numero_empleado || row.nombre_docente,
-        reason: "puesto debe ser PA o PTC",
-      });
-      continue;
-    }
-
-    if (careerCode && !careerMap.get(careerCode)) {
-      errors.push({
-        row: rowNumber,
-        identifier: row.numero_empleado || row.nombre_docente,
-        reason: `Carrera "${careerCode}" no existe`,
-      });
-      continue;
-    }
-
-    const teacher = row.numero_empleado?.trim()
-      ? teacherByEmployeeId.get(row.numero_empleado.trim().toUpperCase())
-      : careerCode
-        ? teacherMap.get(`${careerCode}:${normalizeName(row.nombre_docente)}`)
-        : undefined;
-
-    if (!teacher) {
-      errors.push({
-        row: rowNumber,
-        identifier: row.numero_empleado || row.nombre_docente,
-        reason: row.numero_empleado
-          ? "No se encontro un docente activo que coincida con ese numero de empleado"
-          : "No se encontro un docente activo que coincida con el nombre en esa carrera",
-      });
-      continue;
-    }
-
-    const teacherCareerIds = new Set([teacher.careerId, ...teacher.subjects.map((subject) => subject.careerId)]);
-    const selectedCareerId = careerMap.get(careerCode!);
-    if (selectedCareerId && !teacherCareerIds.has(selectedCareerId)) {
-      errors.push({
-        row: rowNumber,
-        identifier: row.numero_empleado || row.nombre_docente,
-        reason: `El docente no tiene asignaciones activas en la carrera ${careerCode}`,
-      });
-      continue;
-    }
-
-    if (teacher.position !== position) {
-      errors.push({
-        row: rowNumber,
-        identifier: row.numero_empleado || row.nombre_docente,
-        reason: `El puesto del sistema (${teacher.position}) no coincide con el archivo (${position})`,
-      });
-      continue;
-    }
-
     try {
+      const requiredFields = ["puesto", "carrera_code"] as const;
+      const needsTeacherName = !row.numero_empleado?.trim();
+      const allRequiredFields = needsTeacherName
+        ? [...requiredFields, "nombre_docente"] as const
+        : requiredFields;
+      const missingFields = allRequiredFields.filter((field) => !row[field]);
+      if (missingFields.length > 0) {
+        errors.push({
+          row: rowNumber,
+          identifier: row.numero_empleado || row.nombre_docente || "(vacio)",
+          reason: `Campos faltantes: ${missingFields.join(", ")}`,
+        });
+        continue;
+      }
+
+      const careerCode = row.carrera_code?.toUpperCase();
+      const position = row.puesto.toUpperCase() as TeacherPosition;
+      if (position !== "PA" && position !== "PTC") {
+        errors.push({
+          row: rowNumber,
+          identifier: row.numero_empleado || row.nombre_docente,
+          reason: "puesto debe ser PA o PTC",
+        });
+        continue;
+      }
+
+      if (careerCode && !careerMap.get(careerCode)) {
+        errors.push({
+          row: rowNumber,
+          identifier: row.numero_empleado || row.nombre_docente,
+          reason: `Carrera "${careerCode}" no existe`,
+        });
+        continue;
+      }
+
+      const teacher = row.numero_empleado?.trim()
+        ? teacherByEmployeeId.get(row.numero_empleado.trim().toUpperCase())
+        : careerCode
+          ? teacherMap.get(`${careerCode}:${normalizeName(row.nombre_docente)}`)
+          : undefined;
+
+      if (!teacher) {
+        errors.push({
+          row: rowNumber,
+          identifier: row.numero_empleado || row.nombre_docente,
+          reason: row.numero_empleado
+            ? "No se encontro un docente activo que coincida con ese numero de empleado"
+            : "No se encontro un docente activo que coincida con el nombre en esa carrera",
+        });
+        continue;
+      }
+
+      const teacherCareerIds = new Set([
+        teacher.careerId,
+        ...teacher.subjects.map((subject) => subject.careerId),
+      ]);
+      const selectedCareerId = careerMap.get(careerCode!);
+      if (selectedCareerId && !teacherCareerIds.has(selectedCareerId)) {
+        errors.push({
+          row: rowNumber,
+          identifier: row.numero_empleado || row.nombre_docente,
+          reason: `El docente no tiene asignaciones activas en la carrera ${careerCode}`,
+        });
+        continue;
+      }
+
+      if (teacher.position !== position) {
+        errors.push({
+          row: rowNumber,
+          identifier: row.numero_empleado || row.nombre_docente,
+          reason: `El puesto del sistema (${teacher.position}) no coincide con el archivo (${position})`,
+        });
+        continue;
+      }
+
       await prisma.careerHeadEvaluation.upsert({
         where: {
           teacherId_careerId_periodId: {
@@ -245,6 +260,8 @@ export async function parseAndImportCareerHeadEvaluations(
         identifier: row.numero_empleado || row.nombre_docente,
         reason: `Error: ${message}`,
       });
+    } finally {
+      await reportProgress(index + 1);
     }
   }
 

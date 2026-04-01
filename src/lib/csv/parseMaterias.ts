@@ -1,6 +1,10 @@
 import Papa from "papaparse";
 import { prisma } from "@/lib/prisma";
 import { syncGroupsForSubject } from "@/lib/groupAssignments";
+import {
+  buildImportProgress,
+  type ImportProgressOptions,
+} from "@/lib/import/progress";
 
 type CsvRow = {
   nombre: string;
@@ -13,7 +17,10 @@ type CsvRow = {
 type ImportError = { row: number; identifier: string; reason: string };
 type ImportResult = { total: number; success: number; errors: ImportError[] };
 
-export async function parseAndImportMaterias(csvText: string): Promise<ImportResult> {
+export async function parseAndImportMaterias(
+  csvText: string,
+  options?: ImportProgressOptions,
+): Promise<ImportResult> {
   const parsed = Papa.parse<CsvRow>(csvText.trim(), {
     header: true,
     skipEmptyLines: true,
@@ -27,39 +34,49 @@ export async function parseAndImportMaterias(csvText: string): Promise<ImportRes
 
   const careerCache = new Map<string, string>();
   const teacherCache = new Map<string, string>();
+  const reportProgress = (processed: number) =>
+    options?.onProgress?.(
+      buildImportProgress(processed, rows.length, success, errors.length),
+    );
+
+  await reportProgress(0);
 
   for (let index = 0; index < rows.length; index++) {
     const rowNumber = index + 2;
     const row = rows[index];
 
-    const { nombre, codigo, cuatrimestre, carrera_code, numero_empleado } = row;
-    const missingFields: string[] = [];
-    if (!nombre) missingFields.push("nombre");
-    if (!codigo) missingFields.push("codigo");
-    if (!cuatrimestre) missingFields.push("cuatrimestre");
-    if (!carrera_code) missingFields.push("carrera_code");
-    if (!numero_empleado) missingFields.push("numero_empleado");
-
-    if (missingFields.length > 0) {
-      errors.push({
-        row: rowNumber,
-        identifier: codigo || "(vacio)",
-        reason: `Campos faltantes: ${missingFields.join(", ")}`,
-      });
-      continue;
-    }
-
-    const cuatrimestreValue = parseInt(cuatrimestre, 10);
-    if (Number.isNaN(cuatrimestreValue) || cuatrimestreValue < 1 || cuatrimestreValue > 12) {
-      errors.push({
-        row: rowNumber,
-        identifier: codigo,
-        reason: `Cuatrimestre invalido: "${cuatrimestre}"`,
-      });
-      continue;
-    }
-
     try {
+      const { nombre, codigo, cuatrimestre, carrera_code, numero_empleado } = row;
+      const missingFields: string[] = [];
+      if (!nombre) missingFields.push("nombre");
+      if (!codigo) missingFields.push("codigo");
+      if (!cuatrimestre) missingFields.push("cuatrimestre");
+      if (!carrera_code) missingFields.push("carrera_code");
+      if (!numero_empleado) missingFields.push("numero_empleado");
+
+      if (missingFields.length > 0) {
+        errors.push({
+          row: rowNumber,
+          identifier: codigo || "(vacio)",
+          reason: `Campos faltantes: ${missingFields.join(", ")}`,
+        });
+        continue;
+      }
+
+      const cuatrimestreValue = parseInt(cuatrimestre, 10);
+      if (
+        Number.isNaN(cuatrimestreValue) ||
+        cuatrimestreValue < 1 ||
+        cuatrimestreValue > 12
+      ) {
+        errors.push({
+          row: rowNumber,
+          identifier: codigo,
+          reason: `Cuatrimestre invalido: "${cuatrimestre}"`,
+        });
+        continue;
+      }
+
       let careerId = careerCache.get(carrera_code.toUpperCase());
       if (!careerId) {
         const career = await prisma.career.findFirst({
@@ -128,6 +145,7 @@ export async function parseAndImportMaterias(csvText: string): Promise<ImportRes
 
       success++;
     } catch (error: unknown) {
+      const { codigo } = row;
       const message = error instanceof Error ? error.message : "Error desconocido";
       errors.push({
         row: rowNumber,
@@ -136,6 +154,8 @@ export async function parseAndImportMaterias(csvText: string): Promise<ImportRes
           ? "Codigo de materia duplicado en la misma carrera"
           : `Error: ${message}`,
       });
+    } finally {
+      await reportProgress(index + 1);
     }
   }
 

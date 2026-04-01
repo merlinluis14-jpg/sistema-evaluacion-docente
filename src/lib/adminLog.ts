@@ -4,6 +4,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { fixMojibake } from "@/lib/text/fixMojibake";
 
 type LogParams = {
   action: string;     // CREATE, UPDATE, DELETE, ACTIVATE, DEACTIVATE, IMPORT
@@ -23,7 +24,13 @@ export async function logAdminAction({ action, entity, entityId, detail }: LogPa
     const userId = session?.user?.id ?? "unknown";
 
     await prisma.adminLog.create({
-      data: { userId, action, entity, entityId, detail },
+      data: {
+        userId,
+        action,
+        entity,
+        entityId,
+        detail: detail ? fixMojibake(detail) : detail,
+      },
     });
   } catch (error) {
     console.error("Error registrando log de admin:", error);

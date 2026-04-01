@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
 import { parseAndImportCareerHeadEvaluations } from "@/lib/csv/parseCareerHeadEvaluations";
+import { createImportStreamResponse } from "@/lib/import/server";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { csv, periodId } = await req.json();
+    const { csv, periodId, stream } = await req.json();
 
     if (!csv || typeof csv !== "string") {
       return NextResponse.json({ message: "CSV requerido" }, { status: 400 });
@@ -21,13 +22,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Periodo requerido" }, { status: 400 });
     }
 
+    if (stream) {
+      return createImportStreamResponse({
+        run: (emitProgress) =>
+          parseAndImportCareerHeadEvaluations(csv, periodId, {
+            onProgress: emitProgress,
+          }),
+        afterComplete: async (result) => {
+          await logAdminAction({
+            action: "IMPORT",
+            entity: "EVALUACION",
+            detail: `Importacion CSV jefatura: ${result.success} registros importados de ${result.total} filas`,
+          });
+        },
+      });
+    }
+
     const result = await parseAndImportCareerHeadEvaluations(csv, periodId);
 
-    await logAdminAction({
-      action: "IMPORT",
-      entity: "EVALUACION",
-      detail: `Importacion CSV jefatura: ${result.success} registros importados de ${result.total} filas`,
-    });
+    try {
+      await logAdminAction({
+        action: "IMPORT",
+        entity: "EVALUACION",
+        detail: `Importacion CSV jefatura: ${result.success} registros importados de ${result.total} filas`,
+      });
+    } catch (loggingError) {
+      console.error("No fue posible registrar la importacion de jefatura:", loggingError);
+    }
 
     return NextResponse.json(result, { status: 200 });
   } catch (error: unknown) {

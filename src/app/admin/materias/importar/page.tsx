@@ -1,112 +1,184 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { Upload, CheckCircle2, FolderOpen, AlertTriangle, BarChart2, Download, ArrowLeft } from "lucide-react";
+import {
+    AlertTriangle,
+    ArrowLeft,
+    BarChart2,
+    CheckCircle2,
+    Download,
+    FolderOpen,
+    Upload,
+} from "lucide-react";
+import ImportProgressPanel from "@/components/ui/ImportProgressPanel";
+import { runStreamedImport } from "@/lib/import/client";
+import type { ImportProgressState } from "@/lib/import/progress";
 
 type ImportError = { row: number; identifier: string; reason: string };
 type ImportResult = { total: number; success: number; errors: ImportError[] };
 
 const CSV_TEMPLATE = `nombre,codigo,cuatrimestre,carrera_code,numero_empleado
 Base de Datos I,ISC-BD1,3,ISC,DOC001
-Programación Orientada a Objetos,ISC-POO,3,ISC,DOC002
+Programacion Orientada a Objetos,ISC-POO,3,ISC,DOC002
 Redes de Computadoras,ISC-RC1,5,ISC,DOC003`;
 
 const EXAMPLE_PREVIEW = `nombre,codigo,cuatrimestre,carrera_code,numero_empleado
 Base de Datos I,ISC-BD1,3,ISC,DOC001
-Programación OO,ISC-POO,3,ISC,DOC002`;
+Programacion OO,ISC-POO,3,ISC,DOC002`;
 
 export default function ImportarMateriasPage() {
+    const inputRef = useRef<HTMLInputElement>(null);
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState<ImportProgressState | null>(null);
     const [result, setResult] = useState<ImportResult | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
 
-    const handleFile = (f: File) => {
-        if (!f.name.endsWith(".csv")) { setError("El archivo debe ser formato CSV (.csv)"); return; }
-        if (f.size > 5 * 1024 * 1024) { setError("El archivo no puede superar 5 MB"); return; }
-        setFile(f); setError(null); setResult(null);
+    const handleFile = (nextFile: File) => {
+        if (loading) return;
+        if (!nextFile.name.endsWith(".csv")) {
+            setError("El archivo debe ser formato CSV (.csv)");
+            return;
+        }
+        if (nextFile.size > 5 * 1024 * 1024) {
+            setError("El archivo no puede superar 5 MB");
+            return;
+        }
+
+        setFile(nextFile);
+        setError(null);
+        setResult(null);
+        setProgress(null);
     };
 
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault(); setDragOver(false);
-        const f = e.dataTransfer.files[0];
-        if (f) handleFile(f);
+    const handleDrop = (event: React.DragEvent) => {
+        event.preventDefault();
+        setDragOver(false);
+        if (loading) return;
+        const droppedFile = event.dataTransfer.files[0];
+        if (droppedFile) {
+            handleFile(droppedFile);
+        }
     };
 
     const handleSubmit = async () => {
         if (!file) return;
-        setLoading(true); setError(null); setResult(null);
+
+        setLoading(true);
+        setError(null);
+        setResult(null);
+        setProgress(null);
+
         try {
-            const text = await file.text();
-            const res = await fetch("/api/import/materias", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ csv: text }),
+            const csv = await file.text();
+            const nextResult = await runStreamedImport<ImportResult>({
+                url: "/api/import/materias",
+                body: { csv },
+                onProgress: setProgress,
             });
-            if (!res.ok) { const err = await res.json(); throw new Error(err.message || "Error en el servidor"); }
-            setResult(await res.json());
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Error inesperado");
-        } finally { setLoading(false); }
+            setResult(nextResult);
+        } catch (submissionError: unknown) {
+            setError(
+                submissionError instanceof Error
+                    ? submissionError.message
+                    : "Error inesperado",
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     const downloadTemplate = () => {
         const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.href = url; a.download = "template_materias_uptx.csv"; a.click();
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "template_materias_uptx.csv";
+        anchor.click();
         URL.revokeObjectURL(url);
     };
 
     return (
-        <div className="p-8 pb-20 sm:p-12 max-w-7xl mx-auto">
-            <div className="flex items-center gap-4 mb-2">
-                <Link href="/admin/materias" className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium">
+        <div className="mx-auto max-w-7xl p-8 pb-20 sm:p-12">
+            <div className="mb-2 flex items-center gap-4">
+                <Link
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-slate-600"
+                    href="/admin/materias"
+                >
                     <ArrowLeft size={15} /> Volver a Materias
                 </Link>
             </div>
+
             <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-800">Importar <span className="text-blue-600">Materias</span></h1>
-                <p className="text-slate-400 text-sm mt-1">Carga masiva de materias desde archivo CSV — los docentes deben existir previamente</p>
+                <h1 className="text-3xl font-black text-slate-800">
+                    Importar <span className="text-blue-600">Materias</span>
+                </h1>
+                <p className="mt-1 text-sm text-slate-400">
+                    Carga masiva de materias desde archivo CSV; los docentes deben existir previamente
+                </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-
-                {/* LEFT: Formato (solo tabla) */}
+            <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2">
                 <div className="flex flex-col">
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4 h-full">
+                    <div className="h-full space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <span className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-black flex items-center justify-center">1</span>
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">
+                                    1
+                                </span>
                                 <h2 className="font-bold text-slate-700">Formato del archivo CSV</h2>
                             </div>
-                            <button onClick={downloadTemplate} className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">
-                                <Download className="w-4 h-4" /> Descargar template
+                            <button
+                                className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-blue-600 transition-all hover:bg-blue-50"
+                                onClick={downloadTemplate}
+                            >
+                                <Download className="h-4 w-4" /> Descargar template
                             </button>
                         </div>
+
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="bg-slate-50">
-                                        <th className="text-left px-4 py-2 text-xs font-bold text-slate-500 rounded-l-xl">Columna</th>
-                                        <th className="text-center px-4 py-2 text-xs font-bold text-slate-500">Requerido</th>
-                                        <th className="text-left px-4 py-2 text-xs font-bold text-slate-500 rounded-r-xl">Descripción</th>
+                                        <th className="rounded-l-xl px-4 py-2 text-left text-xs font-bold text-slate-500">
+                                            Columna
+                                        </th>
+                                        <th className="px-4 py-2 text-center text-xs font-bold text-slate-500">
+                                            Requerido
+                                        </th>
+                                        <th className="rounded-r-xl px-4 py-2 text-left text-xs font-bold text-slate-500">
+                                            Descripcion
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {[
                                         ["nombre", true, "Nombre completo de la materia"],
-                                        ["codigo", true, "Código único por carrera: ISC-BD1, ISC-POO"],
-                                        ["cuatrimestre", true, "Número de cuatrimestre (1-12)"],
-                                        ["carrera_code", true, "Código de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
-                                        ["numero_empleado", true, "N° de empleado del docente asignado (debe existir)"],
-                                    ].map(([col, req, desc]) => (
-                                        <tr key={col as string}>
-                                            <td className="px-4 py-2"><code className="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">{col as string}</code></td>
-                                            <td className="px-4 py-2 text-center"><span className={`text-xs font-bold ${req ? "text-red-500" : "text-slate-400"}`}>{req ? "Sí" : "No"}</span></td>
-                                            <td className="px-4 py-2 text-xs text-slate-500">{desc as string}</td>
+                                        ["codigo", true, "Codigo unico por carrera: ISC-BD1, ISC-POO"],
+                                        ["cuatrimestre", true, "Numero de cuatrimestre (1-12)"],
+                                        ["carrera_code", true, "Codigo de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
+                                        ["numero_empleado", true, "Numero de empleado del docente asignado"],
+                                    ].map(([column, required, description]) => (
+                                        <tr key={column as string}>
+                                            <td className="px-4 py-2">
+                                                <code className="rounded bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
+                                                    {column as string}
+                                                </code>
+                                            </td>
+                                            <td className="px-4 py-2 text-center">
+                                                <span
+                                                    className={`text-xs font-bold ${
+                                                        required ? "text-red-500" : "text-slate-400"
+                                                    }`}
+                                                >
+                                                    {required ? "Si" : "No"}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-2 text-xs text-slate-500">
+                                                {description as string}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -115,107 +187,200 @@ export default function ImportarMateriasPage() {
                     </div>
                 </div>
 
-                {/* RIGHT: Ejemplo + Upload + Resultados */}
                 <div className="space-y-6">
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-black flex items-center justify-center">2</span>
+                    <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                        <div className="mb-1 flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">
+                                2
+                            </span>
                             <h2 className="font-bold text-slate-700">Sube tu archivo CSV</h2>
                         </div>
 
-                        <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto">
-                            <p className="text-slate-400 text-[10px] font-bold mb-2 uppercase tracking-widest">Ejemplo</p>
-                            <pre className="text-emerald-400 text-xs font-mono whitespace-pre leading-relaxed">{EXAMPLE_PREVIEW}</pre>
+                        <div className="overflow-x-auto rounded-xl bg-slate-900 p-4">
+                            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                Ejemplo
+                            </p>
+                            <pre className="whitespace-pre text-xs leading-relaxed text-emerald-400">
+                                {EXAMPLE_PREVIEW}
+                            </pre>
                         </div>
 
                         <div
-                            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                            className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all ${
+                                loading
+                                    ? "pointer-events-none opacity-70"
+                                    : dragOver
+                                      ? "border-blue-400 bg-blue-50"
+                                      : file
+                                        ? "border-emerald-400 bg-emerald-50"
+                                        : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                            }`}
+                            onClick={() => {
+                                if (!loading) {
+                                    inputRef.current?.click();
+                                }
+                            }}
                             onDragLeave={() => setDragOver(false)}
+                            onDragOver={(event) => {
+                                event.preventDefault();
+                                if (!loading) {
+                                    setDragOver(true);
+                                }
+                            }}
                             onDrop={handleDrop}
-                            onClick={() => inputRef.current?.click()}
-                            className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${dragOver
-                                ? "border-blue-400 bg-blue-50" : file
-                                    ? "border-emerald-400 bg-emerald-50" : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"}`}
                         >
-                            <input ref={inputRef} type="file" accept=".csv" className="hidden"
-                                onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
+                            <input
+                                ref={inputRef}
+                                accept=".csv"
+                                className="hidden"
+                                disabled={loading}
+                                onChange={(event) => {
+                                    if (event.target.files?.[0]) {
+                                        handleFile(event.target.files[0]);
+                                    }
+                                }}
+                                type="file"
+                            />
+
                             {file ? (
                                 <div className="space-y-1">
-                                    <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+                                    <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
                                     <p className="font-bold text-emerald-700">{file.name}</p>
-                                    <p className="text-xs text-emerald-600">{(file.size / 1024).toFixed(1)} KB · Listo para importar</p>
-                                    <button onClick={e => { e.stopPropagation(); setFile(null); }} className="text-xs text-slate-400 hover:text-red-500 mt-2 underline">Cambiar archivo</button>
+                                    <p className="text-xs text-emerald-600">
+                                        {(file.size / 1024).toFixed(1)} KB · Listo para importar
+                                    </p>
+                                    {!loading && (
+                                        <button
+                                            className="mt-2 text-xs text-slate-400 underline hover:text-red-500"
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                setFile(null);
+                                                setProgress(null);
+                                            }}
+                                        >
+                                            Cambiar archivo
+                                        </button>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="space-y-2">
-                                    <FolderOpen className="w-10 h-10 text-slate-300 mx-auto" />
-                                    <p className="font-bold text-slate-600">Arrastra tu CSV aquí</p>
+                                    <FolderOpen className="mx-auto h-10 w-10 text-slate-300" />
+                                    <p className="font-bold text-slate-600">Arrastra tu CSV aqui</p>
                                     <p className="text-sm text-slate-400">o haz clic para seleccionar</p>
-                                    <p className="text-xs text-slate-300 mt-2">Máximo 5 MB</p>
+                                    <p className="mt-2 text-xs text-slate-300">Maximo 5 MB</p>
                                 </div>
                             )}
                         </div>
 
                         {error && (
-                            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-start gap-3">
-                                <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                <p className="text-sm text-red-600 font-medium">{error}</p>
+                            <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                                <p className="text-sm font-medium text-red-600">{error}</p>
                             </div>
                         )}
 
-                        <button onClick={handleSubmit} disabled={!file || loading}
-                            className={`w-full py-3.5 rounded-xl text-sm font-black transition-all ${!file || loading
-                                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                : "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] shadow-lg shadow-blue-500/20"}`}>
+                        {loading && progress && (
+                            <ImportProgressPanel label="Importando materias" progress={progress} />
+                        )}
+
+                        <button
+                            className={`w-full rounded-xl py-3.5 text-sm font-black transition-all ${
+                                !file || loading
+                                    ? "cursor-not-allowed bg-slate-100 text-slate-400"
+                                    : "bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-[0.99]"
+                            }`}
+                            disabled={!file || loading}
+                            onClick={handleSubmit}
+                        >
                             {loading ? (
                                 <span className="flex items-center justify-center gap-2">
-                                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Importando materias...
+                                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                    Importando materias... {progress?.percentage ?? 0}%
                                 </span>
                             ) : (
-                                <span className="flex items-center justify-center gap-2"><Upload className="w-4 h-4" /> Iniciar Importación</span>
+                                <span className="flex items-center justify-center gap-2">
+                                    <Upload className="h-4 w-4" /> Iniciar importacion
+                                </span>
                             )}
                         </button>
                     </div>
 
                     {result && (
-                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                            <h2 className="font-bold text-slate-700 flex items-center gap-2"><BarChart2 className="w-4 h-4" /> Resultado de la importación</h2>
+                        <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                            <h2 className="flex items-center gap-2 font-bold text-slate-700">
+                                <BarChart2 className="h-4 w-4" /> Resultado de la importacion
+                            </h2>
                             <div className="grid grid-cols-3 gap-3">
-                                <div className="bg-slate-50 rounded-xl p-4 text-center">
+                                <div className="rounded-xl bg-slate-50 p-4 text-center">
                                     <p className="text-2xl font-black text-slate-700">{result.total}</p>
-                                    <p className="text-xs text-slate-400 font-medium mt-0.5">Total filas</p>
+                                    <p className="mt-0.5 text-xs font-medium text-slate-400">Total filas</p>
                                 </div>
-                                <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                                <div className="rounded-xl bg-emerald-50 p-4 text-center">
                                     <p className="text-2xl font-black text-emerald-600">{result.success}</p>
-                                    <p className="text-xs text-emerald-500 font-medium mt-0.5">Importadas</p>
+                                    <p className="mt-0.5 text-xs font-medium text-emerald-500">Importadas</p>
                                 </div>
-                                <div className={`rounded-xl p-4 text-center ${result.errors.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
-                                    <p className={`text-2xl font-black ${result.errors.length > 0 ? "text-red-500" : "text-slate-400"}`}>{result.errors.length}</p>
-                                    <p className={`text-xs font-medium mt-0.5 ${result.errors.length > 0 ? "text-red-400" : "text-slate-400"}`}>Errores</p>
+                                <div
+                                    className={`rounded-xl p-4 text-center ${
+                                        result.errors.length > 0 ? "bg-red-50" : "bg-slate-50"
+                                    }`}
+                                >
+                                    <p
+                                        className={`text-2xl font-black ${
+                                            result.errors.length > 0 ? "text-red-500" : "text-slate-400"
+                                        }`}
+                                    >
+                                        {result.errors.length}
+                                    </p>
+                                    <p
+                                        className={`mt-0.5 text-xs font-medium ${
+                                            result.errors.length > 0 ? "text-red-400" : "text-slate-400"
+                                        }`}
+                                    >
+                                        Errores
+                                    </p>
                                 </div>
                             </div>
+
                             {result.success > 0 && result.errors.length === 0 && (
-                                <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
-                                    <p className="text-sm text-emerald-700 font-bold flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Todas las materias fueron importadas correctamente</p>
+                                <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                                    <p className="flex items-center gap-2 text-sm font-bold text-emerald-700">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        Todas las materias fueron importadas correctamente
+                                    </p>
                                 </div>
                             )}
+
                             {result.errors.length > 0 && (
                                 <div className="space-y-2">
-                                    <p className="text-sm font-bold text-red-600 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> {result.errors.length} fila(s) con errores</p>
-                                    <div className="bg-slate-50 rounded-xl overflow-hidden">
+                                    <p className="flex items-center gap-2 text-sm font-bold text-red-600">
+                                        <AlertTriangle className="h-4 w-4" />
+                                        {result.errors.length} fila(s) con errores
+                                    </p>
+                                    <div className="overflow-hidden rounded-xl bg-slate-50">
                                         <table className="w-full text-xs">
-                                            <thead><tr className="bg-slate-100">
-                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Fila</th>
-                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Código</th>
-                                                <th className="text-left px-4 py-2 font-bold text-slate-500">Motivo</th>
-                                            </tr></thead>
+                                            <thead>
+                                                <tr className="bg-slate-100">
+                                                    <th className="px-4 py-2 text-left font-bold text-slate-500">
+                                                        Fila
+                                                    </th>
+                                                    <th className="px-4 py-2 text-left font-bold text-slate-500">
+                                                        Codigo
+                                                    </th>
+                                                    <th className="px-4 py-2 text-left font-bold text-slate-500">
+                                                        Motivo
+                                                    </th>
+                                                </tr>
+                                            </thead>
                                             <tbody className="divide-y divide-slate-100">
-                                                {result.errors.map((err, i) => (
-                                                    <tr key={i}>
-                                                        <td className="px-4 py-2 text-slate-500">#{err.row}</td>
-                                                        <td className="px-4 py-2 font-mono text-slate-700">{err.identifier}</td>
-                                                        <td className="px-4 py-2 text-red-600">{err.reason}</td>
+                                                {result.errors.map((rowError, index) => (
+                                                    <tr key={`${rowError.row}-${index}`}>
+                                                        <td className="px-4 py-2 text-slate-500">#{rowError.row}</td>
+                                                        <td className="px-4 py-2 font-mono text-slate-700">
+                                                            {rowError.identifier}
+                                                        </td>
+                                                        <td className="px-4 py-2 text-red-600">
+                                                            {rowError.reason}
+                                                        </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -223,9 +388,24 @@ export default function ImportarMateriasPage() {
                                     </div>
                                 </div>
                             )}
+
                             <div className="flex gap-3 pt-2">
-                                <Link href="/admin/materias" className="flex-1 text-center py-2.5 rounded-xl bg-blue-700 text-white text-sm font-bold hover:bg-blue-800 transition-all">Ver materias importadas →</Link>
-                                <button onClick={() => { setFile(null); setResult(null); }} className="px-5 py-2.5 rounded-xl bg-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-200 transition-all">Nueva importación</button>
+                                <Link
+                                    className="flex-1 rounded-xl bg-blue-700 py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-blue-800"
+                                    href="/admin/materias"
+                                >
+                                    Ver materias importadas -&gt;
+                                </Link>
+                                <button
+                                    className="rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
+                                    onClick={() => {
+                                        setFile(null);
+                                        setResult(null);
+                                        setProgress(null);
+                                    }}
+                                >
+                                    Nueva importacion
+                                </button>
                             </div>
                         </div>
                     )}

@@ -2,6 +2,10 @@ import Papa from "papaparse";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { TeacherPosition } from "@/lib/reportes";
+import {
+  buildImportProgress,
+  type ImportProgressOptions,
+} from "@/lib/import/progress";
 
 type CsvRow = {
   nombre: string;
@@ -16,7 +20,10 @@ type CsvRow = {
 type ImportError = { row: number; identifier: string; reason: string };
 type ImportResult = { total: number; success: number; errors: ImportError[] };
 
-export async function parseAndImportDocentes(csvText: string): Promise<ImportResult> {
+export async function parseAndImportDocentes(
+  csvText: string,
+  options?: ImportProgressOptions,
+): Promise<ImportResult> {
   const parsed = Papa.parse<CsvRow>(csvText.trim(), {
     header: true,
     skipEmptyLines: true,
@@ -29,39 +36,45 @@ export async function parseAndImportDocentes(csvText: string): Promise<ImportRes
   let success = 0;
 
   const careerCache = new Map<string, string>();
+  const reportProgress = (processed: number) =>
+    options?.onProgress?.(
+      buildImportProgress(processed, rows.length, success, errors.length),
+    );
+
+  await reportProgress(0);
 
   for (let index = 0; index < rows.length; index++) {
     const rowNum = index + 2;
     const row = rows[index];
 
-    const { nombre, apellido, email, numero_empleado, carrera_code } = row;
-    const position = (row.tipo_docente || "PA").toUpperCase() as TeacherPosition;
-    const missing: string[] = [];
-    if (!nombre) missing.push("nombre");
-    if (!apellido) missing.push("apellido");
-    if (!email) missing.push("email");
-    if (!numero_empleado) missing.push("numero_empleado");
-    if (!carrera_code) missing.push("carrera_code");
-
-    if (missing.length > 0) {
-      errors.push({
-        row: rowNum,
-        identifier: numero_empleado || "(vacio)",
-        reason: `Campos faltantes: ${missing.join(", ")}`,
-      });
-      continue;
-    }
-
-    if (position !== "PA" && position !== "PTC") {
-      errors.push({
-        row: rowNum,
-        identifier: numero_empleado || "(vacio)",
-        reason: "tipo_docente debe ser PA o PTC",
-      });
-      continue;
-    }
-
     try {
+      const { nombre, apellido, email, numero_empleado, carrera_code } = row;
+      const position = (row.tipo_docente || "PA").toUpperCase() as TeacherPosition;
+      const missing: string[] = [];
+      if (!nombre) missing.push("nombre");
+      if (!apellido) missing.push("apellido");
+      if (!email) missing.push("email");
+      if (!numero_empleado) missing.push("numero_empleado");
+      if (!carrera_code) missing.push("carrera_code");
+
+      if (missing.length > 0) {
+        errors.push({
+          row: rowNum,
+          identifier: numero_empleado || "(vacio)",
+          reason: `Campos faltantes: ${missing.join(", ")}`,
+        });
+        continue;
+      }
+
+      if (position !== "PA" && position !== "PTC") {
+        errors.push({
+          row: rowNum,
+          identifier: numero_empleado || "(vacio)",
+          reason: "tipo_docente debe ser PA o PTC",
+        });
+        continue;
+      }
+
       let careerId = careerCache.get(carrera_code.toUpperCase());
       if (!careerId) {
         const career = await prisma.career.findFirst({
@@ -109,6 +122,7 @@ export async function parseAndImportDocentes(csvText: string): Promise<ImportRes
 
       success++;
     } catch (error: unknown) {
+      const { numero_empleado } = row;
       const message = error instanceof Error ? error.message : "Error desconocido";
       errors.push({
         row: rowNum,
@@ -117,6 +131,8 @@ export async function parseAndImportDocentes(csvText: string): Promise<ImportRes
           ? "Email o numero de empleado duplicado"
           : `Error: ${message}`,
       });
+    } finally {
+      await reportProgress(index + 1);
     }
   }
 

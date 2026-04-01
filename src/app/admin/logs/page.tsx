@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { fixMojibake } from "@/lib/text/fixMojibake";
 import { ClipboardList, Filter, Shield, UserCog } from "lucide-react";
 import Link from "next/link";
 
@@ -176,7 +177,7 @@ export default async function LogsPage({
                                             </td>
                                             <td className="px-4 py-4">
                                                 <p className="text-sm text-slate-600 max-w-xs truncate">
-                                                    {log.detail ?? "—"}
+                                                    {fixMojibake(log.detail) || "—"}
                                                 </p>
                                             </td>
                                             <td className="px-4 py-4">

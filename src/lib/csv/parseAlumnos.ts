@@ -2,6 +2,10 @@ import Papa from "papaparse";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { syncSubjectsForGroup } from "@/lib/groupAssignments";
+import {
+  buildImportProgress,
+  type ImportProgressOptions,
+} from "@/lib/import/progress";
 
 type CsvRow = {
   matricula: string;
@@ -28,6 +32,7 @@ type ImportResult = {
 export async function parseAndImportAlumnos(
   csvText: string,
   periodo: string,
+  options?: ImportProgressOptions,
 ): Promise<ImportResult> {
   const parsed = Papa.parse<CsvRow>(csvText.trim(), {
     header: true,
@@ -42,29 +47,34 @@ export async function parseAndImportAlumnos(
 
   const careerCache = new Map<string, string>();
   const groupCache = new Map<string, string>();
+  const reportProgress = (processed: number) =>
+    options?.onProgress?.(
+      buildImportProgress(processed, rows.length, success, errors.length),
+    );
+
+  await reportProgress(0);
 
   for (let index = 0; index < rows.length; index++) {
     const rowNumber = index + 2;
     const row = rows[index];
-    const { matricula, nombre, apellido, carrera_code, grupo } = row;
-
-    const missingFields: string[] = [];
-    if (!matricula) missingFields.push("matricula");
-    if (!nombre) missingFields.push("nombre");
-    if (!apellido) missingFields.push("apellido");
-    if (!carrera_code) missingFields.push("carrera_code");
-    if (!grupo) missingFields.push("grupo");
-
-    if (missingFields.length > 0) {
-      errors.push({
-        row: rowNumber,
-        matricula: matricula || "(vacio)",
-        reason: `Campos requeridos faltantes: ${missingFields.join(", ")}`,
-      });
-      continue;
-    }
-
     try {
+      const { matricula, nombre, apellido, carrera_code, grupo } = row;
+      const missingFields: string[] = [];
+      if (!matricula) missingFields.push("matricula");
+      if (!nombre) missingFields.push("nombre");
+      if (!apellido) missingFields.push("apellido");
+      if (!carrera_code) missingFields.push("carrera_code");
+      if (!grupo) missingFields.push("grupo");
+
+      if (missingFields.length > 0) {
+        errors.push({
+          row: rowNumber,
+          matricula: matricula || "(vacio)",
+          reason: `Campos requeridos faltantes: ${missingFields.join(", ")}`,
+        });
+        continue;
+      }
+
       let careerId = careerCache.get(carrera_code.toUpperCase());
 
       if (!careerId) {
@@ -169,6 +179,7 @@ export async function parseAndImportAlumnos(
 
       success++;
     } catch (error: unknown) {
+      const { matricula } = row;
       const message = error instanceof Error ? error.message : "Error desconocido";
       errors.push({
         row: rowNumber,
@@ -177,6 +188,8 @@ export async function parseAndImportAlumnos(
           ? "Matricula duplicada en el CSV"
           : `Error inesperado: ${message}`,
       });
+    } finally {
+      await reportProgress(index + 1);
     }
   }
 
