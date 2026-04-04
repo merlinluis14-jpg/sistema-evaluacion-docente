@@ -65,3 +65,52 @@ export async function syncGroupsForSubject(subjectId: string, careerId: string, 
 
   return result.count;
 }
+
+export async function resyncGroupsForSubject(
+  subjectId: string,
+  careerId: string,
+  cuatrimestre: number,
+) {
+  const groups = await prisma.group.findMany({
+    where: {
+      careerId,
+      isActive: true,
+    },
+    select: { id: true, name: true },
+  });
+
+  const matchingGroupIds = groups
+    .filter((group) => extractCuatrimestreFromGroupName(group.name) === cuatrimestre)
+    .map((group) => group.id);
+
+  const existingLinks = await prisma.groupSubject.findMany({
+    where: { subjectId },
+    select: { id: true, groupId: true },
+  });
+
+  const matchingGroupIdSet = new Set(matchingGroupIds);
+  const obsoleteLinkIds = existingLinks
+    .filter((link) => !matchingGroupIdSet.has(link.groupId))
+    .map((link) => link.id);
+
+  if (obsoleteLinkIds.length > 0) {
+    await prisma.groupSubject.deleteMany({
+      where: { id: { in: obsoleteLinkIds } },
+    });
+  }
+
+  const existingGroupIds = new Set(existingLinks.map((link) => link.groupId));
+  const groupsToCreate = matchingGroupIds.filter((groupId) => !existingGroupIds.has(groupId));
+
+  if (groupsToCreate.length > 0) {
+    await prisma.groupSubject.createMany({
+      data: groupsToCreate.map((groupId) => ({
+        groupId,
+        subjectId,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  return groupsToCreate.length;
+}

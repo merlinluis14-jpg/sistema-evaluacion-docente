@@ -4,10 +4,19 @@ import { authOptions } from "@/lib/auth";
 import { parseAndImportAlumnos } from "@/lib/csv/parseAlumnos";
 import { logAdminAction } from "@/lib/adminLog";
 import { createImportStreamResponse } from "@/lib/import/server";
+import { getErrorMessage } from "@/lib/prismaErrors";
+import { getSessionRole } from "@/lib/sessionUser";
+
+type ImportAlumnosBody = {
+    csv?: string;
+    periodo?: string;
+    stream?: boolean;
+    syncCatalog?: boolean;
+};
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "ADMIN") {
+    if (!session || getSessionRole(session) !== "ADMIN") {
         return NextResponse.json(
             { message: "No autorizado" },
             { status: 401 }
@@ -15,8 +24,8 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const body = await req.json();
-        const { csv, periodo, stream } = body;
+        const body = await req.json() as ImportAlumnosBody;
+        const { csv, periodo, stream, syncCatalog } = body;
 
         if (!csv || typeof csv !== "string") {
             return NextResponse.json(
@@ -42,34 +51,41 @@ export async function POST(req: NextRequest) {
         if (stream) {
             return createImportStreamResponse({
                 run: (emitProgress) =>
-                    parseAndImportAlumnos(csv, periodo, { onProgress: emitProgress }),
+                    parseAndImportAlumnos(csv, periodo, {
+                        onProgress: emitProgress,
+                        syncCatalog,
+                    }),
                 afterComplete: async (result) => {
                     await logAdminAction({
                         action: "IMPORT",
                         entity: "ALUMNO",
-                        detail: `Importacion CSV: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()})`,
+                        detail: syncCatalog
+                            ? `Importacion CSV con sincronizacion: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()}); ${result.removedEnrollments ?? 0} asignaciones retiradas`
+                            : `Importacion CSV: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()})`,
                     });
                 },
             });
         }
 
-        const result = await parseAndImportAlumnos(csv, periodo);
+        const result = await parseAndImportAlumnos(csv, periodo, { syncCatalog });
 
         try {
             await logAdminAction({
                 action: "IMPORT",
                 entity: "ALUMNO",
-                detail: `Importacion CSV: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()})`,
+                detail: syncCatalog
+                    ? `Importacion CSV con sincronizacion: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()}); ${result.removedEnrollments ?? 0} asignaciones retiradas`
+                    : `Importacion CSV: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()})`,
             });
         } catch (loggingError) {
             console.error("No fue posible registrar la importacion de alumnos:", loggingError);
         }
 
         return NextResponse.json(result, { status: 200 });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error en importacion CSV:", error);
         return NextResponse.json(
-            { message: error.message || "Error interno del servidor" },
+            { message: getErrorMessage(error) },
             { status: 500 }
         );
     }

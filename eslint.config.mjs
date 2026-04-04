@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "create-alumno.js",
+    "getdiff.js",
+    "getlog.js",
+    "getstat.js",
+    "jest.config.js",
+    "query.js",
+    "scripts/benchmark-ca1.cjs",
   ]),
 ]);
 

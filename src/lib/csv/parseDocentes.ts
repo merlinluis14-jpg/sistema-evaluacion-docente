@@ -1,5 +1,7 @@
 import Papa from "papaparse";
 import bcrypt from "bcryptjs";
+
+import { syncTeacherCatalogByCareer } from "@/lib/catalogSync";
 import { prisma } from "@/lib/prisma";
 import type { TeacherPosition } from "@/lib/reportes";
 import {
@@ -18,12 +20,22 @@ type CsvRow = {
 };
 
 type ImportError = { row: number; identifier: string; reason: string };
-type ImportResult = { total: number; success: number; errors: ImportError[] };
+
+export type TeacherImportResult = {
+  total: number;
+  success: number;
+  errors: ImportError[];
+  deactivatedCount?: number;
+};
+
+type TeacherImportOptions = ImportProgressOptions & {
+  syncCatalog?: boolean;
+};
 
 export async function parseAndImportDocentes(
   csvText: string,
-  options?: ImportProgressOptions,
-): Promise<ImportResult> {
+  options?: TeacherImportOptions,
+): Promise<TeacherImportResult> {
   const parsed = Papa.parse<CsvRow>(csvText.trim(), {
     header: true,
     skipEmptyLines: true,
@@ -36,6 +48,8 @@ export async function parseAndImportDocentes(
   let success = 0;
 
   const careerCache = new Map<string, string>();
+  const importedEmployeeIds = new Set<string>();
+  const affectedCareerIds = new Set<string>();
   const reportProgress = (processed: number) =>
     options?.onProgress?.(
       buildImportProgress(processed, rows.length, success, errors.length),
@@ -92,34 +106,124 @@ export async function parseAndImportDocentes(
         careerCache.set(carrera_code.toUpperCase(), careerId);
       }
 
-      const rawPassword = row.password?.trim() || numero_empleado;
-      const hashedPassword = await bcrypt.hash(rawPassword, 10);
-
-      const user = await prisma.user.upsert({
-        where: { email },
-        update: { isActive: true },
-        create: {
-          email,
-          password: hashedPassword,
-          role: "DOCENTE",
-          isActive: true,
-        },
-      });
-
-      await prisma.teacher.upsert({
+      const existingTeacher = await prisma.teacher.findUnique({
         where: { employeeId: numero_empleado },
-        update: { name: nombre, lastName: apellido, careerId, position, isActive: true },
-        create: {
-          userId: user.id,
-          name: nombre,
-          lastName: apellido,
-          employeeId: numero_empleado,
-          careerId,
-          position,
-          isActive: true,
-        },
+        include: { user: true },
       });
 
+      const normalizedEmail = email.toLowerCase();
+      const providedPassword = row.password?.trim();
+
+      if (existingTeacher) {
+        const conflictingUser = await prisma.user.findFirst({
+          where: {
+            email: normalizedEmail,
+            id: { not: existingTeacher.userId },
+          },
+          select: { id: true },
+        });
+
+        if (conflictingUser) {
+          errors.push({
+            row: rowNum,
+            identifier: numero_empleado,
+            reason: `El email "${normalizedEmail}" ya esta asignado a otra cuenta`,
+          });
+          continue;
+        }
+
+        const userData: {
+          email: string;
+          isActive: boolean;
+          password?: string;
+        } = {
+          email: normalizedEmail,
+          isActive: true,
+        };
+
+        if (providedPassword) {
+          userData.password = await bcrypt.hash(providedPassword, 10);
+        }
+
+        await prisma.user.update({
+          where: { id: existingTeacher.userId },
+          data: userData,
+        });
+
+        await prisma.teacher.update({
+          where: { id: existingTeacher.id },
+          data: {
+            name: nombre,
+            lastName: apellido,
+            careerId,
+            position,
+            isActive: true,
+          },
+        });
+      } else {
+        const passwordToStore = providedPassword || numero_empleado;
+        const hashedPassword = await bcrypt.hash(passwordToStore, 10);
+
+        const existingUser = await prisma.user.findFirst({
+          where: { email: normalizedEmail },
+        });
+
+        let userId: string;
+
+        if (existingUser) {
+          const teacherWithSameUser = await prisma.teacher.findFirst({
+            where: { userId: existingUser.id },
+            select: { id: true },
+          });
+
+          if (teacherWithSameUser) {
+            errors.push({
+              row: rowNum,
+              identifier: numero_empleado,
+              reason: `El email "${normalizedEmail}" ya pertenece a otro docente`,
+            });
+            continue;
+          }
+
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              email: normalizedEmail,
+              password: hashedPassword,
+              role: "DOCENTE",
+              isActive: true,
+            },
+          });
+
+          userId = existingUser.id;
+        } else {
+          const user = await prisma.user.create({
+            data: {
+              email: normalizedEmail,
+              password: hashedPassword,
+              role: "DOCENTE",
+              isActive: true,
+            },
+          });
+
+          userId = user.id;
+        }
+
+        await prisma.teacher.create({
+          data: {
+            userId,
+            name: nombre,
+            lastName: apellido,
+            employeeId: numero_empleado,
+            careerId,
+            position,
+            isActive: true,
+          },
+        });
+      }
+
+      importedEmployeeIds.add(numero_empleado);
+      affectedCareerIds.add(careerId);
       success++;
     } catch (error: unknown) {
       const { numero_empleado } = row;
@@ -136,5 +240,18 @@ export async function parseAndImportDocentes(
     }
   }
 
-  return { total: rows.length, success, errors };
+  let deactivatedCount = 0;
+  if (options?.syncCatalog && errors.length === 0) {
+    deactivatedCount = await syncTeacherCatalogByCareer({
+      careerIds: [...affectedCareerIds],
+      importedEmployeeIds: [...importedEmployeeIds],
+    });
+  }
+
+  return {
+    total: rows.length,
+    success,
+    errors,
+    deactivatedCount,
+  };
 }

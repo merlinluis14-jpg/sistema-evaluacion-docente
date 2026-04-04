@@ -1,5 +1,3 @@
-// Layout del portal docente — validación de rol y navegación lateral
-
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -19,57 +17,77 @@ export default async function DocenteLayout({ children }: { children: ReactNode 
         { href: "/docente/resultados", label: "Mis Resultados" },
     ];
 
+    const displayName = session.user.name || session.user.email || "Docente";
+
     return (
-        <div className="flex h-screen bg-gray-50 overflow-hidden">
-            <aside className="w-56 bg-[#0F2A1A] flex flex-col flex-shrink-0 h-full">
-                <div className="px-5 py-5 border-b border-white/10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-black text-sm">U</span>
+        <div className="min-h-screen bg-gray-50 lg:flex">
+            <aside className="bg-[#0F2A1A] text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:flex-shrink-0 lg:flex-col">
+                <div className="border-b border-white/10 px-4 py-4 sm:px-5">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-600">
+                                <span className="text-sm font-black text-white">U</span>
+                            </div>
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-bold leading-none text-white">UPTEX Eval</p>
+                                <p className="mt-0.5 text-[10px] text-emerald-400">Portal Docente</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-white font-bold text-sm leading-none">UPTEX Eval</p>
-                            <p className="text-emerald-400 text-[10px] mt-0.5">Portal Docente</p>
+
+                        <div className="flex items-center gap-2 lg:hidden">
+                            <div className="max-w-[12rem] text-right">
+                                <p className="truncate text-xs font-bold text-white">{displayName}</p>
+                                <p className="mt-0.5 text-[10px] text-emerald-400">Solo lectura</p>
+                            </div>
+                            <SignOutButton className="rounded-lg border border-white/10 px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:bg-white/10 hover:text-white">
+                                Salir
+                            </SignOutButton>
                         </div>
                     </div>
                 </div>
 
-                <div className="px-5 py-3 border-b border-white/10">
-                    <p className="text-white text-xs font-bold truncate">
-                        {session.user.name || session.user.email}
-                    </p>
-                    <p className="text-emerald-400 text-[10px] mt-0.5">Solo lectura</p>
+                <div className="border-b border-white/10 px-4 py-3 sm:px-5">
+                    <p className="truncate text-xs font-bold text-white">{displayName}</p>
+                    <p className="mt-0.5 text-[10px] text-emerald-400">Solo lectura</p>
                 </div>
 
-                <nav className="flex-1 px-3 py-4 space-y-0.5">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm font-medium"
-                        >
-                            <span>{item.label}</span>
-                        </Link>
-                    ))}
+                <nav className="overflow-x-auto px-4 py-3 scrollbar-hide sm:px-5 lg:flex-1 lg:px-3 lg:py-4">
+                    <div className="flex gap-2 lg:flex-col lg:gap-0.5">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className="flex flex-shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition-all hover:bg-white/10 hover:text-white"
+                            >
+                                <span className="whitespace-nowrap">{item.label}</span>
+                            </Link>
+                        ))}
+                    </div>
                 </nav>
 
-                <div className="px-4 py-3 mx-3 mb-3 bg-white/5 rounded-xl">
-                    <p className="text-slate-400 text-[10px] leading-relaxed">
-                        Los resultados son anónimos. No puedes identificar a los alumnos que te evaluaron.
+                <div className="px-4 pb-4 lg:hidden">
+                    <div className="rounded-xl bg-white/5 px-4 py-3">
+                        <p className="text-[11px] leading-relaxed text-slate-300">
+                            Los resultados son anonimos. No puedes identificar a los alumnos que te evaluaron.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mx-3 mb-3 hidden rounded-xl bg-white/5 px-4 py-3 lg:block">
+                    <p className="text-[10px] leading-relaxed text-slate-400">
+                        Los resultados son anonimos. No puedes identificar a los alumnos que te evaluaron.
                     </p>
                 </div>
 
-                <div className="px-4 py-4 border-t border-white/10 space-y-2">
-                    <p className="text-slate-500 text-[10px] truncate">{session.user.email}</p>
-                    <SignOutButton
-                        className="flex flex-row items-center gap-2 text-slate-400 hover:text-red-400 transition-colors text-xs font-medium bg-transparent border-none p-0 cursor-pointer"
-                    >
-                        Cerrar sesión
+                <div className="hidden space-y-2 border-t border-white/10 px-4 py-4 lg:block">
+                    <p className="truncate text-[10px] text-slate-500">{session.user.email}</p>
+                    <SignOutButton className="cursor-pointer border-none bg-transparent p-0 text-xs font-medium text-slate-400 transition-colors hover:text-red-400">
+                        Cerrar sesion
                     </SignOutButton>
                 </div>
             </aside>
 
-            <main className="flex-1 overflow-y-auto">
+            <main className="min-w-0 flex-1 overflow-x-hidden">
                 {children}
             </main>
         </div>

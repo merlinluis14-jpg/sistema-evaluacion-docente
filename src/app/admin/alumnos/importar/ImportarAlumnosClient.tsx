@@ -15,7 +15,12 @@ import { runStreamedImport } from "@/lib/import/client";
 import type { ImportProgressState } from "@/lib/import/progress";
 
 type ImportError = { row: number; matricula: string; reason: string };
-type ImportResult = { total: number; success: number; errors: ImportError[] };
+type ImportResult = {
+    total: number;
+    success: number;
+    errors: ImportError[];
+    removedEnrollments?: number;
+};
 
 const CSV_TEMPLATE = `matricula,nombre,apellido,email,carrera_code,grupo,password
 220310001,Juan,Garcia,j.garcia@uptx.edu.mx,ISC,3A,uptx2026
@@ -36,6 +41,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
     const [result, setResult] = useState<ImportResult | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
+    const [syncCatalog, setSyncCatalog] = useState(false);
 
     const handleFile = (nextFile: File) => {
         if (loading) return;
@@ -76,7 +82,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
             const csv = await file.text();
             const nextResult = await runStreamedImport<ImportResult>({
                 url: "/api/import/alumnos",
-                body: { csv, periodo: periodName },
+                body: { csv, periodo: periodName, syncCatalog },
                 onProgress: setProgress,
             });
             setResult(nextResult);
@@ -275,6 +281,21 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                             <ImportProgressPanel label="Importando alumnos" progress={progress} />
                         )}
 
+                        <label className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+                            <input
+                                type="checkbox"
+                                checked={syncCatalog}
+                                onChange={(event) => setSyncCatalog(event.target.checked)}
+                                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-amber-500"
+                                disabled={loading}
+                            />
+                            <span className="text-sm text-amber-800">
+                                <strong className="block">Sincronizar roster del periodo activo</strong>
+                                Si se activa, las asignaciones de grupo del periodo <strong>{periodName}</strong>
+                                se reemplazaran con el contenido del CSV para las carreras importadas, sin borrar el historial.
+                            </span>
+                        </label>
+
                         <button
                             className={`w-full rounded-xl py-3.5 text-sm font-black transition-all ${
                                 !file || loading
@@ -338,6 +359,14 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                                     <p className="flex items-center gap-2 text-sm font-bold text-emerald-700">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Todos los alumnos fueron importados correctamente
+                                    </p>
+                                </div>
+                            )}
+
+                            {(result.removedEnrollments ?? 0) > 0 && (
+                                <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+                                    <p className="text-sm font-bold text-amber-700">
+                                        Sincronizacion aplicada: {result.removedEnrollments} asignacion(es) de grupo del periodo fueron retiradas por no aparecer en el CSV.
                                     </p>
                                 </div>
                             )}

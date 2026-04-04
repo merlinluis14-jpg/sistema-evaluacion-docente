@@ -1,10 +1,12 @@
 import Papa from "papaparse";
-import { prisma } from "@/lib/prisma";
-import { syncGroupsForSubject } from "@/lib/groupAssignments";
+
+import { syncSubjectCatalogByCareer } from "@/lib/catalogSync";
+import { resyncGroupsForSubject } from "@/lib/groupAssignments";
 import {
   buildImportProgress,
   type ImportProgressOptions,
 } from "@/lib/import/progress";
+import { prisma } from "@/lib/prisma";
 
 type CsvRow = {
   nombre: string;
@@ -15,12 +17,22 @@ type CsvRow = {
 };
 
 type ImportError = { row: number; identifier: string; reason: string };
-type ImportResult = { total: number; success: number; errors: ImportError[] };
+
+export type SubjectImportResult = {
+  total: number;
+  success: number;
+  errors: ImportError[];
+  deactivatedCount?: number;
+};
+
+type SubjectImportOptions = ImportProgressOptions & {
+  syncCatalog?: boolean;
+};
 
 export async function parseAndImportMaterias(
   csvText: string,
-  options?: ImportProgressOptions,
-): Promise<ImportResult> {
+  options?: SubjectImportOptions,
+): Promise<SubjectImportResult> {
   const parsed = Papa.parse<CsvRow>(csvText.trim(), {
     header: true,
     skipEmptyLines: true,
@@ -34,6 +46,8 @@ export async function parseAndImportMaterias(
 
   const careerCache = new Map<string, string>();
   const teacherCache = new Map<string, string>();
+  const importedSubjectKeys = new Set<string>();
+  const affectedCareerIds = new Set<string>();
   const reportProgress = (processed: number) =>
     options?.onProgress?.(
       buildImportProgress(processed, rows.length, success, errors.length),
@@ -127,6 +141,7 @@ export async function parseAndImportMaterias(
         },
         update: {
           name: nombre,
+          code: codigo.toUpperCase(),
           cuatrimestre: cuatrimestreValue,
           teacherId,
           isActive: true,
@@ -141,8 +156,10 @@ export async function parseAndImportMaterias(
         },
       });
 
-      await syncGroupsForSubject(subject.id, careerId, cuatrimestreValue);
+      await resyncGroupsForSubject(subject.id, careerId, cuatrimestreValue);
 
+      importedSubjectKeys.add(`${careerId}:${subject.code}`);
+      affectedCareerIds.add(careerId);
       success++;
     } catch (error: unknown) {
       const { codigo } = row;
@@ -159,5 +176,18 @@ export async function parseAndImportMaterias(
     }
   }
 
-  return { total: rows.length, success, errors };
+  let deactivatedCount = 0;
+  if (options?.syncCatalog && errors.length === 0) {
+    deactivatedCount = await syncSubjectCatalogByCareer({
+      careerIds: [...affectedCareerIds],
+      importedSubjectKeys: [...importedSubjectKeys],
+    });
+  }
+
+  return {
+    total: rows.length,
+    success,
+    errors,
+    deactivatedCount,
+  };
 }

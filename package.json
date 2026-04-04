@@ -8,9 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit --incremental false",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
+    "benchmark:ca1": "node scripts/benchmark-ca1.cjs",
     "postinstall": "prisma generate"
   },
   "prisma": {

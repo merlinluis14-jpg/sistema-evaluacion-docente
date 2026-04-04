@@ -1,11 +1,16 @@
 import Papa from "papaparse";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+
+import {
+  replaceStudentEnrollmentForGroup,
+  syncStudentRosterByPeriod,
+} from "@/lib/catalogSync";
 import { syncSubjectsForGroup } from "@/lib/groupAssignments";
 import {
   buildImportProgress,
   type ImportProgressOptions,
 } from "@/lib/import/progress";
+import { prisma } from "@/lib/prisma";
 
 type CsvRow = {
   matricula: string;
@@ -23,17 +28,22 @@ type ImportError = {
   reason: string;
 };
 
-type ImportResult = {
+export type StudentImportResult = {
   total: number;
   success: number;
   errors: ImportError[];
+  removedEnrollments?: number;
+};
+
+type StudentImportOptions = ImportProgressOptions & {
+  syncCatalog?: boolean;
 };
 
 export async function parseAndImportAlumnos(
   csvText: string,
   periodo: string,
-  options?: ImportProgressOptions,
-): Promise<ImportResult> {
+  options?: StudentImportOptions,
+): Promise<StudentImportResult> {
   const parsed = Papa.parse<CsvRow>(csvText.trim(), {
     header: true,
     skipEmptyLines: true,
@@ -47,6 +57,8 @@ export async function parseAndImportAlumnos(
 
   const careerCache = new Map<string, string>();
   const groupCache = new Map<string, string>();
+  const expectedGroupByStudentId = new Map<string, string>();
+  const affectedCareerIds = new Set<string>();
   const reportProgress = (processed: number) =>
     options?.onProgress?.(
       buildImportProgress(processed, rows.length, success, errors.length),
@@ -57,6 +69,7 @@ export async function parseAndImportAlumnos(
   for (let index = 0; index < rows.length; index++) {
     const rowNumber = index + 2;
     const row = rows[index];
+
     try {
       const { matricula, nombre, apellido, carrera_code, grupo } = row;
       const missingFields: string[] = [];
@@ -128,55 +141,71 @@ export async function parseAndImportAlumnos(
         groupCache.set(groupKey, groupId);
       }
 
-      const rawPassword = row.password?.trim() || matricula;
-      const hashedPassword = await bcrypt.hash(rawPassword, 10);
+      const providedPassword = row.password?.trim();
+      const normalizedEmail = row.email?.trim().toLowerCase() || null;
+      const passwordToStore = providedPassword || matricula;
+      const hashedPassword = await bcrypt.hash(passwordToStore, 10);
 
-      const user = await prisma.user.upsert({
-        where: { username: matricula },
-        update: { isActive: true },
-        create: {
-          username: matricula,
-          password: hashedPassword,
-          role: "ALUMNO",
-          isActive: true,
-        },
-      });
-
-      const student = await prisma.student.upsert({
+      const existingStudent = await prisma.student.findUnique({
         where: { matricula },
-        update: {
-          name: nombre,
-          lastName: apellido,
-          careerId,
-          isActive: true,
-        },
-        create: {
-          userId: user.id,
-          matricula,
-          name: nombre,
-          lastName: apellido,
-          careerId,
-          isActive: true,
-        },
+        include: { user: true },
       });
 
-      await prisma.groupEnrollment.upsert({
-        where: {
-          studentId_groupId: {
-            studentId: student.id,
-            groupId,
+      let studentId: string;
+
+      if (existingStudent) {
+        await prisma.user.update({
+          where: { id: existingStudent.userId },
+          data: {
+            username: matricula,
+            email: normalizedEmail,
+            isActive: true,
+            ...(providedPassword ? { password: hashedPassword } : {}),
           },
-        },
-        update: {},
-        create: {
-          studentId: student.id,
-          groupId,
-        },
-      });
+        });
 
-      // Mantiene el grupo listo para evaluar sin una asignacion manual extra de materias.
+        const student = await prisma.student.update({
+          where: { id: existingStudent.id },
+          data: {
+            name: nombre,
+            lastName: apellido,
+            careerId,
+            isActive: true,
+          },
+        });
+
+        studentId = student.id;
+      } else {
+        const user = await prisma.user.create({
+          data: {
+            username: matricula,
+            email: normalizedEmail,
+            password: hashedPassword,
+            role: "ALUMNO",
+            isActive: true,
+          },
+        });
+
+        const student = await prisma.student.create({
+          data: {
+            userId: user.id,
+            matricula,
+            name: nombre,
+            lastName: apellido,
+            careerId,
+            isActive: true,
+          },
+        });
+
+        studentId = student.id;
+      }
+
+      await replaceStudentEnrollmentForGroup(studentId, groupId);
+
       await syncSubjectsForGroup(groupId, careerId, normalizedGroup);
 
+      expectedGroupByStudentId.set(studentId, groupId);
+      affectedCareerIds.add(careerId);
       success++;
     } catch (error: unknown) {
       const { matricula } = row;
@@ -185,7 +214,7 @@ export async function parseAndImportAlumnos(
         row: rowNumber,
         matricula: matricula || "(vacio)",
         reason: message.includes("Unique constraint")
-          ? "Matricula duplicada en el CSV"
+          ? "Matricula, usuario o email duplicado en el sistema"
           : `Error inesperado: ${message}`,
       });
     } finally {
@@ -193,9 +222,19 @@ export async function parseAndImportAlumnos(
     }
   }
 
+  let removedEnrollments = 0;
+  if (options?.syncCatalog && errors.length === 0) {
+    removedEnrollments = await syncStudentRosterByPeriod({
+      careerIds: [...affectedCareerIds],
+      period: periodo,
+      expectedGroupByStudentId,
+    });
+  }
+
   return {
     total: rows.length,
     success,
     errors,
+    removedEnrollments,
   };
 }

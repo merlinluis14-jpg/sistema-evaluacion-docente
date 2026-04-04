@@ -12,6 +12,7 @@ Ejecutar:
 npm run lint
 npm run typecheck
 npm run test
+npm run benchmark:ca1
 ```
 
 ## Escenarios funcionales
@@ -19,9 +20,11 @@ npm run test
 ### 1. Autenticacion por roles
 
 - Iniciar sesion como admin
+- Intentar un acceso fallido como admin para validar el registro de `LOGIN_FAILED`
 - Iniciar sesion como docente
 - Iniciar sesion como alumno
 - Confirmar que cada rol solo accede a su area
+- Confirmar en `AdminLog` que el acceso admin exitoso quede registrado como `LOGIN`
 
 ### 2. Importacion base
 
@@ -64,6 +67,28 @@ npm run test
 - Restablecer la contrasena de otro admin
 - Desactivar un admin secundario
 - Revisar los logs generados
+
+### 8. Respaldo y recuperacion
+
+- Ejecutar `scripts/backup.bat` y confirmar la generacion del archivo en `backups/`
+- Registrar la tarea diaria con `scripts/register-daily-backup-task.ps1`
+- Verificar que la tarea `UPTX-Evaluacion-Docente-Backup` quede activa
+- Confirmar que `backups/daily-backup.log` registre la ejecucion programada
+- Restaurar un respaldo de prueba en entorno controlado con `scripts/restore.bat`
+
+### 9. Rendimiento y concurrencia
+
+- Ejecutar `npm run benchmark:ca1`
+- Confirmar que el JSON final reporte `createdCount >= 1000`
+- Confirmar que el JSON final reporte `averageLatencyMs < 2000`
+- Guardar la salida como evidencia para `CA1` y `RNF4`
+
+### 10. Compatibilidad y formato institucional
+
+- Revisar la matriz en `docs/matriz-compatibilidad.md`
+- Validar el flujo de evaluacion en al menos una plataforma movil y una de escritorio
+- Generar el `PDF institucional` y contrastarlo con `docs/validacion-reportes.md`
+- Confirmar que el formato conserve encabezado, tabla de factores, subtotal, calificacion y firma
 
 ## Resultado esperado
 

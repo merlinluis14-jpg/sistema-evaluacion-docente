@@ -1,15 +1,27 @@
 import { parseAndImportAlumnos } from "@/lib/csv/parseAlumnos";
-import { prisma } from "@/lib/prisma";
+import {
+  replaceStudentEnrollmentForGroup,
+  syncStudentRosterByPeriod,
+} from "@/lib/catalogSync";
 import { syncSubjectsForGroup } from "@/lib/groupAssignments";
+import { prisma } from "@/lib/prisma";
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     career: { findFirst: jest.fn() },
     group: { findFirst: jest.fn(), create: jest.fn() },
-    user: { upsert: jest.fn() },
-    student: { upsert: jest.fn() },
-    groupEnrollment: { upsert: jest.fn() },
+    user: { create: jest.fn(), update: jest.fn() },
+    student: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+    },
   },
+}));
+
+jest.mock("@/lib/catalogSync", () => ({
+  replaceStudentEnrollmentForGroup: jest.fn().mockResolvedValue(undefined),
+  syncStudentRosterByPeriod: jest.fn().mockResolvedValue(0),
 }));
 
 jest.mock("@/lib/groupAssignments", () => ({
@@ -53,9 +65,9 @@ describe("parseAndImportAlumnos", () => {
   it("importa al alumno, lo inscribe en grupo y sincroniza materias del grupo", async () => {
     (prisma.career.findFirst as jest.Mock).mockResolvedValue({ id: "career_1" });
     (prisma.group.findFirst as jest.Mock).mockResolvedValue({ id: "group_1" });
-    (prisma.user.upsert as jest.Mock).mockResolvedValue({ id: "user_1" });
-    (prisma.student.upsert as jest.Mock).mockResolvedValue({ id: "student_1" });
-    (prisma.groupEnrollment.upsert as jest.Mock).mockResolvedValue({});
+    (prisma.student.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.user.create as jest.Mock).mockResolvedValue({ id: "user_1" });
+    (prisma.student.create as jest.Mock).mockResolvedValue({ id: "student_1" });
 
     const csv = `matricula,nombre,apellido,carrera_code,grupo
 220002,Maria,Lopez,ISC,3A`;
@@ -64,6 +76,8 @@ describe("parseAndImportAlumnos", () => {
 
     expect(result.errors).toHaveLength(0);
     expect(result.success).toBe(1);
+    expect(replaceStudentEnrollmentForGroup).toHaveBeenCalledWith("student_1", "group_1");
     expect(syncSubjectsForGroup).toHaveBeenCalledWith("group_1", "career_1", "3A");
+    expect(syncStudentRosterByPeriod).not.toHaveBeenCalled();
   });
 });

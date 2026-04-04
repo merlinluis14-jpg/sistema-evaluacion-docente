@@ -86,73 +86,73 @@ export default async function AlumnoPage({
     );
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-start justify-between flex-wrap gap-3">
-                <div>
+        <div className="space-y-5 sm:space-y-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
                     <h1 className="text-2xl font-black text-slate-800">Mis Materias</h1>
-                    <p className="text-slate-400 text-sm mt-0.5">
+                    <p className="mt-0.5 text-sm text-slate-400">
                         {student
-                            ? `${student.name} ${student.lastName} · ${student.career.name}`
+                            ? `${student.name} ${student.lastName} | ${student.career.name}`
                             : "Cargando perfil..."}
                     </p>
                 </div>
 
                 {activePeriod && (
-                    <div className="bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0">
+                    <div className="self-start rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
                         {activePeriod.name}
                     </div>
                 )}
             </div>
 
             {params.success && (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="flex flex-col gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 sm:flex-row sm:items-center">
                     <span className="text-xl">OK</span>
-                    <p className="font-semibold text-sm">
+                    <p className="text-sm font-semibold">
                         Evaluacion enviada. Gracias por tu participacion.
                     </p>
                 </div>
             )}
 
             {params.error === "duplicada" && (
-                <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="flex flex-col gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 sm:flex-row sm:items-center">
                     <span className="text-xl">!</span>
-                    <p className="font-semibold text-sm">
+                    <p className="text-sm font-semibold">
                         Ya evaluaste esta materia en el periodo actual.
                     </p>
                 </div>
             )}
 
             {params.error === "acceso" && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="flex flex-col gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800 sm:flex-row sm:items-center">
                     <span className="text-xl">!</span>
-                    <p className="font-semibold text-sm">
+                    <p className="text-sm font-semibold">
                         Esta materia ya no esta disponible para tu cuenta o no pertenece a tu grupo actual.
                     </p>
                 </div>
             )}
 
             {params.error === "general" && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="flex flex-col gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800 sm:flex-row sm:items-center">
                     <span className="text-xl">!</span>
-                    <p className="font-semibold text-sm">
+                    <p className="text-sm font-semibold">
                         No fue posible guardar la evaluacion. Intenta de nuevo y, si continua, revisa el periodo activo.
                     </p>
                 </div>
             )}
 
             {!activePeriod && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center">
-                    <p className="text-amber-700 font-bold">No hay periodo de evaluacion activo</p>
-                    <p className="text-amber-600 text-sm mt-1">
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+                    <p className="font-bold text-amber-700">No hay periodo de evaluacion activo</p>
+                    <p className="mt-1 text-sm text-amber-600">
                         Consulta con tu coordinador el calendario de evaluaciones.
                     </p>
                 </div>
             )}
 
             {student && subjects.length === 0 && (
-                <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-12 text-center">
-                    <p className="text-slate-500 font-bold">No tienes materias asignadas</p>
-                    <p className="text-slate-400 text-sm mt-1">
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center sm:p-12">
+                    <p className="font-bold text-slate-500">No tienes materias asignadas</p>
+                    <p className="mt-1 text-sm text-slate-400">
                         {groupNames.length > 0
                             ? `Tu grupo actual (${groupNames.join(", ")}) aun no tiene materias enlazadas.`
                             : "Contacta a tu coordinador para ser asignado a un grupo."}
@@ -161,24 +161,24 @@ export default async function AlumnoPage({
             )}
 
             {subjects.length > 0 && activePeriod && (
-                <div className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-4">
-                    <div className="flex-1">
-                        <div className="flex justify-between text-xs text-slate-500 font-bold mb-1.5">
+                <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 sm:flex-row sm:items-center sm:gap-4">
+                    <div className="w-full min-w-0 flex-1">
+                        <div className="mb-1.5 flex flex-col gap-1 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
                             <span>Progreso de evaluacion</span>
                             <span>{subjects.length - pendingCount}/{subjects.length} completadas</span>
                         </div>
-                        <div className="w-full bg-slate-100 rounded-full h-2">
+                        <div className="h-2 w-full rounded-full bg-slate-100">
                             <div
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                                className="h-2 rounded-full bg-blue-600 transition-all duration-500"
                                 style={{ width: `${((subjects.length - pendingCount) / subjects.length) * 100}%` }}
                             />
                         </div>
                     </div>
 
                     {pendingCount === 0 ? (
-                        <span className="text-emerald-600 font-black text-sm flex-shrink-0">Completo</span>
+                        <span className="text-sm font-black text-emerald-600 sm:flex-shrink-0">Completo</span>
                     ) : (
-                        <span className="text-blue-600 font-black text-sm flex-shrink-0">
+                        <span className="text-sm font-black text-blue-600 sm:flex-shrink-0">
                             {pendingCount} pendiente{pendingCount !== 1 ? "s" : ""}
                         </span>
                     )}
@@ -186,53 +186,53 @@ export default async function AlumnoPage({
             )}
 
             {subjects.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {subjects.map((subject) => {
                         const alreadyEvaluated = completedSubjects.has(subject.id);
 
                         return (
                             <div
                                 key={subject.id}
-                                className={`bg-white rounded-2xl border p-6 shadow-sm transition-all ${
+                                className={`flex h-full flex-col rounded-2xl border p-5 shadow-sm transition-all sm:p-6 ${
                                     alreadyEvaluated
                                         ? "border-emerald-200 opacity-75"
                                         : "border-slate-100 hover:border-blue-200 hover:shadow-md"
                                 }`}
                             >
-                                <div className="flex justify-between items-start mb-3">
-                                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
-                                        {subject.career.code} · C{subject.cuatrimestre}
+                                <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+                                    <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
+                                        {subject.career.code} | C{subject.cuatrimestre}
                                     </span>
-                                    <span className="text-xs text-slate-400 font-mono">{subject.code}</span>
+                                    <span className="break-all text-right font-mono text-xs text-slate-400">{subject.code}</span>
                                 </div>
 
-                                <h3 className="font-black text-slate-800 text-base leading-tight mb-2">
+                                <h3 className="mb-2 min-w-0 break-words text-base font-black leading-tight text-slate-800">
                                     {subject.name}
                                 </h3>
 
-                                <div className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-xl mb-4">
-                                    <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs flex-shrink-0">
+                                <div className="mb-4 flex items-start gap-2 rounded-xl bg-slate-50 p-2.5 sm:items-center">
+                                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
                                         {subject.teacher.name[0]}
                                         {subject.teacher.lastName[0]}
                                     </div>
-                                    <p className="text-sm font-semibold text-slate-700">
+                                    <p className="min-w-0 break-words text-sm font-semibold text-slate-700">
                                         {subject.teacher.name} {subject.teacher.lastName}
                                     </p>
                                 </div>
 
                                 {alreadyEvaluated ? (
-                                    <div className="w-full text-center py-2.5 rounded-xl bg-emerald-50 text-emerald-600 text-sm font-bold border border-emerald-200">
+                                    <div className="mt-auto w-full rounded-xl border border-emerald-200 bg-emerald-50 py-2.5 text-center text-sm font-bold text-emerald-600">
                                         Ya evaluaste esta materia
                                     </div>
                                 ) : activePeriod ? (
                                     <Link
                                         href={`/alumno/evaluar/${subject.id}`}
-                                        className="block w-full text-center py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-blue-600 transition-all active:scale-95"
+                                        className="mt-auto block w-full rounded-xl bg-slate-900 py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-blue-600 active:scale-95"
                                     >
-                                        Evaluar Docente →
+                                        Evaluar Docente
                                     </Link>
                                 ) : (
-                                    <div className="w-full text-center py-2.5 rounded-xl bg-slate-100 text-slate-400 text-sm font-bold cursor-not-allowed">
+                                    <div className="mt-auto w-full cursor-not-allowed rounded-xl bg-slate-100 py-2.5 text-center text-sm font-bold text-slate-400">
                                         Sin periodo activo
                                     </div>
                                 )}

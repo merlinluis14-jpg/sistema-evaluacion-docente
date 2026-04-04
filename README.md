@@ -12,9 +12,11 @@ Sistema web para automatizar la evaluacion del desempeno docente en la Universid
 - Evaluacion estudiantil con validaciones en servidor y una sola captura por materia y periodo
 - Reportes por docente, materia, grupo y carrera
 - Exportacion de `PDF alumnos`, `PDF institucional` y `Excel`
-- Bitacora administrativa (`AdminLog`) y bitacora de importaciones (`ImportLog`)
+- Bitacora administrativa (`AdminLog`) con acciones y accesos de administradores
+- Bitacora de importaciones (`ImportLog`)
 - Administracion de cuentas admin con reautenticacion
 - Politica de privacidad y resguardo de anonimato
+- Evidencia tecnica para carga concurrente, compatibilidad y continuidad operativa
 
 ## Stack tecnologico
 
@@ -82,6 +84,9 @@ El proyecto incluye scripts para respaldo y restauracion:
 
 - Windows:
   - [./scripts/backup.bat](./scripts/backup.bat)
+  - [./scripts/daily-backup-task.bat](./scripts/daily-backup-task.bat)
+  - [./scripts/register-daily-backup-task.ps1](./scripts/register-daily-backup-task.ps1)
+  - [./scripts/unregister-daily-backup-task.ps1](./scripts/unregister-daily-backup-task.ps1)
   - [./scripts/restore.bat](./scripts/restore.bat)
 - Linux/macOS:
   - [./scripts/backup.sh](./scripts/backup.sh)
@@ -92,9 +97,13 @@ Guia completa en [./docs/respaldos-y-recuperacion.md](./docs/respaldos-y-recuper
 ## Documentacion para entrega
 
 - [./docs/matriz-cumplimiento.md](./docs/matriz-cumplimiento.md)
+- [./docs/seguridad-y-continuidad.md](./docs/seguridad-y-continuidad.md)
 - [./docs/operacion-admin.md](./docs/operacion-admin.md)
 - [./docs/respaldos-y-recuperacion.md](./docs/respaldos-y-recuperacion.md)
 - [./docs/plan-pruebas.md](./docs/plan-pruebas.md)
+- [./docs/prueba-carga-ca1.md](./docs/prueba-carga-ca1.md)
+- [./docs/matriz-compatibilidad.md](./docs/matriz-compatibilidad.md)
+- [./docs/validacion-reportes.md](./docs/validacion-reportes.md)
 
 ## Calidad y validacion
 

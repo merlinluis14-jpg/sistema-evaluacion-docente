@@ -3,12 +3,10 @@
 import { useState } from "react";
 import { KeyRound, Check, AlertTriangle } from "lucide-react";
 import { resetTeacherPassword } from "./actions";
-import { useRouter } from "next/navigation";
 
 export function ResetPasswordButton({ teacherId, teacherName }: { teacherId: string; teacherName: string }) {
     const [isPending, setIsPending] = useState(false);
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-    const router = useRouter();
 
     const handleReset = async () => {
         if (!confirm(`¿Estás seguro de que deseas reiniciar la contraseña de ${teacherName}? Volverá a ser su Número de Empleado.`)) {
@@ -27,7 +25,7 @@ export function ResetPasswordButton({ teacherId, teacherName }: { teacherId: str
                 setStatus("error");
                 alert(res.error || "Error al reiniciar la contraseña");
             }
-        } catch (error) {
+        } catch {
             setStatus("error");
             alert("Error de conexión");
         } finally {

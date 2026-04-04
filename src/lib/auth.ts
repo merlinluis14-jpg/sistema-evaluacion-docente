@@ -1,25 +1,53 @@
-// src/lib/auth.ts
-// Configuración completa de NextAuth con roles tipados
-// Sistema de Evaluación Docente — UPTX
-
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+
+type AuthUserLike = {
+    id?: string | null;
+    email?: string | null;
+    role?: string | null;
+};
+
+async function logAdminAccessEvent({
+    userId,
+    action,
+    identifier,
+}: {
+    userId?: string | null;
+    action: "LOGIN" | "LOGIN_FAILED";
+    identifier: string;
+}) {
+    if (!userId) {
+        return;
+    }
+
+    try {
+        await prisma.adminLog.create({
+            data: {
+                userId,
+                action,
+                entity: "ADMIN",
+                entityId: userId,
+                detail: `${action === "LOGIN" ? "Acceso administrativo exitoso" : "Intento fallido de acceso administrativo"}: ${identifier}`,
+            },
+        });
+    } catch (error) {
+        console.error("No fue posible registrar el acceso administrativo:", error);
+    }
+}
 
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
             name: "credentials",
             credentials: {
-
                 username: { label: "Usuario", type: "text" },
-                password: { label: "Contraseña", type: "password" },
+                password: { label: "Contrasena", type: "password" },
             },
             async authorize(credentials) {
                 if (!credentials?.username || !credentials?.password) return null;
 
-                // email para ADMIN/DOCENTE, username (matrícula) para ALUMNO
                 const user = await prisma.user.findFirst({
                     where: {
                         OR: [
@@ -37,7 +65,16 @@ export const authOptions: NextAuthOptions = {
                     user.password
                 );
 
-                if (!passwordMatch) return null;
+                if (!passwordMatch) {
+                    if (user.role === "ADMIN") {
+                        await logAdminAccessEvent({
+                            userId: user.id,
+                            action: "LOGIN_FAILED",
+                            identifier: user.email ?? user.username ?? credentials.username,
+                        });
+                    }
+                    return null;
+                }
 
                 return {
                     id: user.id,
@@ -49,8 +86,21 @@ export const authOptions: NextAuthOptions = {
     ],
 
     callbacks: {
+        async signIn({ user }) {
+            const authUser = user as AuthUserLike;
+
+            if (authUser.role === "ADMIN") {
+                await logAdminAccessEvent({
+                    userId: authUser.id,
+                    action: "LOGIN",
+                    identifier: authUser.email ?? authUser.id ?? "admin",
+                });
+            }
+
+            return true;
+        },
+
         async jwt({ token, user }) {
-            // propiedades custom solo en el login inicial
             if (user) {
                 token.role = user.role;
                 token.id = user.id;

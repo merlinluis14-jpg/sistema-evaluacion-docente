@@ -3,11 +3,13 @@
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit3, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
 import { revalidatePath } from "next/cache";
+import { isPrismaKnownRequestError } from "@/lib/prismaErrors";
+import { getSessionRole } from "@/lib/sessionUser";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +43,7 @@ export default async function EditarMateriaPage({
     "use server";
 
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    if (!session || getSessionRole(session) !== "ADMIN") {
       redirect('/login');
     }
 
@@ -79,9 +81,9 @@ export default async function EditarMateriaPage({
       revalidatePath("/admin/materias");
       redirect("/admin/materias");
 
-    } catch (e: any) {
+    } catch (error) {
       // Código duplicado en la misma carrera (P2002)
-      if (e.code === "P2002") {
+      if (isPrismaKnownRequestError(error) && error.code === "P2002") {
         redirect(`/admin/materias/${id}/editar?error=duplicado`);
       }
       redirect(`/admin/materias/${id}/editar?error=servidor`);

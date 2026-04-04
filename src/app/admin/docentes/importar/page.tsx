@@ -16,7 +16,12 @@ import { runStreamedImport } from "@/lib/import/client";
 import type { ImportProgressState } from "@/lib/import/progress";
 
 type ImportError = { row: number; identifier: string; reason: string };
-type ImportResult = { total: number; success: number; errors: ImportError[] };
+type ImportResult = {
+    total: number;
+    success: number;
+    errors: ImportError[];
+    deactivatedCount?: number;
+};
 
 const CSV_TEMPLATE = `nombre,apellido,email,numero_empleado,carrera_code,tipo_docente,password
 Carlos,Ramirez,c.ramirez@uptex.edu.mx,DOC001,ISC,PA,uptx2026
@@ -35,6 +40,7 @@ export default function ImportarDocentesPage() {
     const [result, setResult] = useState<ImportResult | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
+    const [syncCatalog, setSyncCatalog] = useState(false);
 
     const handleFile = (selectedFile: File) => {
         if (loading) return;
@@ -75,7 +81,7 @@ export default function ImportarDocentesPage() {
             const csv = await file.text();
             const nextResult = await runStreamedImport<ImportResult>({
                 url: "/api/import/docentes",
-                body: { csv },
+                body: { csv, syncCatalog },
                 onProgress: setProgress,
             });
             setResult(nextResult);
@@ -285,6 +291,21 @@ export default function ImportarDocentesPage() {
                             <ImportProgressPanel label="Importando docentes" progress={progress} />
                         )}
 
+                        <label className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+                            <input
+                                type="checkbox"
+                                checked={syncCatalog}
+                                onChange={(event) => setSyncCatalog(event.target.checked)}
+                                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-amber-500"
+                                disabled={loading}
+                            />
+                            <span className="text-sm text-amber-800">
+                                <strong className="block">Sincronizar catalogo importado</strong>
+                                Si se activa, los docentes activos de las carreras incluidas que no
+                                vengan en el CSV se desactivaran para reflejar un reemplazo de catalogo.
+                            </span>
+                        </label>
+
                         <button
                             className={`w-full rounded-xl py-3.5 text-sm font-black transition-all ${
                                 !file || loading
@@ -348,6 +369,14 @@ export default function ImportarDocentesPage() {
                                     <p className="flex items-center gap-2 text-sm font-bold text-emerald-700">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Todos los docentes fueron importados correctamente
+                                    </p>
+                                </div>
+                            )}
+
+                            {(result.deactivatedCount ?? 0) > 0 && (
+                                <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+                                    <p className="text-sm font-bold text-amber-700">
+                                        Sincronizacion aplicada: {result.deactivatedCount} docente(s) fueron desactivados por no aparecer en el CSV.
                                     </p>
                                 </div>
                             )}

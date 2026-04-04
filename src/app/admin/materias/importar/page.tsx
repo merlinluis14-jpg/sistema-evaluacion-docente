@@ -16,7 +16,12 @@ import { runStreamedImport } from "@/lib/import/client";
 import type { ImportProgressState } from "@/lib/import/progress";
 
 type ImportError = { row: number; identifier: string; reason: string };
-type ImportResult = { total: number; success: number; errors: ImportError[] };
+type ImportResult = {
+    total: number;
+    success: number;
+    errors: ImportError[];
+    deactivatedCount?: number;
+};
 
 const CSV_TEMPLATE = `nombre,codigo,cuatrimestre,carrera_code,numero_empleado
 Base de Datos I,ISC-BD1,3,ISC,DOC001
@@ -35,6 +40,7 @@ export default function ImportarMateriasPage() {
     const [result, setResult] = useState<ImportResult | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
+    const [syncCatalog, setSyncCatalog] = useState(false);
 
     const handleFile = (nextFile: File) => {
         if (loading) return;
@@ -75,7 +81,7 @@ export default function ImportarMateriasPage() {
             const csv = await file.text();
             const nextResult = await runStreamedImport<ImportResult>({
                 url: "/api/import/materias",
-                body: { csv },
+                body: { csv, syncCatalog },
                 onProgress: setProgress,
             });
             setResult(nextResult);
@@ -283,6 +289,21 @@ export default function ImportarMateriasPage() {
                             <ImportProgressPanel label="Importando materias" progress={progress} />
                         )}
 
+                        <label className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+                            <input
+                                type="checkbox"
+                                checked={syncCatalog}
+                                onChange={(event) => setSyncCatalog(event.target.checked)}
+                                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-amber-500"
+                                disabled={loading}
+                            />
+                            <span className="text-sm text-amber-800">
+                                <strong className="block">Sincronizar catalogo importado</strong>
+                                Si se activa, las materias activas de las carreras incluidas que no
+                                aparezcan en el CSV se desactivaran para reemplazar el catalogo.
+                            </span>
+                        </label>
+
                         <button
                             className={`w-full rounded-xl py-3.5 text-sm font-black transition-all ${
                                 !file || loading
@@ -346,6 +367,14 @@ export default function ImportarMateriasPage() {
                                     <p className="flex items-center gap-2 text-sm font-bold text-emerald-700">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Todas las materias fueron importadas correctamente
+                                    </p>
+                                </div>
+                            )}
+
+                            {(result.deactivatedCount ?? 0) > 0 && (
+                                <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+                                    <p className="text-sm font-bold text-amber-700">
+                                        Sincronizacion aplicada: {result.deactivatedCount} materia(s) fueron desactivadas por no aparecer en el CSV.
                                     </p>
                                 </div>
                             )}

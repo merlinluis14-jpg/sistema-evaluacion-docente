@@ -1,115 +1,151 @@
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, Database, Lock, UserCheck } from "lucide-react";
+import { ArrowLeft, Database, Lock, ShieldCheck, UserCheck } from "lucide-react";
 
 export const metadata = {
-  title: "Políticas de Privacidad | UPTEX Eval",
+  title: "Politicas de Privacidad | UPTEX Eval",
 };
 
 export default function PrivacidadPage() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
-      
-      {/* Header */}
-      <div className="bg-slate-900 text-white py-16 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500 rounded-full filter blur-[100px] opacity-20 -translate-y-1/2 translate-x-1/3"></div>
-        <div className="max-w-4xl mx-auto px-8 relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2 text-indigo-300 hover:text-white transition-colors text-sm font-bold mb-8">
-            <ArrowLeft className="w-4 h-4" /> Volver al Inicio
+      <div className="relative overflow-hidden bg-slate-900 py-16 text-white">
+        <div className="absolute right-0 top-0 h-[500px] w-[500px] -translate-y-1/2 translate-x-1/3 rounded-full bg-indigo-500 opacity-20 blur-[100px]" />
+        <div className="relative z-10 mx-auto max-w-4xl px-8">
+          <Link
+            href="/"
+            className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-indigo-300 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al Inicio
           </Link>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
-              <ShieldCheck className="w-6 h-6 text-indigo-300" />
+          <div className="mb-4 flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
+              <ShieldCheck className="h-6 w-6 text-indigo-300" />
             </div>
-            <h1 className="text-4xl lg:text-5xl font-black tracking-tight">Políticas de Privacidad</h1>
+            <h1 className="text-4xl font-black tracking-tight lg:text-5xl">
+              Politicas de Privacidad
+            </h1>
           </div>
-          <p className="text-slate-400 text-lg max-w-2xl leading-relaxed">
-            Aviso de Privacidad Integral del Sistema de Evaluación Docente Institucional de la Universidad Politécnica de Texcoco (UPTX).
+          <p className="max-w-2xl text-lg leading-relaxed text-slate-400">
+            Aviso de Privacidad Integral del Sistema de Evaluacion Docente Institucional
+            de la Universidad Politecnica de Texcoco (UPTX).
           </p>
         </div>
       </div>
 
-      {/* Contenido */}
-      <main className="max-w-4xl mx-auto px-8 py-16 -mt-8">
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 lg:p-12 space-y-12 relative z-20">
-          
+      <main className="-mt-8 mx-auto max-w-4xl px-8 py-16">
+        <div className="relative z-20 space-y-12 rounded-3xl border border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/50 lg:p-12">
           <section className="space-y-4">
-            <h2 className="text-2xl font-black text-slate-900 border-b border-slate-100 pb-3">1. Identidad y Domicilio del Responsable</h2>
-            <p className="text-slate-600 leading-relaxed text-sm">
-              La <strong>Universidad Politécnica de Texcoco (UPTX)</strong>, con marco en las Leyes de Protección de Datos Personales, es la entidad responsable del tratamiento y resguardo de los datos recabados a través del <span className="font-bold text-indigo-600">Sistema Web de Evaluación Docente Institucional</span>.
+            <h2 className="border-b border-slate-100 pb-3 text-2xl font-black text-slate-900">
+              1. Identidad y domicilio del responsable
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-600">
+              La <strong>Universidad Politecnica de Texcoco (UPTX)</strong> es la entidad
+              responsable del tratamiento y resguardo de los datos recabados a traves del
+              <span className="font-bold text-indigo-600">
+                {" "}Sistema Web de Evaluacion Docente Institucional
+              </span>.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-black text-slate-900 border-b border-slate-100 pb-3">2. Datos Personales Recabados</h2>
-            <p className="text-slate-600 leading-relaxed text-sm">
-              Para llevar a cabo las finalidades descritas en el presente aviso, el sistema recopila los siguientes datos:
+            <h2 className="border-b border-slate-100 pb-3 text-2xl font-black text-slate-900">
+              2. Datos personales recabados
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-600">
+              Para operar el sistema se recopilan los datos minimos necesarios para
+              autenticacion, asignacion academica, captura de evaluaciones y generacion de
+              reportes institucionales.
             </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <li className="flex gap-3 items-start bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <UserCheck className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                <span className="text-sm font-medium text-slate-700"><strong>Alumnos:</strong> Matrícula institucional, nombres, apellidos y carrera inscrita.</span>
+            <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <li className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <UserCheck className="h-5 w-5 flex-shrink-0 text-indigo-600" />
+                <span className="text-sm font-medium text-slate-700">
+                  <strong>Alumnos:</strong> matricula institucional, nombres, apellidos y
+                  carrera inscrita.
+                </span>
               </li>
-              <li className="flex gap-3 items-start bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <Lock className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-                <span className="text-sm font-medium text-slate-700"><strong>Docentes:</strong> Correo electrónico institucional, nombres, apellidos y número de empleado.</span>
+              <li className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <Lock className="h-5 w-5 flex-shrink-0 text-indigo-600" />
+                <span className="text-sm font-medium text-slate-700">
+                  <strong>Docentes y administradores:</strong> correo institucional,
+                  nombres, apellidos y numero de empleado cuando aplica.
+                </span>
               </li>
             </ul>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-black text-slate-900 border-b border-slate-100 pb-3">3. Finalidades del Tratamiento</h2>
-            <div className="space-y-3 bg-indigo-50/50 border border-indigo-100 p-6 rounded-2xl">
-              <p className="text-sm font-bold text-indigo-900 mb-2">Sus datos serán utilizados exclusivamente para:</p>
-              <ul className="list-disc pl-5 text-slate-600 text-sm space-y-2">
-                <li>Gestión del acceso unificado y seguro a la plataforma de evaluaciones.</li>
-                <li>Asignación de asignaturas y grupos correctos acorde a la carga académica.</li>
-                <li>Generación de los reportes agregados y estadísticos (sin exponer la identidad del electorado) para mejorar el modelo educativo institucional.</li>
-                <li>Registro técnico para auditorías del sistema mediante bitácoras de acciones administrativas (Logs).</li>
+            <h2 className="border-b border-slate-100 pb-3 text-2xl font-black text-slate-900">
+              3. Finalidades del tratamiento
+            </h2>
+            <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-6">
+              <p className="mb-2 text-sm font-bold text-indigo-900">
+                Los datos se utilizan exclusivamente para:
+              </p>
+              <ul className="list-disc space-y-2 pl-5 text-sm text-slate-600">
+                <li>Gestion del acceso seguro a la plataforma.</li>
+                <li>Asignacion correcta de materias, grupos y periodos.</li>
+                <li>Generacion de reportes agregados para mejora institucional.</li>
+                <li>Registro tecnico de auditoria para acciones y accesos administrativos.</li>
               </ul>
             </div>
           </section>
 
           <section className="space-y-6">
-            <h2 className="text-2xl font-black text-slate-900 border-b border-slate-100 pb-3">4. Anonimato y Seguridad</h2>
-            <div className="grid sm:grid-cols-2 gap-6">
+            <h2 className="border-b border-slate-100 pb-3 text-2xl font-black text-slate-900">
+              4. Anonimato y seguridad
+            </h2>
+            <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-emerald-600 mb-1">
-                  <ShieldCheck className="w-5 h-5" />
-                  <h3 className="font-bold">Evaluaciones Anónimas</h3>
+                <div className="mb-1 flex items-center gap-2 text-emerald-600">
+                  <ShieldCheck className="h-5 w-5" />
+                  <h3 className="font-bold">Evaluaciones anonimas</h3>
                 </div>
-                <p className="text-slate-600 text-sm">
-                  Las contestaciones al instrumento <strong className="text-slate-800">FDA-24.5</strong> no son vinculables públicamente al estudiante ante el personal docente, garantizando libertad de expresión y confidencialidad en el proceso.
+                <p className="text-sm text-slate-600">
+                  Las respuestas del instrumento <strong className="text-slate-800">FDA-24.5</strong>
+                  no se exponen publicamente al personal docente con identidad del alumno,
+                  preservando confidencialidad y libertad de expresion.
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-emerald-600 mb-1">
-                  <Database className="w-5 h-5" />
-                  <h3 className="font-bold">Cifrado Estándar</h3>
+                <div className="mb-1 flex items-center gap-2 text-emerald-600">
+                  <Database className="h-5 w-5" />
+                  <h3 className="font-bold">Cifrado y resguardo</h3>
                 </div>
-                <p className="text-slate-600 text-sm">
-                  Las contraseñas de las cuentas institucionales en el aplicativo se resguardan mediante <strong className="text-slate-800">hash bcrypt unidireccional</strong>, y los motores de bases de datos operan con políticas de prevención contra accesos no autorizados e inyecciones lógicas.
+                <p className="text-sm text-slate-600">
+                  Las credenciales se almacenan con <strong className="text-slate-800">hash bcrypt</strong>
+                  y la base de datos institucional opera con <strong className="text-slate-800">cifrado en
+                  reposo y en transito</strong> sobre infraestructura administrada, complementada con control
+                  de acceso por roles, bitacoras administrativas y respaldos diarios.
                 </p>
               </div>
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-black text-slate-900 border-b border-slate-100 pb-3">5. Uso de Cookies y Tecnologías de Rastreo</h2>
-            <p className="text-slate-600 leading-relaxed text-sm">
-              La plataforma emplea cookies de sesión puramente técnicas e indispensables para mantener activa la sesión de inicio seguro del usuario. No se recopila telemetría de comportamiento para fines publicitarios ni se comparten datos de rastreo con terceros.
+            <h2 className="border-b border-slate-100 pb-3 text-2xl font-black text-slate-900">
+              5. Uso de cookies y tecnologias de rastreo
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-600">
+              La plataforma emplea cookies de sesion tecnicas e indispensables para mantener
+              la autenticacion activa. No se utiliza telemetria con fines publicitarios ni se
+              comparten datos de rastreo con terceros.
             </p>
           </section>
 
-          <div className="bg-slate-50 p-6 rounded-2xl text-center border border-slate-100 mt-12 text-sm text-slate-500">
-            <p className="font-bold text-slate-700 mb-1">Actualización del Aviso de Privacidad</p>
-            <p>Última actualización: Marzo 2026. Cualquier modificación será publicada directamente en este apartado.</p>
+          <div className="mt-12 rounded-2xl border border-slate-100 bg-slate-50 p-6 text-center text-sm text-slate-500">
+            <p className="mb-1 font-bold text-slate-700">Actualizacion del aviso de privacidad</p>
+            <p>
+              Ultima actualizacion: Abril 2026. Cualquier modificacion sera publicada
+              directamente en este apartado.
+            </p>
           </div>
-
         </div>
       </main>
 
-      <footer className="max-w-4xl mx-auto px-8 py-10 text-center text-sm font-bold text-slate-400 uppercase tracking-widest">
-        Sistema Web de Evaluación Docente · UPTX
+      <footer className="mx-auto max-w-4xl px-8 py-10 text-center text-sm font-bold uppercase tracking-widest text-slate-400">
+        Sistema Web de Evaluacion Docente · UPTX
       </footer>
     </div>
   );

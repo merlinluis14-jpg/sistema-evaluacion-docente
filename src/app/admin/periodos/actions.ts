@@ -6,10 +6,11 @@ import { redirect } from "next/navigation";
 import { logAdminAction } from "@/lib/adminLog";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getSessionRole } from "@/lib/sessionUser";
 
 async function requireAdmin() {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== "ADMIN") {
+    if (!session || getSessionRole(session) !== "ADMIN") {
         throw new Error("No autorizado");
     }
 }
@@ -76,4 +77,3 @@ export async function deletePeriod(id: string) {
     });
     revalidatePath("/admin/periodos");
 }
-

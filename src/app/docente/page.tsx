@@ -1,11 +1,19 @@
-// Panel del Docente — resultados de evaluación FDA-24.5
-
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+const averageFromPositiveValues = (values: number[]) => {
+    const validValues = values.filter((value) => value > 0);
+    if (validValues.length === 0) return null;
+    return validValues.reduce((total, value) => total + value, 0) / validValues.length;
+};
+
+const formatAverage = (value: number | null, digits: number) => (
+    value === null ? "--" : value.toFixed(digits)
+);
 
 export default async function DocentePage() {
     const session = await getServerSession(authOptions);
@@ -25,140 +33,214 @@ export default async function DocentePage() {
         });
     }
 
-    const todasEvals = teacher?.evaluations ?? [];
-    const totalEvals = todasEvals.length;
-    // Excludes invalid evaluations (e.g. fac_item01 = 0) for averaging
-    const evals = todasEvals.filter(e => e.fac_item01 > 0);
+    const allEvaluations = teacher?.evaluations ?? [];
+    const totalEvaluations = allEvaluations.length;
+    const validEvaluations = allEvaluations.filter((evaluation) => evaluation.fac_item01 > 0);
 
-    const avg = (nums: number[]): string => {
-        const validos = nums.filter(n => n > 0);
-        if (validos.length === 0) return "—";
-        return (validos.reduce((a, b) => a + b, 0) / validos.length).toFixed(2);
-    };
-
-    const facAvg = avg(
-        evals.map(e => {
-            const items = [
-                e.fac_item01, e.fac_item02, e.fac_item03, e.fac_item04,
-                e.fac_item05, e.fac_item06, e.fac_item07, e.fac_item08,
-                e.fac_item09, e.fac_item10, e.fac_item11,
-            ].filter(v => v > 0);
-            return items.length > 0 ? items.reduce((a, b) => a + b, 0) / items.length : 0;
-        })
+    const facAvg = formatAverage(
+        averageFromPositiveValues(
+            validEvaluations
+                .map((evaluation) => averageFromPositiveValues([
+                    evaluation.fac_item01,
+                    evaluation.fac_item02,
+                    evaluation.fac_item03,
+                    evaluation.fac_item04,
+                    evaluation.fac_item05,
+                    evaluation.fac_item06,
+                    evaluation.fac_item07,
+                    evaluation.fac_item08,
+                    evaluation.fac_item09,
+                    evaluation.fac_item10,
+                    evaluation.fac_item11,
+                ]))
+                .filter((value): value is number => value !== null)
+        ),
+        2
     );
 
-    const habAvg = avg(
-        evals.map(e => {
-            const items = [
-                e.hab_item01, e.hab_item02, e.hab_item03, e.hab_item04,
-            ].filter(v => v > 0);
-            return items.length > 0 ? items.reduce((a, b) => a + b, 0) / items.length : 0;
-        })
+    const habAvg = formatAverage(
+        averageFromPositiveValues(
+            validEvaluations
+                .map((evaluation) => averageFromPositiveValues([
+                    evaluation.hab_item01,
+                    evaluation.hab_item02,
+                    evaluation.hab_item03,
+                    evaluation.hab_item04,
+                ]))
+                .filter((value): value is number => value !== null)
+        ),
+        2
     );
 
-    const medAvg = avg(
-        evals.map(e => {
-            const items = [
-                e.med_item01, e.med_item02, e.med_item03,
-                e.med_item04, e.med_item05, e.med_item06,
-            ].filter(v => v > 0);
-            return items.length > 0 ? items.reduce((a, b) => a + b, 0) / items.length : 0;
-        })
+    const medAvg = formatAverage(
+        averageFromPositiveValues(
+            validEvaluations
+                .map((evaluation) => averageFromPositiveValues([
+                    evaluation.med_item01,
+                    evaluation.med_item02,
+                    evaluation.med_item03,
+                    evaluation.med_item04,
+                    evaluation.med_item05,
+                    evaluation.med_item06,
+                ]))
+                .filter((value): value is number => value !== null)
+        ),
+        2
     );
+
+    const recentEvaluations = allEvaluations.map((evaluation) => ({
+        evaluation,
+        facScore: formatAverage(averageFromPositiveValues([
+            evaluation.fac_item01,
+            evaluation.fac_item02,
+            evaluation.fac_item03,
+            evaluation.fac_item04,
+            evaluation.fac_item05,
+            evaluation.fac_item06,
+            evaluation.fac_item07,
+            evaluation.fac_item08,
+            evaluation.fac_item09,
+            evaluation.fac_item10,
+            evaluation.fac_item11,
+        ]), 1),
+        habScore: formatAverage(averageFromPositiveValues([
+            evaluation.hab_item01,
+            evaluation.hab_item02,
+            evaluation.hab_item03,
+            evaluation.hab_item04,
+        ]), 1),
+        medScore: formatAverage(averageFromPositiveValues([
+            evaluation.med_item01,
+            evaluation.med_item02,
+            evaluation.med_item03,
+            evaluation.med_item04,
+            evaluation.med_item05,
+            evaluation.med_item06,
+        ]), 1),
+    }));
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="mb-8">
-                <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+        <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 px-4 py-5 duration-500 sm:space-y-8 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+            <div className="space-y-2">
+                <h1 className="text-2xl font-black tracking-tight text-slate-800 sm:text-3xl">
                     Mis <span className="text-blue-600">Resultados</span>
                 </h1>
                 {teacher ? (
-                    <p className="text-slate-500 mt-1">
-                        {teacher.name} {teacher.lastName} · {teacher.career.name}
+                    <p className="text-sm text-slate-500 sm:text-base">
+                        {teacher.name} {teacher.lastName} | {teacher.career.name}
                     </p>
                 ) : (
-                    <p className="text-slate-400 mt-1 text-sm italic">
-                        No se encontró perfil de docente para esta sesión.
+                    <p className="text-sm italic text-slate-400">
+                        No se encontro perfil de docente para esta sesion.
                     </p>
                 )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {[
-                    { label: "Evaluaciones recibidas", value: totalEvals.toString(), color: "bg-indigo-50 text-indigo-700" },
+                    { label: "Evaluaciones recibidas", value: totalEvaluations.toString(), color: "bg-indigo-50 text-indigo-700" },
                     { label: "Promedio Facilitador", value: facAvg, color: "bg-blue-50 text-blue-700" },
                     { label: "Promedio Habilidades", value: habAvg, color: "bg-emerald-50 text-emerald-700" },
                     { label: "Promedio Medios Did.", value: medAvg, color: "bg-amber-50 text-amber-700" },
                 ].map(({ label, value, color }) => (
-                    <div key={label} className={`rounded-2xl p-5 border border-opacity-30 ${color} border-current`}>
+                    <div key={label} className={`rounded-2xl border border-current border-opacity-30 p-4 sm:p-5 ${color}`}>
                         <p className="text-xs font-bold uppercase tracking-wide opacity-70">{label}</p>
-                        <p className="text-3xl font-black mt-1">{value}</p>
+                        <p className="mt-1 text-3xl font-black">{value}</p>
                     </div>
                 ))}
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+                <div className="flex flex-col gap-1 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <h2 className="font-bold text-slate-800">Evaluaciones Recientes</h2>
-                    <span className="text-xs text-slate-400 font-medium">Últimas 10</span>
+                    <span className="text-xs font-medium text-slate-400">Ultimas 10</span>
                 </div>
 
-                {todasEvals.length === 0 ? (
-                    <div className="p-16 text-center">
-                        <p className="text-slate-400 font-medium">Aún no tienes evaluaciones registradas.</p>
-                        <p className="text-slate-300 text-sm mt-1">Los alumnos podrán evaluarte cuando el periodo esté activo.</p>
+                {allEvaluations.length === 0 ? (
+                    <div className="p-8 text-center sm:p-16">
+                        <p className="font-medium text-slate-400">Aun no tienes evaluaciones registradas.</p>
+                        <p className="mt-1 text-sm text-slate-300">Los alumnos podran evaluarte cuando el periodo este activo.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-slate-50/70 text-left text-xs font-black text-slate-400 uppercase tracking-wider">
-                                    <th className="py-3 pl-6 pr-3">Materia</th>
-                                    <th className="py-3 px-3">Periodo</th>
-                                    <th className="py-3 px-3 text-center">Fac.</th>
-                                    <th className="py-3 px-3 text-center">Hab.</th>
-                                    <th className="py-3 px-3 text-center">Med.</th>
-                                    <th className="py-3 pl-3 pr-6">Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50">
-                                {todasEvals.map((e) => {
-                                    const facItems = [e.fac_item01, e.fac_item02, e.fac_item03, e.fac_item04, e.fac_item05, e.fac_item06, e.fac_item07, e.fac_item08, e.fac_item09, e.fac_item10, e.fac_item11].filter(v => v > 0);
-                                    const habItems = [e.hab_item01, e.hab_item02, e.hab_item03, e.hab_item04].filter(v => v > 0);
-                                    const medItems = [e.med_item01, e.med_item02, e.med_item03, e.med_item04, e.med_item05, e.med_item06].filter(v => v > 0);
-                                    const facScore = facItems.length > 0 ? (facItems.reduce((a, b) => a + b, 0) / facItems.length).toFixed(1) : "—";
-                                    const habScore = habItems.length > 0 ? (habItems.reduce((a, b) => a + b, 0) / habItems.length).toFixed(1) : "—";
-                                    const medScore = medItems.length > 0 ? (medItems.reduce((a, b) => a + b, 0) / medItems.length).toFixed(1) : "—";
+                    <>
+                        <div className="divide-y divide-slate-100 md:hidden">
+                            {recentEvaluations.map(({ evaluation, facScore, habScore, medScore }) => (
+                                <div key={evaluation.id} className="space-y-4 px-4 py-4 sm:px-5">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                                {evaluation.period.name}
+                                            </p>
+                                            <Link
+                                                href={`/docente/resultados/${evaluation.subjectId}`}
+                                                className="mt-1 block text-sm font-semibold leading-snug text-slate-800 transition-colors hover:text-indigo-600"
+                                            >
+                                                {evaluation.subject.name}
+                                            </Link>
+                                        </div>
+                                        <span className="flex-shrink-0 text-xs text-slate-400">
+                                            {new Date(evaluation.createdAt).toLocaleDateString("es-MX")}
+                                        </span>
+                                    </div>
 
-                                    return (
-                                        <tr key={e.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[
+                                            { label: "Fac.", value: facScore, color: "text-indigo-600" },
+                                            { label: "Hab.", value: habScore, color: "text-blue-600" },
+                                            { label: "Med.", value: medScore, color: "text-emerald-600" },
+                                        ].map(({ label, value, color }) => (
+                                            <div key={label} className="rounded-2xl bg-slate-50 px-3 py-2 text-center">
+                                                <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
+                                                <p className={`mt-1 text-lg font-black ${color}`}>{value}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="hidden overflow-x-auto md:block">
+                            <table className="w-full min-w-[44rem]">
+                                <thead>
+                                    <tr className="bg-slate-50/70 text-left text-xs font-black uppercase tracking-wider text-slate-400">
+                                        <th className="py-3 pl-6 pr-3">Materia</th>
+                                        <th className="px-3 py-3">Periodo</th>
+                                        <th className="px-3 py-3 text-center">Fac.</th>
+                                        <th className="px-3 py-3 text-center">Hab.</th>
+                                        <th className="px-3 py-3 text-center">Med.</th>
+                                        <th className="py-3 pl-3 pr-6">Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {recentEvaluations.map(({ evaluation, facScore, habScore, medScore }) => (
+                                        <tr key={evaluation.id} className="transition-colors hover:bg-slate-50/50">
                                             <td className="py-3 pl-6 pr-3 text-sm font-semibold text-slate-800">
-                                                <Link href={'/docente/resultados/' + e.subjectId} className="hover:text-indigo-600 transition-colors">
-                                                    {e.subject.name}
+                                                <Link href={`/docente/resultados/${evaluation.subjectId}`} className="transition-colors hover:text-indigo-600">
+                                                    {evaluation.subject.name}
                                                 </Link>
                                             </td>
-                                            <td className="py-3 px-3 text-xs text-slate-500">{e.period.name}</td>
-                                            <td className="py-3 px-3 text-center">
+                                            <td className="px-3 py-3 text-xs text-slate-500">{evaluation.period.name}</td>
+                                            <td className="px-3 py-3 text-center">
                                                 <span className="font-black text-indigo-600">{facScore}</span>
                                                 <span className="text-xs text-slate-400">/4</span>
                                             </td>
-                                            <td className="py-3 px-3 text-center">
+                                            <td className="px-3 py-3 text-center">
                                                 <span className="font-black text-blue-600">{habScore}</span>
                                                 <span className="text-xs text-slate-400">/5</span>
                                             </td>
-                                            <td className="py-3 px-3 text-center">
+                                            <td className="px-3 py-3 text-center">
                                                 <span className="font-black text-emerald-600">{medScore}</span>
                                                 <span className="text-xs text-slate-400">/5</span>
                                             </td>
                                             <td className="py-3 pl-3 pr-6 text-xs text-slate-400">
-                                                {new Date(e.createdAt).toLocaleDateString("es-MX")}
+                                                {new Date(evaluation.createdAt).toLocaleDateString("es-MX")}
                                             </td>
                                         </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
                 )}
             </div>
         </div>

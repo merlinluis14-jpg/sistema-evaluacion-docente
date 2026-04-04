@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, FilterX, Layers3, Plus, Upload, UserCog } from "lucide-react";
+import { BookOpen, FilterX, Layers3, Pencil, Plus, Upload, UserCog } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { DeleteTeacherButton } from "./DeleteTeacherButton";
 import { ResetPasswordButton } from "./ResetPasswordButton";
@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function DocentesPage({
     searchParams,
 }: {
-    searchParams: Promise<{ career?: string }>;
+    searchParams: Promise<{ career?: string; success?: string }>;
 }) {
-    const { career: careerId } = await searchParams;
+    const { career: careerId, success } = await searchParams;
 
     const teachers = await prisma.teacher.findMany({
         where: careerId ? { careerId } : undefined,
@@ -99,6 +99,12 @@ export default async function DocentesPage({
                     >
                         Ver todos
                     </Link>
+                </div>
+            )}
+
+            {success === "actualizado" && (
+                <div className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700">
+                    El docente se actualizo correctamente.
                 </div>
             )}
 
@@ -231,6 +237,13 @@ export default async function DocentesPage({
                                     </td>
                                     <td className="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                         <div className="flex items-center justify-end gap-2">
+                                            <Link
+                                                href={`/admin/docentes/${teacher.id}/editar`}
+                                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                            >
+                                                <Pencil size={13} />
+                                                Editar
+                                            </Link>
                                             <ResetPasswordButton teacherId={teacher.id} teacherName={`${teacher.name} ${teacher.lastName}`} />
                                             <DeleteTeacherButton teacherId={teacher.id} teacherName={`${teacher.name} ${teacher.lastName}`} />
                                         </div>
