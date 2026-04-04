@@ -160,7 +160,12 @@ export async function parseAndImportAlumnos(
             username: matricula,
             email: normalizedEmail,
             isActive: true,
-            ...(providedPassword ? { password: hashedPassword } : {}),
+            ...(providedPassword
+              ? {
+                  password: hashedPassword,
+                  canChangeInitialPassword: true,
+                }
+              : {}),
           },
         });
 
@@ -183,6 +188,7 @@ export async function parseAndImportAlumnos(
             password: hashedPassword,
             role: "ALUMNO",
             isActive: true,
+            canChangeInitialPassword: true,
           },
         });
 

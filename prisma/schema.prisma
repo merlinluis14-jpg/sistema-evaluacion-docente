@@ -37,6 +37,7 @@ model User {
   password  String            // Hash bcrypt
   role      Role     @default(ALUMNO)
   isActive  Boolean  @default(true)
+  canChangeInitialPassword Boolean @default(false) // ALUMNO con contrasena temporal vigente
   createdAt DateTime @default(now())
 
   teacher   Teacher?

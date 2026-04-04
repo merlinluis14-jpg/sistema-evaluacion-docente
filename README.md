@@ -7,6 +7,7 @@ Sistema web para automatizar la evaluacion del desempeno docente en la Universid
 ## Alcance funcional
 
 - Autenticacion por roles: `ADMIN`, `DOCENTE` y `ALUMNO`
+- Gestion de contrasenas temporales para alumnos con restablecimiento exclusivo por administracion
 - Gestion de carreras, docentes, alumnos, grupos, materias y periodos
 - Importacion masiva por CSV para docentes, materias, alumnos y evaluacion de coordinacion
 - Evaluacion estudiantil con validaciones en servidor y una sola captura por materia y periodo

@@ -45,6 +45,8 @@ Cada catalogo tiene dos vias de mantenimiento:
 - Verificar matricula, carrera y grupo.
 - La importacion crea o reutiliza grupos y enlaza materias compatibles automaticamente.
 - Si un alumno cambia de matricula, correo, carrera, grupo o estatus, usar la opcion `Editar` en la lista de alumnos.
+- La contrasena inicial del alumno es temporal. El alumno puede cambiarla una sola vez desde su panel.
+- Si el alumno olvida su contrasena, el administrador debe usar `Restablecer contrasena` en la lista de alumnos. El acceso vuelve a quedar con contrasena temporal.
 - Si se necesita reemplazar el roster del periodo activo, activar `Sincronizar roster del periodo activo`. El sistema actualiza los grupos del periodo importado sin borrar historial de periodos anteriores.
 
 ### Evaluacion de coordinacion

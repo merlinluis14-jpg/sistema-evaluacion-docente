@@ -62,6 +62,7 @@ export default async function NuevoAlumnoPage({
           email,
           password: hashedPassword,
           role: "ALUMNO",
+          canChangeInitialPassword: true,
           student: {
             create: {
               matricula,
@@ -134,7 +135,7 @@ export default async function NuevoAlumnoPage({
         <div className="bg-slate-900 px-6 py-4">
           <p className="font-black text-white">Datos del alumno</p>
           <p className="mt-0.5 text-xs text-slate-400">
-            La contrasena inicial sera la matricula si no se especifica
+            La contrasena inicial sera temporal y el alumno podra cambiarla una sola vez desde su panel
           </p>
         </div>
 
@@ -239,6 +240,9 @@ export default async function NuevoAlumnoPage({
               placeholder="Dejar vacio para usar la matricula"
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
+            <p className="mt-1 text-xs text-slate-400">
+              Esta contrasena queda como temporal hasta que el alumno la cambie por unica vez.
+            </p>
           </div>
 
           <div className="flex gap-3 pt-2">

@@ -157,7 +157,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                                         ["email", false, "Email institucional opcional"],
                                         ["carrera_code", true, "Codigo de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
                                         ["grupo", true, "Nombre del grupo: 3A, 5B, 2C; se crea si no existe"],
-                                        ["password", false, "Contrasena inicial; si se omite, se usa la matricula"],
+                                        ["password", false, "Contrasena temporal inicial; si se omite, se usa la matricula"],
                                     ].map(([column, required, description]) => (
                                         <tr key={column as string}>
                                             <td className="px-4 py-2">
@@ -359,6 +359,9 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                                     <p className="flex items-center gap-2 text-sm font-bold text-emerald-700">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Todos los alumnos fueron importados correctamente
+                                    </p>
+                                    <p className="mt-1 text-xs text-emerald-600">
+                                        Cada alumno conserva una contrasena temporal y puede reemplazarla una sola vez desde su panel.
                                     </p>
                                 </div>
                             )}

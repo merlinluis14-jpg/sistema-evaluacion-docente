@@ -96,7 +96,12 @@ export default async function EditarAlumnoPage({
           username: matricula,
           email,
           isActive,
-          ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
+          ...(password
+            ? {
+                password: await bcrypt.hash(password, 10),
+                canChangeInitialPassword: true,
+              }
+            : {}),
         },
       });
 
@@ -294,6 +299,9 @@ export default async function EditarAlumnoPage({
               placeholder="Dejar vacio para conservar la actual"
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
+            <p className="mt-1 text-xs text-slate-400">
+              Si capturas una nueva contrasena, quedara como temporal y el alumno podra reemplazarla una sola vez.
+            </p>
           </div>
 
           <div className="flex gap-3 pt-2">

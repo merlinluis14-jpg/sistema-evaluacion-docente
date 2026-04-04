@@ -110,6 +110,7 @@ async function main() {
                 password: studentPassword,
                 role: "ALUMNO",
                 isActive: true,
+                canChangeInitialPassword: true,
             },
         });
 

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function AlumnoPage({
     searchParams,
 }: {
-    searchParams: Promise<{ success?: string; error?: string }>;
+    searchParams: Promise<{ success?: string; error?: string; info?: string }>;
 }) {
     const params = await searchParams;
     const session = await getServerSession(authOptions);
@@ -17,6 +17,11 @@ export default async function AlumnoPage({
     const student = await prisma.student.findFirst({
         where: { userId },
         include: {
+            user: {
+                select: {
+                    canChangeInitialPassword: true,
+                },
+            },
             career: true,
             groups: {
                 include: {
@@ -108,8 +113,40 @@ export default async function AlumnoPage({
                 <div className="flex flex-col gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 sm:flex-row sm:items-center">
                     <span className="text-xl">OK</span>
                     <p className="text-sm font-semibold">
-                        Evaluacion enviada. Gracias por tu participacion.
+                        {params.success === "password-actualizada"
+                            ? "Tu nueva contrasena se guardo correctamente. A partir de ahora solo un administrador podra restablecerla si la olvidas."
+                            : "Evaluacion enviada. Gracias por tu participacion."}
                     </p>
+                </div>
+            )}
+
+            {params.info === "password-bloqueada" && (
+                <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-700 sm:flex-row sm:items-center">
+                    <span className="text-xl">i</span>
+                    <p className="text-sm font-semibold">
+                        Ya utilizaste tu cambio personal de contrasena. Si necesitas otra, solicita el restablecimiento al administrador.
+                    </p>
+                </div>
+            )}
+
+            {student?.user.canChangeInitialPassword && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm font-black text-amber-800">
+                                Tu contrasena actual es temporal
+                            </p>
+                            <p className="mt-1 text-sm text-amber-700">
+                                Puedes reemplazarla una sola vez desde tu panel. Si decides conservarla ahora, despues solo el administrador podra restablecerla.
+                            </p>
+                        </div>
+                        <Link
+                            href="/alumno/cambiar-contrasena"
+                            className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-amber-700"
+                        >
+                            Cambiar contrasena
+                        </Link>
+                    </div>
                 </div>
             )}
 

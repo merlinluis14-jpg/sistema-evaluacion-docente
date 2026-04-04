@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { ChevronLeft, ChevronRight, GraduationCap, Pencil, Plus, Upload } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
+import { ResetStudentPasswordButton } from "./ResetStudentPasswordButton";
 
 export default async function AlumnosPage({
     searchParams,
@@ -49,6 +50,11 @@ export default async function AlumnosPage({
         orderBy: [{ career: { code: "asc" } }, { lastName: "asc" }],
         include: {
             career: true,
+            user: {
+                select: {
+                    canChangeInitialPassword: true,
+                },
+            },
             groups: {
                 include: { group: true },
                 take: 1,
@@ -111,6 +117,12 @@ export default async function AlumnosPage({
             {success === "actualizado" && (
                 <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700">
                     El alumno se actualizo correctamente.
+                </div>
+            )}
+
+            {success === "creado" && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700">
+                    El alumno se registro correctamente con una contrasena temporal.
                 </div>
             )}
 
@@ -224,6 +236,11 @@ export default async function AlumnosPage({
                                     <p className="text-sm font-semibold text-slate-800">
                                         {alumno.name} {alumno.lastName}
                                     </p>
+                                    {alumno.user.canChangeInitialPassword && (
+                                        <p className="mt-1 text-xs font-bold text-amber-600">
+                                            Contrasena temporal activa
+                                        </p>
+                                    )}
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                     <span className="rounded-lg bg-indigo-50 px-2 py-1 text-xs font-black text-indigo-700">
@@ -249,13 +266,19 @@ export default async function AlumnosPage({
                                     )}
                                 </td>
                                 <td className="px-6 py-3 text-right">
-                                    <Link
-                                        href={`/admin/alumnos/${alumno.id}/editar`}
-                                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                                    >
-                                        <Pencil size={13} />
-                                        Editar
-                                    </Link>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <Link
+                                            href={`/admin/alumnos/${alumno.id}/editar`}
+                                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                                        >
+                                            <Pencil size={13} />
+                                            Editar
+                                        </Link>
+                                        <ResetStudentPasswordButton
+                                            studentId={alumno.id}
+                                            studentName={`${alumno.name} ${alumno.lastName}`}
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         ))}
