@@ -2,6 +2,7 @@ import Papa from "papaparse";
 import bcrypt from "bcryptjs";
 
 import { syncTeacherCatalogByCareer } from "@/lib/catalogSync";
+import { getCareerByCodeForImport } from "@/lib/careers";
 import { prisma } from "@/lib/prisma";
 import type { TeacherPosition } from "@/lib/reportes";
 import {
@@ -91,14 +92,12 @@ export async function parseAndImportDocentes(
 
       let careerId = careerCache.get(carrera_code.toUpperCase());
       if (!careerId) {
-        const career = await prisma.career.findFirst({
-          where: { code: carrera_code.toUpperCase(), isActive: true },
-        });
+        const career = await getCareerByCodeForImport(carrera_code);
         if (!career) {
           errors.push({
             row: rowNum,
             identifier: numero_empleado,
-            reason: `Carrera "${carrera_code}" no existe`,
+            reason: `Carrera "${carrera_code}" no existe en el catalogo`,
           });
           continue;
         }

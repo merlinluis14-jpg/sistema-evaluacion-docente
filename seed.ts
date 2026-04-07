@@ -1,11 +1,9 @@
-// seed.ts
 import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "./src/lib/prisma";
 
 async function main() {
-
   try {
     const hashedPassword = await bcrypt.hash("admin123", 10);
 
@@ -20,9 +18,10 @@ async function main() {
         role: Role.ADMIN,
       },
     });
-    console.log("✅ Usuario administrador creado.");
-  } catch (e) {
-    console.error("❌ Error:", e);
+
+    console.log("Usuario administrador creado.");
+  } catch (error) {
+    console.error("Error:", error);
   } finally {
     await prisma.$disconnect();
   }

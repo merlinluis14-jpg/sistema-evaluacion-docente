@@ -1,6 +1,7 @@
 import Papa from "papaparse";
 
 import { syncSubjectCatalogByCareer } from "@/lib/catalogSync";
+import { getCareerByCodeForImport } from "@/lib/careers";
 import { resyncGroupsForSubject } from "@/lib/groupAssignments";
 import {
   buildImportProgress,
@@ -93,18 +94,13 @@ export async function parseAndImportMaterias(
 
       let careerId = careerCache.get(carrera_code.toUpperCase());
       if (!careerId) {
-        const career = await prisma.career.findFirst({
-          where: {
-            code: carrera_code.toUpperCase(),
-            isActive: true,
-          },
-        });
+        const career = await getCareerByCodeForImport(carrera_code);
 
         if (!career) {
           errors.push({
             row: rowNumber,
             identifier: codigo,
-            reason: `Carrera "${carrera_code}" no existe`,
+            reason: `Carrera "${carrera_code}" no existe en el catalogo`,
           });
           continue;
         }

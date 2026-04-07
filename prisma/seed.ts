@@ -18,11 +18,11 @@ async function main() {
     const periodName = "Cuatrimestre Enero-Abril 2026";
 
     const carreras = [
-        { code: "ISC", name: "Ingeniería en Sistemas Computacionales" },
-        { code: "IRO", name: "Ingeniería en Robótica" },
-        { code: "IET", name: "Ingeniería en Electrónica y Telecomunicaciones" },
-        { code: "ILT", name: "Ingeniería en Logística y Transporte" },
-        { code: "LAGE", name: "Licenciatura en Administración y Gestión Empresarial" },
+        { code: "ISC", name: "Ingenieria en Sistemas Computacionales" },
+        { code: "IRO", name: "Ingenieria en Robotica" },
+        { code: "IET", name: "Ingenieria en Electronica y Telecomunicaciones" },
+        { code: "ILT", name: "Ingenieria en Logistica y Transporte" },
+        { code: "LAGE", name: "Licenciatura en Administracion y Gestion Empresarial" },
         { code: "LCIA", name: "Licenciatura en Comercio Internacional y Aduanas" },
     ];
 
@@ -30,8 +30,14 @@ async function main() {
     for (const carrera of carreras) {
         await prisma.career.upsert({
             where: { code: carrera.code },
-            update: { name: carrera.name },
-            create: carrera,
+            update: {
+                name: carrera.name,
+                isActive: true,
+            },
+            create: {
+                ...carrera,
+                isActive: true,
+            },
         });
         console.log(`  OK ${carrera.code} - ${carrera.name}`);
     }
@@ -41,7 +47,11 @@ async function main() {
 
     await prisma.user.upsert({
         where: { email: "admin@uptx.edu.mx" },
-        update: {},
+        update: {
+            password: adminPassword,
+            role: "ADMIN",
+            isActive: true,
+        },
         create: {
             email: "admin@uptx.edu.mx",
             password: adminPassword,
@@ -73,99 +83,26 @@ async function main() {
         },
     });
 
-    console.log("  OK Cuatrimestre Enero-Abril 2026 creado y activo");
-    console.log("  Listo para importar catalogos y ejecutar pruebas manuales.\n");
-
-    console.log("Creando grupos base de prueba...");
-    const dbCarreras = await prisma.career.findMany();
-
-    for (const carrera of dbCarreras) {
-        for (const gName of ["3A", "6B"]) {
-            await prisma.group.upsert({
-                where: { id: `${carrera.code}-${gName}-${periodId}` },
-                update: {
-                    name: gName,
-                    period: periodName,
-                    careerId: carrera.id,
-                    isActive: true,
-                },
-                create: {
-                    id: `${carrera.code}-${gName}-${periodId}`,
-                    name: gName,
-                    period: periodName,
-                    careerId: carrera.id,
-                    isActive: true,
-                },
-            });
-        }
-
-        console.log(`  OK Grupos creados para ${carrera.code}`);
-    }
-
-    console.log("\nCreando alumno de prueba...");
-    const isc = dbCarreras.find((c) => c.code === "ISC");
-    if (isc) {
-        const studentPassword = await bcrypt.hash("password123", 10);
-        const matricula = "122030001";
-
-        const userAlumno = await prisma.user.upsert({
-            where: { username: matricula },
-            update: {
-                password: studentPassword,
-                role: "ALUMNO",
-                isActive: true,
-                canChangeInitialPassword: true,
-            },
-            create: {
-                username: matricula,
-                password: studentPassword,
-                role: "ALUMNO",
-                isActive: true,
-                canChangeInitialPassword: true,
-            },
-        });
-
-        await prisma.student.upsert({
-            where: { userId: userAlumno.id },
-            update: {
-                name: "Juan",
-                lastName: "Perez",
-                matricula,
-                careerId: isc.id,
-                isActive: true,
-            },
-            create: {
-                userId: userAlumno.id,
-                name: "Juan",
-                lastName: "Perez",
-                matricula,
-                careerId: isc.id,
-                isActive: true,
-            },
-        });
-
-        console.log(`  OK Alumno creado: ${matricula} / password123`);
-    }
-
-    const [totalCarreras, totalUsers, totalPeriodos, totalGrupos] = await Promise.all([
+    const [totalCarreras, totalUsuarios, totalPeriodos] = await Promise.all([
         prisma.career.count(),
         prisma.user.count(),
         prisma.period.count(),
-        prisma.group.count(),
     ]);
 
-    console.log("\n========================================");
+    console.log("  OK Cuatrimestre Enero-Abril 2026 creado y activo");
+    console.log("  Estado base listo para importar tus propios CSV.\n");
+
+    console.log("========================================");
     console.log("Seed completado exitosamente");
     console.log("========================================");
     console.log(`Carreras: ${totalCarreras}`);
-    console.log(`Usuarios: ${totalUsers}`);
+    console.log(`Usuarios: ${totalUsuarios}`);
     console.log(`Periodos: ${totalPeriodos}`);
-    console.log(`Grupos: ${totalGrupos}`);
     console.log("========================================\n");
     console.log("Proximos pasos:");
     console.log("1. Login en /login -> admin@uptx.edu.mx / Admin@UPTX2026");
     console.log("2. Importar docentes, materias y alumnos");
-    console.log("3. Ejecutar la prueba manual completa\n");
+    console.log("3. Ejecutar tu prueba manual completa\n");
 }
 
 main()

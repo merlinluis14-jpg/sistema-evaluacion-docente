@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
-    career: { findFirst: jest.fn() },
+    career: { findUnique: jest.fn(), update: jest.fn() },
     group: { findFirst: jest.fn(), create: jest.fn() },
     user: { create: jest.fn(), update: jest.fn() },
     student: {
@@ -50,7 +50,7 @@ describe("parseAndImportAlumnos", () => {
   });
 
   it("reporta error si la carrera no existe", async () => {
-    (prisma.career.findFirst as jest.Mock).mockResolvedValue(null);
+    (prisma.career.findUnique as jest.Mock).mockResolvedValue(null);
 
     const csv = `matricula,nombre,apellido,carrera_code,grupo
 220001,Juan,Perez,INVALID,3A`;
@@ -59,11 +59,11 @@ describe("parseAndImportAlumnos", () => {
 
     expect(result.success).toBe(0);
     expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].reason).toContain("no existe o no esta activa");
+    expect(result.errors[0].reason).toContain("no existe en el catalogo");
   });
 
   it("importa al alumno, lo inscribe en grupo y sincroniza materias del grupo", async () => {
-    (prisma.career.findFirst as jest.Mock).mockResolvedValue({ id: "career_1" });
+    (prisma.career.findUnique as jest.Mock).mockResolvedValue({ id: "career_1", isActive: true });
     (prisma.group.findFirst as jest.Mock).mockResolvedValue({ id: "group_1" });
     (prisma.student.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.user.create as jest.Mock).mockResolvedValue({ id: "user_1" });

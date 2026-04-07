@@ -81,7 +81,7 @@ export default function Home() {
               </div>
 
               <div className="text-center mb-10 mt-4 lg:mt-0">
-                <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">¡Bienvenido!</h1>
+                <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Bienvenido</h1>
                 <p className="text-sm font-medium text-slate-500 tracking-wide">
                   Sistema de Evaluación Académica UPTX
                 </p>
@@ -184,7 +184,7 @@ export default function Home() {
       {/* Footer minimalista, ahora en el flujo normal para evitar solapamientos en móvil */}
       <footer className="w-full text-center mt-auto pt-8 pb-2">
         <div className="inline-flex flex-wrap justify-center items-center gap-x-6 gap-y-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest px-6 py-3 rounded-2xl sm:rounded-full bg-white/60 shadow-sm border border-slate-200/50">
-          <span>© 2026 UPTX</span>
+          <span>(c) 2026 UPTX</span>
           <div className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full"></div>
           <Link href="/privacidad" className="hover:text-slate-800 transition-colors">
             Avisos de Privacidad

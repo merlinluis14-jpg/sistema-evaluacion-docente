@@ -5,6 +5,7 @@ import {
   replaceStudentEnrollmentForGroup,
   syncStudentRosterByPeriod,
 } from "@/lib/catalogSync";
+import { getCareerByCodeForImport } from "@/lib/careers";
 import { syncSubjectsForGroup } from "@/lib/groupAssignments";
 import {
   buildImportProgress,
@@ -91,18 +92,13 @@ export async function parseAndImportAlumnos(
       let careerId = careerCache.get(carrera_code.toUpperCase());
 
       if (!careerId) {
-        const career = await prisma.career.findFirst({
-          where: {
-            code: carrera_code.toUpperCase(),
-            isActive: true,
-          },
-        });
+        const career = await getCareerByCodeForImport(carrera_code);
 
         if (!career) {
           errors.push({
             row: rowNumber,
             matricula,
-            reason: `Carrera "${carrera_code}" no existe o no esta activa`,
+            reason: `Carrera "${carrera_code}" no existe en el catalogo`,
           });
           continue;
         }
