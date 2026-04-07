@@ -23,11 +23,17 @@ export async function createPeriod(formData: FormData) {
     if (!name || !startDate || !endDate) return;
     await requireAdmin();
 
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start >= end) {
+        throw new Error("La fecha de inicio debe ser anterior a la fecha de fin.");
+    }
+
     const period = await prisma.period.create({
         data: {
             name,
-            startDate: new Date(startDate),
-            endDate: new Date(endDate),
+            startDate: start,
+            endDate: end,
             isActive: false,
         },
     });

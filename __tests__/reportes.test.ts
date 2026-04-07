@@ -3,10 +3,11 @@ import {
   buildStudentReport,
   getCareerHeadAverage,
   getApplicableCareerHeadFactors,
+  normalizeAverageToFive,
 } from "@/lib/reportes";
 
 describe("utilidades de reportes", () => {
-  it("calcula correctamente el reporte estudiantil por secciones", () => {
+  it("calcula correctamente el reporte estudiantil y normaliza la seccion del facilitador a base 5", () => {
     const evaluation = {
       fac_item01: 4,
       fac_item02: 4,
@@ -40,15 +41,18 @@ describe("utilidades de reportes", () => {
       auto_item09: 2,
       auto_item10: 2,
       auto_item11: 2,
+      teoriaPractica: 2,
     };
 
     const report = buildStudentReport([evaluation]);
 
     expect(report.promedios.fac).toBe(4);
+    expect(report.promedios.facNormalized).toBe(5);
     expect(report.promedios.hab).toBe(5);
     expect(report.promedios.med).toBe(3);
     expect(report.promedios.auto).toBe(2);
-    expect(report.promedios.global).toBe(4);
+    expect(report.promedios.global).toBe(4.33);
+    expect(report.teoriaPractica.predominant?.label).toContain("Buena combinacion");
   });
 
   it("omite factores no aplicables para docentes PA al calcular la evaluacion de coordinacion", () => {
@@ -74,6 +78,11 @@ describe("utilidades de reportes", () => {
     );
 
     expect(average).toBeCloseTo(4.6667, 4);
+  });
+
+  it("normaliza correctamente una seccion sobre base 4 hacia base 5", () => {
+    expect(normalizeAverageToFive(4, 4)).toBe(5);
+    expect(normalizeAverageToFive(2, 4)).toBe(2.5);
   });
 
   it("genera la calificacion institucional final sobre base de 10 puntos", () => {

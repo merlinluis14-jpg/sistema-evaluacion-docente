@@ -1,19 +1,37 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
+import { resyncGroupsForSubject } from "@/lib/groupAssignments";
+import { prisma } from "@/lib/prisma";
+import { getSessionRole } from "@/lib/sessionUser";
+
+async function requireAdmin() {
+    const session = await getServerSession(authOptions);
+    if (!session || getSessionRole(session) !== "ADMIN") {
+        throw new Error("No autorizado");
+    }
+}
 
 export async function createSubject(formData: FormData) {
-    const name = formData.get("name") as string;
-    const code = formData.get("code") as string;
-    const cuatrimestre = parseInt(formData.get("cuatrimestre") as string, 10);
-    const teacherId = formData.get("teacherId") as string;
-    const careerId = formData.get("careerId") as string;
+    await requireAdmin();
 
-    if (!name || !code || !cuatrimestre || !teacherId || !careerId) {
+    const name = String(formData.get("name") ?? "").trim();
+    const code = String(formData.get("code") ?? "").trim().toUpperCase();
+    const cuatrimestre = parseInt(String(formData.get("cuatrimestre") ?? ""), 10);
+    const teacherId = String(formData.get("teacherId") ?? "").trim();
+    const careerId = String(formData.get("careerId") ?? "").trim();
+
+    if (!name || !code || !teacherId || !careerId || Number.isNaN(cuatrimestre)) {
         return { success: false, error: "Todos los campos son obligatorios" };
+    }
+
+    if (cuatrimestre < 1 || cuatrimestre > 12) {
+        return { success: false, error: "El cuatrimestre debe estar entre 1 y 12" };
     }
 
     try {
@@ -27,13 +45,21 @@ export async function createSubject(formData: FormData) {
                 isActive: true,
             },
         });
+
+        await resyncGroupsForSubject(subject.id, careerId, cuatrimestre);
+
         await logAdminAction({
-            action: "CREATE", entity: "MATERIA", entityId: subject.id,
+            action: "CREATE",
+            entity: "MATERIA",
+            entityId: subject.id,
             detail: `Materia creada: ${name} (${code})`,
         });
     } catch (error) {
         console.error("Error al crear materia:", error);
-        return { success: false, error: "Error al crear la materia. Verifica que el código no esté duplicado en la misma carrera." };
+        return {
+            success: false,
+            error: "Error al crear la materia. Verifica que el codigo no este duplicado en la misma carrera.",
+        };
     }
 
     revalidatePath("/admin/materias");
@@ -41,17 +67,40 @@ export async function createSubject(formData: FormData) {
 }
 
 export async function deleteSubject(id: string) {
+    await requireAdmin();
+
     try {
-        const subject = await prisma.subject.findUnique({ where: { id }, select: { name: true, code: true } });
-        await prisma.subject.delete({ where: { id } });
-        await logAdminAction({
-            action: "DELETE", entity: "MATERIA", entityId: id,
-            detail: `Materia eliminada: ${subject?.name ?? ""} (${subject?.code ?? ""})`,
+        const subject = await prisma.subject.findUnique({
+            where: { id },
+            select: { name: true, code: true, isActive: true },
         });
+
+        if (!subject) {
+            return { success: false, error: "Materia no encontrada" };
+        }
+
+        if (!subject.isActive) {
+            return { success: false, error: "La materia ya estaba inactiva" };
+        }
+
+        await prisma.subject.update({
+            where: { id },
+            data: { isActive: false },
+        });
+
+        await logAdminAction({
+            action: "DEACTIVATE",
+            entity: "MATERIA",
+            entityId: id,
+            detail: `Materia desactivada: ${subject.name} (${subject.code})`,
+        });
+
         revalidatePath("/admin/materias");
+        revalidatePath("/admin/logs");
+
         return { success: true };
     } catch (error) {
-        console.error("Error al eliminar materia:", error);
-        return { success: false, error: "No se pudo eliminar la materia." };
+        console.error("Error al desactivar materia:", error);
+        return { success: false, error: "No se pudo desactivar la materia." };
     }
 }

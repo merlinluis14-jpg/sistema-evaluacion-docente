@@ -6,6 +6,19 @@ export type DetailItem = {
   max: number;
 };
 
+export type TheoryPracticeSummaryItem = {
+  value: number;
+  label: string;
+  count: number;
+  percentage: number;
+};
+
+export type TheoryPracticeSummary = {
+  items: TheoryPracticeSummaryItem[];
+  predominant: TheoryPracticeSummaryItem | null;
+  totalResponses: number;
+};
+
 export type CareerHeadFactorKey =
   | "planCourseScore"
   | "competencyEvalScore"
@@ -134,6 +147,14 @@ const selfAssessmentItems = [
   { key: "auto_item11", label: "Desarrollo competencias", max: 5 },
 ] as const;
 
+export const theoryPracticeOptions = [
+  { value: 1, label: "De acuerdo a la naturaleza del curso, estuvo bien" },
+  { value: 2, label: "Buena combinacion de teoria y practica" },
+  { value: 3, label: "Demasiada teoria y poca practica" },
+  { value: 4, label: "Poca teoria y mucha practica" },
+  { value: 5, label: "Poca teoria y poca practica" },
+] as const;
+
 type EvaluationLike = Record<string, unknown>;
 type CareerHeadEvaluationLike = Partial<Record<CareerHeadFactorKey, number | null>> & {
   comments?: string | null;
@@ -157,6 +178,14 @@ export function computeAverage(values: Array<number | null | undefined>) {
     return 0;
   }
   return validValues.reduce((acc, value) => acc + value, 0) / validValues.length;
+}
+
+export function normalizeAverageToFive(value: number, max: number) {
+  if (max <= 0 || value <= 0) {
+    return 0;
+  }
+
+  return (value / max) * 5;
 }
 
 function computeSectionAverage(evaluations: EvaluationLike[], itemKeys: readonly string[]) {
@@ -184,11 +213,55 @@ function buildSectionDetails(
   }));
 }
 
+export function buildTheoryPracticeSummary(
+  evaluations: EvaluationLike[],
+): TheoryPracticeSummary {
+  const totalResponses = evaluations.reduce((acc, evaluation) => {
+    const value = Number(evaluation.teoriaPractica) || 0;
+    return value >= 1 && value <= 5 ? acc + 1 : acc;
+  }, 0);
+
+  const items = theoryPracticeOptions.map((option) => {
+    const count = evaluations.reduce((acc, evaluation) => {
+      const value = Number(evaluation.teoriaPractica) || 0;
+      return acc + (value === option.value ? 1 : 0);
+    }, 0);
+
+    return {
+      value: option.value,
+      label: option.label,
+      count,
+      percentage: Number(
+        (totalResponses > 0 ? (count / totalResponses) * 100 : 0).toFixed(2),
+      ),
+    };
+  });
+
+  const predominant = items.reduce<TheoryPracticeSummaryItem | null>((current, item) => {
+    if (item.count === 0) {
+      return current;
+    }
+
+    if (!current || item.count > current.count) {
+      return item;
+    }
+
+    return current;
+  }, null);
+
+  return {
+    items,
+    predominant,
+    totalResponses,
+  };
+}
+
 export function buildStudentReport(evaluations: EvaluationLike[]) {
   const facilitador = buildSectionDetails(evaluations, facilitatorItems);
   const habilidades = buildSectionDetails(evaluations, skillItems);
   const medios = buildSectionDetails(evaluations, mediaItems);
   const autoevaluacion = buildSectionDetails(evaluations, selfAssessmentItems);
+  const teoriaPractica = buildTheoryPracticeSummary(evaluations);
 
   const promedioFac = Number(
     computeSectionAverage(
@@ -214,8 +287,11 @@ export function buildStudentReport(evaluations: EvaluationLike[]) {
       selfAssessmentItems.map((item) => item.key),
     ).toFixed(2),
   );
+  const promedioFacNormalizado = Number(
+    normalizeAverageToFive(promedioFac, 4).toFixed(2),
+  );
   const promedioGlobal = Number(
-    computeAverage([promedioFac, promedioHab, promedioMed]).toFixed(2),
+    computeAverage([promedioFacNormalizado, promedioHab, promedioMed]).toFixed(2),
   );
 
   return {
@@ -223,8 +299,10 @@ export function buildStudentReport(evaluations: EvaluationLike[]) {
     habilidades,
     medios,
     autoevaluacion,
+    teoriaPractica,
     promedios: {
       fac: promedioFac,
+      facNormalized: promedioFacNormalizado,
       hab: promedioHab,
       med: promedioMed,
       auto: promedioAuto,

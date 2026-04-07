@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const SCALE_EMBM = [
   { value: 4, label: "E", full: "Excelente" },
@@ -76,6 +76,22 @@ const SEC5 = [
   { name: "auto_item10", label: "Preste en cada clase atencion y disposicion para el aprendizaje?" },
   { name: "auto_item11", label: "Desarrollo de las competencias." },
 ];
+
+const STEP_FIELDS: Record<number, string[]> = {
+  1: SEC1.map((item) => item.name),
+  2: SEC2.map((item) => item.name),
+  3: SEC3.map((item) => item.name),
+  4: ["teoriaPractica"],
+  5: SEC5.map((item) => item.name),
+};
+
+const STEP_TITLES: Record<number, string> = {
+  1: "Evaluacion del Facilitador",
+  2: "Habilidades del Facilitador",
+  3: "Utilizacion de los Medios Didacticos",
+  4: "Relacion Teoria / Practica",
+  5: "Autoevaluacion del Alumno",
+};
 
 type ScaleOption = { value: number; label: string; full: string };
 
@@ -207,21 +223,66 @@ function SectionHeader({
 
 export function EvaluationForm({
   subjectId,
-  teacherId,
   periodId,
   action,
 }: {
   subjectId: string;
-  teacherId: string;
   periodId: string;
   action: (formData: FormData) => void | Promise<void>;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const totalSteps = 5;
 
   const next = () => setStep((current) => Math.min(current + 1, totalSteps));
   const prev = () => setStep((current) => Math.max(current - 1, 1));
+
+  const focusField = (fieldName: string) => {
+    const target =
+      formRef.current?.querySelector<HTMLInputElement>(`input[name="${fieldName}"]`) ??
+      formRef.current?.querySelector<HTMLTextAreaElement>(`textarea[name="${fieldName}"]`);
+
+    if (!target) return;
+
+    target.focus();
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const showValidationError = (stepToShow: number, fieldName: string) => {
+    setValidationMessage(`Completa la seccion "${STEP_TITLES[stepToShow]}" antes de continuar.`);
+
+    if (step === stepToShow) {
+      focusField(fieldName);
+      return;
+    }
+
+    setStep(stepToShow);
+    window.setTimeout(() => focusField(fieldName), 0);
+  };
+
+  const validateStepFields = (stepToValidate: number) => {
+    const form = formRef.current;
+    if (!form) return true;
+
+    const missingField = STEP_FIELDS[stepToValidate].find(
+      (fieldName) => !form.querySelector(`input[name="${fieldName}"]:checked`),
+    );
+
+    if (!missingField) {
+      setValidationMessage(null);
+      return true;
+    }
+
+    showValidationError(stepToValidate, missingField);
+    return false;
+  };
+
+  const handleNext = () => {
+    if (!validateStepFields(step)) return;
+    next();
+  };
 
   const steps = [
     { label: "Facilitador", bg: "bg-blue-600" },
@@ -233,14 +294,33 @@ export function EvaluationForm({
 
   return (
     <form
-      action={async (formData) => {
+      ref={formRef}
+      noValidate
+      onChange={() => {
+        if (validationMessage) {
+          setValidationMessage(null);
+        }
+      }}
+      onSubmit={(event) => {
+        for (let stepIndex = 1; stepIndex <= totalSteps; stepIndex += 1) {
+          if (!validateStepFields(stepIndex)) {
+            event.preventDefault();
+            return;
+          }
+        }
+
         setLoading(true);
-        await action(formData);
+      }}
+      action={async (formData) => {
+        try {
+          await action(formData);
+        } finally {
+          setLoading(false);
+        }
       }}
       className="w-full animate-in space-y-6 fade-in duration-500"
     >
       <input type="hidden" name="subjectId" value={subjectId} />
-      <input type="hidden" name="teacherId" value={teacherId} />
       <input type="hidden" name="periodId" value={periodId} />
 
       <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 sm:items-center sm:px-5">
@@ -249,10 +329,25 @@ export function EvaluationForm({
         </p>
       </div>
 
-      <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto pb-1">
+      {validationMessage && (
+        <div
+          id="evaluation-form-error"
+          role="alert"
+          className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800"
+        >
+          {validationMessage}
+        </div>
+      )}
+
+      <div
+        className="scrollbar-hide flex items-center gap-2 overflow-x-auto pb-1"
+        role="list"
+        aria-label="Progreso de la evaluacion"
+      >
         {steps.map((item, index) => (
-          <div key={item.label} className="flex flex-shrink-0 items-center gap-2">
+          <div key={item.label} className="flex flex-shrink-0 items-center gap-2" role="listitem">
             <div
+              aria-current={step === index + 1 ? "step" : undefined}
               className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-300 ${
                 step === index + 1
                   ? `${item.bg} text-white shadow-md`
@@ -398,6 +493,7 @@ export function EvaluationForm({
                 type="radio"
                 name="teoriaPractica"
                 value={option.value}
+                required
                 className="h-5 w-5 flex-shrink-0 cursor-pointer accent-amber-500"
               />
               <span className="text-sm font-medium leading-relaxed text-slate-700 group-hover:text-slate-900">
@@ -449,10 +545,11 @@ export function EvaluationForm({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-bold text-slate-700">
+            <label htmlFor="comentario_fortalezas" className="block text-sm font-bold text-slate-700">
               Cuales son las fortalezas del docente y que sugerencias darias para hacer mas dinamicas las clases?
             </label>
             <textarea
+              id="comentario_fortalezas"
               name="comentario_fortalezas"
               placeholder="Escribe aqui tu retroalimentacion... (Opcional)"
               className="h-28 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50/50 p-4 text-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
@@ -460,10 +557,11 @@ export function EvaluationForm({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-bold text-slate-700">
+            <label htmlFor="comentario_adicional" className="block text-sm font-bold text-slate-700">
               Consideras necesario realizar algun otro comentario respecto a tu docente?
             </label>
             <textarea
+              id="comentario_adicional"
               name="comentario_adicional"
               placeholder="Comentario adicional... (Opcional)"
               className="h-24 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50/50 p-4 text-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
@@ -473,7 +571,7 @@ export function EvaluationForm({
       </div>
 
       <div className="flex flex-col gap-4 pb-6 pt-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" aria-label={`Paso ${step} de ${totalSteps}`}>
           {Array.from({ length: totalSteps }).map((_, index) => (
             <div
               key={index}
@@ -486,7 +584,7 @@ export function EvaluationForm({
               }`}
             />
           ))}
-          <span className="ml-2 text-xs font-bold text-slate-400">
+          <span className="ml-2 text-xs font-bold text-slate-400" aria-live="polite">
             {step}/{totalSteps}
           </span>
         </div>
@@ -496,6 +594,7 @@ export function EvaluationForm({
             <button
               type="button"
               onClick={prev}
+              disabled={loading}
               className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 sm:w-auto"
             >
               Anterior
@@ -505,7 +604,8 @@ export function EvaluationForm({
           {step < totalSteps ? (
             <button
               type="button"
-              onClick={next}
+              onClick={handleNext}
+              disabled={loading}
               className="w-full rounded-2xl bg-slate-900 px-8 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-slate-700 active:scale-95 sm:w-auto"
             >
               Siguiente

@@ -1,6 +1,6 @@
 nombre,codigo,cuatrimestre,carrera_code,numero_empleado
 Base de Datos I,ISC-BD1,3,ISC,DOC001
-Programación Orientada a Objetos,ISC-POO,4,ISC,DOC001
-Redes de Computadoras,ISC-RC1,5,ISC,DOC002
-Electrónica Básica,IET-EB1,2,IET,DOC003
-Robótica Industrial,IRO-RI1,4,IRO,DOC002
+Programacion Orientada a Objetos,ISC-POO,4,ISC,DOC001
+Redes de Computadoras,ISC-RC1,5,ISC,DOC004
+Electronica Basica,IET-EB1,2,IET,DOC003
+Robotica Industrial,IRO-RI1,4,IRO,DOC002

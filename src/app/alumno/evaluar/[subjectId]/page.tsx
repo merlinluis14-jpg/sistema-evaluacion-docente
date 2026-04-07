@@ -2,18 +2,45 @@ import { prisma } from "@/lib/prisma";
 import { createEvaluation } from "@/app/admin/evaluaciones/actions";
 import { EvaluationForm } from "./EvaluationForm";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function EvaluarPage({ params }: { params: Promise<{ subjectId: string }> }) {
   const { subjectId } = await params;
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
 
-  const [subject, activePeriod] = await Promise.all([
+  const student = userId
+    ? await prisma.student.findUnique({
+        where: { userId },
+        select: { id: true, careerId: true, isActive: true },
+      })
+    : null;
+
+  if (!student?.id || !student.isActive || session?.user?.role !== "ALUMNO") {
+    redirect("/login");
+  }
+
+  const [subject, activePeriod, enrollment] = await Promise.all([
     prisma.subject.findUnique({
       where: { id: subjectId },
       include: { teacher: true, career: true },
     }),
     prisma.period.findFirst({ where: { isActive: true } }),
+    prisma.groupEnrollment.findFirst({
+      where: {
+        studentId: student.id,
+        group: {
+          subjects: {
+            some: { subjectId },
+          },
+        },
+      },
+      select: { id: true },
+    }),
   ]);
 
   if (!subject) {
@@ -24,6 +51,25 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
           <Link
             href="/alumno"
             className="mt-4 inline-block font-semibold text-blue-600 hover:underline"
+          >
+            Volver a mis materias
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!subject.isActive || subject.careerId !== student.careerId || !enrollment) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="max-w-md rounded-3xl border border-rose-100 bg-white p-6 text-center shadow-xl sm:p-10">
+          <h2 className="mb-2 text-2xl font-bold text-rose-700">Acceso no disponible</h2>
+          <p className="mb-6 text-slate-500">
+            Esta materia no pertenece a tu grupo actual o ya no esta disponible para tu cuenta.
+          </p>
+          <Link
+            href="/alumno"
+            className="inline-flex items-center rounded-xl bg-slate-900 px-6 py-3 font-bold text-white transition-all hover:bg-slate-700"
           >
             Volver a mis materias
           </Link>
@@ -76,15 +122,11 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
           <h3 className="break-words text-base font-bold text-slate-800 sm:text-lg">
             {subject.teacher.name} {subject.teacher.lastName}
           </h3>
-          <p className="mt-0.5 text-xs text-slate-400">
-            No. Empleado: {subject.teacher.employeeId}
-          </p>
         </div>
       </div>
 
       <EvaluationForm
         subjectId={subject.id}
-        teacherId={subject.teacherId}
         periodId={activePeriod.id}
         action={createEvaluation}
       />

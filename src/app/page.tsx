@@ -40,7 +40,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-slate-900 font-sans flex flex-col p-4 sm:p-8">
+    <main className="min-h-screen bg-[#fafafa] text-slate-900 font-sans flex flex-col p-4 sm:p-8">
       
       {/* Contenedor flexible para centrar la tarjeta */}
       <div className="flex-1 flex items-center justify-center py-6">
@@ -87,11 +87,15 @@ export default function Home() {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" aria-describedby={error ? "login-error" : undefined}>
                 
                 <div>
+                  <label htmlFor="username" className="sr-only">
+                    Identificador o correo
+                  </label>
                   <div className="relative">
                     <input
+                      id="username"
                       type="text"
                       className="w-full pl-5 pr-11 py-3.5 sm:py-4 bg-[#f4f4f5] border border-transparent rounded-xl text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-4 focus:ring-slate-100 outline-none transition-all font-medium text-sm"
                       placeholder="Identificador o correo"
@@ -109,8 +113,12 @@ export default function Home() {
                 </div>
 
                 <div>
+                  <label htmlFor="password" className="sr-only">
+                    ContraseÃ±a
+                  </label>
                   <div className="relative">
                     <input
+                      id="password"
                       type="password"
                       className="w-full pl-5 pr-11 py-3.5 sm:py-4 bg-[#f4f4f5] border border-transparent rounded-xl text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-4 focus:ring-slate-100 outline-none transition-all font-medium text-sm"
                       placeholder="Contraseña"
@@ -128,7 +136,11 @@ export default function Home() {
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 border border-red-100 text-red-600 text-xs p-3 rounded-xl text-center font-medium mt-1">
+                  <div
+                    id="login-error"
+                    role="alert"
+                    className="bg-red-50 border border-red-100 text-red-600 text-xs p-3 rounded-xl text-center font-medium mt-1"
+                  >
                     {error}
                   </div>
                 )}
@@ -137,10 +149,11 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={loading}
+                    aria-busy={loading}
                     className="w-full py-4 rounded-xl text-sm font-bold text-white bg-[#0f172a] hover:bg-black focus:ring-4 focus:ring-slate-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-slate-200 active:scale-[0.98]"
                   >
                     {loading ? (
-                      <span className="flex items-center justify-center gap-2">
+                      <span className="flex items-center justify-center gap-2" aria-live="polite">
                         <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -183,6 +196,6 @@ export default function Home() {
         </div>
       </footer>
 
-    </div>
+    </main>
   );
 }

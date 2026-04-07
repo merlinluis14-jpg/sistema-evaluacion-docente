@@ -1,43 +1,42 @@
-// Dashboard del Administrador — Sistema de Evaluación Docente UPTX
-import React from "react";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import ImportDropdown from "@/app/admin/components/ImportDropdown";
 import {
-  UserCog,
-  GraduationCap,
-  BookOpen,
-  ClipboardList,
-  UserPlus,
-  Calendar,
-  BarChart2,
   AlertTriangle,
   ArrowRight,
+  BarChart2,
+  BookOpen,
+  Calendar,
+  CheckCircle2,
+  ClipboardList,
+  Database,
+  GraduationCap,
+  Lightbulb,
   ScrollText,
   ShieldCheck,
-  Lightbulb,
-  CheckCircle2,
-  Database,
+  UserCog,
+  UserPlus,
 } from "lucide-react";
 
+import ImportDropdown from "@/app/admin/components/ImportDropdown";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
 const ACTION_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  CREATE:     { bg: "bg-emerald-50",  text: "text-emerald-700", label: "Creación"       },
-  DELETE:     { bg: "bg-red-50",      text: "text-red-700",     label: "Eliminación"    },
-  UPDATE:     { bg: "bg-blue-50",     text: "text-blue-700",    label: "Actualización"  },
-  ACTIVATE:   { bg: "bg-amber-50",    text: "text-amber-700",   label: "Activación"     },
-  DEACTIVATE: { bg: "bg-slate-100",   text: "text-slate-600",   label: "Desactivación"  },
-  IMPORT:     { bg: "bg-violet-50",   text: "text-violet-700",  label: "Importación"    },
+  CREATE: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Creacion" },
+  DELETE: { bg: "bg-red-50", text: "text-red-700", label: "Eliminacion" },
+  UPDATE: { bg: "bg-blue-50", text: "text-blue-700", label: "Actualizacion" },
+  ACTIVATE: { bg: "bg-amber-50", text: "text-amber-700", label: "Activacion" },
+  DEACTIVATE: { bg: "bg-slate-100", text: "text-slate-600", label: "Desactivacion" },
+  IMPORT: { bg: "bg-violet-50", text: "text-violet-700", label: "Importacion" },
 };
 
 const ENTITY_STYLES: Record<string, { bg: string; text: string }> = {
-  ADMIN:      { bg: "bg-blue-50",    text: "text-blue-700"    },
-  DOCENTE:    { bg: "bg-blue-50",    text: "text-blue-700"    },
-  MATERIA:    { bg: "bg-indigo-50",  text: "text-indigo-700"  },
-  PERIODO:    { bg: "bg-amber-50",   text: "text-amber-700"   },
-  ALUMNO:     { bg: "bg-emerald-50", text: "text-emerald-700" },
-  EVALUACION: { bg: "bg-violet-50",  text: "text-violet-700"  },
+  ADMIN: { bg: "bg-blue-50", text: "text-blue-700" },
+  DOCENTE: { bg: "bg-blue-50", text: "text-blue-700" },
+  MATERIA: { bg: "bg-indigo-50", text: "text-indigo-700" },
+  PERIODO: { bg: "bg-amber-50", text: "text-amber-700" },
+  ALUMNO: { bg: "bg-emerald-50", text: "text-emerald-700" },
+  EVALUACION: { bg: "bg-violet-50", text: "text-violet-700" },
 };
 
 export const dynamic = "force-dynamic";
@@ -45,43 +44,83 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   await getServerSession(authOptions);
 
-  const [totalAdmins, totalDocentes, totalAlumnos, totalMaterias, totalEvaluaciones, periodoActivo, recentLogs] =
-    await Promise.all([
-      prisma.user.count({ where: { role: "ADMIN", isActive: true } }),
-      prisma.teacher.count({ where: { isActive: true } }),
-      prisma.student.count({ where: { isActive: true } }),
-      prisma.subject.count({ where: { isActive: true } }),
-      prisma.evaluation.count(),
-      prisma.period.findFirst({ where: { isActive: true } }),
-      prisma.adminLog.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      }),
-    ]);
+  const [
+    totalAdmins,
+    totalDocentes,
+    totalAlumnos,
+    totalMaterias,
+    totalEvaluaciones,
+    periodoActivo,
+    recentLogs,
+  ] = await Promise.all([
+    prisma.user.count({ where: { role: "ADMIN", isActive: true } }),
+    prisma.teacher.count({ where: { isActive: true } }),
+    prisma.student.count({ where: { isActive: true } }),
+    prisma.subject.count({ where: { isActive: true } }),
+    prisma.evaluation.count(),
+    prisma.period.findFirst({ where: { isActive: true } }),
+    prisma.adminLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+  ]);
 
-  const userIds = [...new Set(recentLogs.map((l: { userId: string }) => l.userId))] as string[];
-  const users = userIds.length > 0
-    ? await prisma.user.findMany({
-        where: { id: { in: userIds } },
-        select: { id: true, email: true, username: true },
-      })
-    : [];
-  const userMap = new Map(users.map(u => [u.id, u.email ?? u.username ?? "Admin"]));
+  const userIds = [...new Set(recentLogs.map((log) => log.userId))] as string[];
+  const users =
+    userIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: userIds } },
+          select: { id: true, email: true, username: true },
+        })
+      : [];
+
+  const userMap = new Map(users.map((user) => [user.id, user.email ?? user.username ?? "Admin"]));
 
   const stats = [
-    { label: "Admins",      value: totalAdmins,      Icon: ShieldCheck,   color: "bg-slate-50 text-slate-700", border: "border-slate-200" },
-    { label: "Docentes",    value: totalDocentes,    Icon: UserCog,       color: "bg-blue-50 text-blue-700",   border: "border-blue-100" },
-    { label: "Alumnos",     value: totalAlumnos,     Icon: GraduationCap, color: "bg-indigo-50 text-indigo-700", border: "border-indigo-100" },
-    { label: "Materias",    value: totalMaterias,    Icon: BookOpen,      color: "bg-violet-50 text-violet-700", border: "border-violet-100" },
-    { label: "Evaluaciones",value: totalEvaluaciones,Icon: ClipboardList, color: "bg-emerald-50 text-emerald-700",border: "border-emerald-100" },
+    {
+      label: "Admins",
+      value: totalAdmins,
+      Icon: ShieldCheck,
+      panel: "from-slate-50 to-white",
+      icon: "bg-slate-100 text-slate-700",
+    },
+    {
+      label: "Docentes",
+      value: totalDocentes,
+      Icon: UserCog,
+      panel: "from-blue-50 to-white",
+      icon: "bg-blue-100 text-blue-700",
+    },
+    {
+      label: "Alumnos",
+      value: totalAlumnos,
+      Icon: GraduationCap,
+      panel: "from-indigo-50 to-white",
+      icon: "bg-indigo-100 text-indigo-700",
+    },
+    {
+      label: "Materias",
+      value: totalMaterias,
+      Icon: BookOpen,
+      panel: "from-violet-50 to-white",
+      icon: "bg-violet-100 text-violet-700",
+    },
+    {
+      label: "Evaluaciones",
+      value: totalEvaluaciones,
+      Icon: ClipboardList,
+      panel: "from-emerald-50 to-white",
+      icon: "bg-emerald-100 text-emerald-700",
+    },
   ];
 
   const quickLinks = [
-    { href: "/admin/docentes/nuevo",  label: "Nuevo Docente",    Icon: UserPlus  },
-    { href: "/admin/administradores", label: "Administradores",  Icon: ShieldCheck },
-    { href: "/admin/periodos",        label: "Gestionar Periodos",Icon: Calendar  },
-    { href: "/admin/reportes",        label: "Ver Reportes",     Icon: BarChart2 },
+    { href: "/admin/docentes/nuevo", label: "Nuevo Docente", Icon: UserPlus },
+    { href: "/admin/administradores", label: "Administradores", Icon: ShieldCheck },
+    { href: "/admin/periodos", label: "Gestionar Periodos", Icon: Calendar },
+    { href: "/admin/reportes", label: "Ver Reportes", Icon: BarChart2 },
   ];
+
   const recommendations = [
     {
       title: periodoActivo ? "Periodo listo para evaluar" : "Activa un periodo antes de abrir evaluaciones",
@@ -93,7 +132,8 @@ export default async function AdminPage() {
     },
     {
       title: "Carga masiva recomendada",
-      description: "Importa primero docentes, luego materias y finalmente alumnos para enlazar mejor los grupos.",
+      description:
+        "Importa primero docentes, luego materias y finalmente alumnos para enlazar mejor los grupos.",
       tone: totalDocentes > 0 && totalMaterias > 0 && totalAlumnos > 0 ? "blue" : "slate",
       Icon: Database,
     },
@@ -143,80 +183,140 @@ export default async function AdminPage() {
   };
 
   return (
-    <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
+    <div className="relative space-y-8 p-4 sm:p-6 lg:p-8">
+      <div className="pointer-events-none absolute inset-x-6 top-4 -z-10 h-72 rounded-[2rem] bg-gradient-to-b from-blue-50/70 via-slate-50 to-transparent blur-2xl sm:inset-x-10" />
 
+      <section className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_45px_-24px_rgba(15,23,42,0.2)] backdrop-blur">
+        <div className="pointer-events-none absolute right-0 top-0 h-36 w-36 rounded-full bg-blue-100/60 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-12 h-24 w-24 rounded-full bg-emerald-100/60 blur-3xl" />
 
-      <div className="flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-800">
-            Dashboard de <span className="text-blue-600">Administración</span>
-          </h1>
-          <p className="text-slate-500 mt-2 text-sm">Panel de control del Sistema de Evaluación Docente UPTX</p>
+        <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0">
+            <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
+              Centro de Operación
+            </div>
+
+            <h1 className="mt-4 text-3xl font-black text-slate-800">
+              Panel de <span className="text-blue-600">Administración</span>
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+              Supervisa catálogos, captura, reportes y trazabilidad del sistema en una sola vista.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:min-w-[340px]">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 shadow-sm">
+              <div className="flex items-center gap-2 text-slate-400">
+                <Calendar className="h-4 w-4 text-blue-600" />
+                <span className="text-[11px] font-black uppercase tracking-wide">Estado del Periodo</span>
+              </div>
+              <p className="mt-2 text-lg font-black text-slate-800">
+                {periodoActivo ? "Activo" : "Pendiente"}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {periodoActivo ? periodoActivo.name : "Necesitas activar uno para capturar"}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 shadow-sm">
+              <div className="flex items-center gap-2 text-slate-400">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span className="text-[11px] font-black uppercase tracking-wide">Estado del Sistema</span>
+              </div>
+              <p className="mt-2 text-lg font-black text-slate-800">
+                {totalAdmins > 0 && totalDocentes > 0 && totalAlumnos > 0 ? "Operando" : "En configuración"}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Operación general lista para carga, seguimiento y reportes.
+              </p>
+            </div>
+          </div>
         </div>
-        <div className={`px-4 py-2 rounded-xl text-sm font-bold flex-shrink-0 ${periodoActivo
-            ? "bg-blue-50 text-blue-700"
-            : "bg-amber-100 text-amber-700"
-          }`}
-            title={periodoActivo ? `Periodo activo: ${periodoActivo.name}` : "Sin periodo activo"}
-        >
-          {periodoActivo
-            ? `Periodo activo`
-            : "Sin periodo activo"}
-        </div>
-      </div>
+      </section>
 
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {stats.map(({ label, value, Icon, color, border }) => (
-          <div key={label} className={`bg-white rounded-2xl p-6 shadow-sm border ${border}`}>
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-              <Icon className="w-5 h-5" />
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {stats.map(({ label, value, Icon, panel, icon }) => (
+          <div
+            key={label}
+            className={`rounded-3xl border border-slate-200/80 bg-gradient-to-br ${panel} p-5 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.18)]`}
+          >
+            <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${icon}`}>
+              <Icon className="h-5 w-5" />
             </div>
             <p className="text-3xl font-black text-slate-800">{value}</p>
-            <p className="text-sm text-slate-400 mt-0.5">{label}</p>
+            <p className="mt-1 text-sm font-medium text-slate-500">{label}</p>
           </div>
         ))}
-      </div>
+      </section>
 
-
-      <div>
-        <h2 className="text-lg font-bold text-slate-700 mb-4">Accesos rápidos</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          {quickLinks.map(({ href, label, Icon }, i) => (
-            <React.Fragment key={href}>
-              {i === 1 && <ImportDropdown />}
-              <Link
-                href={href}
-                className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all group"
-              >
-                <Icon className="w-5 h-5 text-slate-500 group-hover:text-blue-600 transition-colors flex-shrink-0" />
-                <span className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
-                  {label}
-                </span>
+      {!periodoActivo && (
+        <div className="flex items-start gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+          <AlertTriangle className="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-500" />
+          <div>
+            <p className="font-bold text-amber-800">No hay periodo de evaluacion activo</p>
+            <p className="mt-0.5 text-sm text-amber-700">
+              Los alumnos no podran evaluar hasta que actives un periodo.{" "}
+              <Link href="/admin/periodos" className="font-semibold underline hover:text-amber-800">
+                Ir a Periodos
               </Link>
-            </React.Fragment>
+            </p>
+          </div>
+        </div>
+      )}
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+              <ArrowRight className="h-3.5 w-3.5 text-blue-600" />
+              Acciones Operativas
+            </div>
+            <h2 className="mt-3 text-xl font-black text-slate-800">Accesos rapidos del panel</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Atajos para las tareas administrativas mas frecuentes dentro del sistema.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <ImportDropdown />
+          {quickLinks.map(({ href, label, Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+            >
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors group-hover:bg-blue-50 group-hover:text-blue-600">
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-700 transition-colors group-hover:text-blue-700">
+                  {label}
+                </p>
+              </div>
+            </Link>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100">
+      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)]">
+        <div className="border-b border-slate-100 px-6 py-5">
           <div className="flex items-center gap-2">
-            <Lightbulb className="w-5 h-5 text-amber-500" />
+            <Lightbulb className="h-5 w-5 text-amber-500" />
             <h2 className="font-bold text-slate-700">Recomendaciones de uso</h2>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="mt-1 text-xs text-slate-400">
             Sugerencias practicas para operar el sistema con orden y reducir errores en captura y reportes.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+        <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
           {recommendations.map(({ title, description, tone, Icon }) => {
             const style = tipStyles[tone];
             return (
               <div key={title} className={`rounded-2xl border p-5 ${style.card}`}>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${style.icon}`}>
-                  <Icon className="w-5 h-5" />
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${style.icon}`}>
+                  <Icon className="h-5 w-5" />
                 </div>
                 <p className={`mt-4 text-sm font-black ${style.title}`}>{title}</p>
                 <p className={`mt-1 text-sm leading-relaxed ${style.text}`}>{description}</p>
@@ -227,100 +327,131 @@ export default async function AdminPage() {
 
         <div className="border-t border-slate-100 bg-slate-50/70 px-6 py-5">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-blue-600" />
+            <CheckCircle2 className="h-4 w-4 text-blue-600" />
             <h3 className="text-sm font-bold text-slate-700">Flujo sugerido para administracion diaria</h3>
           </div>
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="rounded-xl bg-white border border-slate-100 px-4 py-3">
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
               <p className="text-xs font-black uppercase tracking-wide text-slate-500">1. Configuracion</p>
-              <p className="mt-1 text-sm text-slate-600">Verifica periodo activo, cuentas admin y catalogos base antes de abrir captura.</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Verifica periodo activo, cuentas admin y catalogos base antes de abrir captura.
+              </p>
             </div>
-            <div className="rounded-xl bg-white border border-slate-100 px-4 py-3">
+            <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
               <p className="text-xs font-black uppercase tracking-wide text-slate-500">2. Operacion</p>
-              <p className="mt-1 text-sm text-slate-600">Importa datos en el orden recomendado y valida con una evaluacion de prueba.</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Importa datos en el orden recomendado y valida con una evaluacion de prueba.
+              </p>
             </div>
-            <div className="rounded-xl bg-white border border-slate-100 px-4 py-3">
+            <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
               <p className="text-xs font-black uppercase tracking-wide text-slate-500">3. Cierre</p>
-              <p className="mt-1 text-sm text-slate-600">Revisa reportes por docente, materia, grupo y carrera antes de exportar PDFs.</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Revisa reportes por docente, materia, grupo y carrera antes de exportar PDFs.
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Actividad reciente */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ScrollText className="w-5 h-5 text-blue-600" />
-            <h2 className="font-bold text-slate-700">Actividad reciente</h2>
+      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <ScrollText className="h-5 w-5 text-blue-600" />
+              <h2 className="font-bold text-slate-700">Actividad reciente</h2>
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              Ultimos movimientos administrativos registrados por el sistema.
+            </p>
           </div>
           <Link
             href="/admin/logs"
-            className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
+            className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 transition-colors hover:text-blue-800"
           >
-            Ver todos los logs <ArrowRight size={12} />
+            Ver todos los logs
+            <ArrowRight size={12} />
           </Link>
         </div>
 
         {recentLogs.length === 0 ? (
-          <div className="text-center py-12">
-            <ClipboardList className="w-10 h-10 mb-2 text-slate-300 mx-auto" />
-            <p className="font-bold text-slate-400 text-sm">Sin actividad registrada</p>
+          <div className="py-14 text-center">
+            <ClipboardList className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+            <p className="text-sm font-bold text-slate-400">Sin actividad registrada</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[860px]">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="text-left px-6 py-2.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Fecha</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Acción</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Entidad</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Detalle</th>
-                  <th className="text-left px-4 py-2.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Usuario</th>
+                <tr className="border-b border-slate-100 bg-slate-50/80">
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Fecha
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Accion
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Entidad
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Detalle
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Usuario
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
-                {recentLogs.map(log => {
-                  const actionStyle = ACTION_STYLES[log.action] ?? { bg: "bg-slate-100", text: "text-slate-600", label: log.action };
-                  const entityStyle = ENTITY_STYLES[log.entity] ?? { bg: "bg-slate-100", text: "text-slate-600" };
+              <tbody className="divide-y divide-slate-100">
+                {recentLogs.map((log) => {
+                  const actionStyle = ACTION_STYLES[log.action] ?? {
+                    bg: "bg-slate-100",
+                    text: "text-slate-600",
+                    label: log.action,
+                  };
+                  const entityStyle = ENTITY_STYLES[log.entity] ?? {
+                    bg: "bg-slate-100",
+                    text: "text-slate-600",
+                  };
+
                   return (
-                    <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={log.id} className="transition-colors hover:bg-slate-50/60">
                       <td className="px-6 py-3">
                         <div className="text-sm font-medium text-slate-700">
                           {new Date(log.createdAt).toLocaleDateString("es-MX", {
-                            day: "2-digit", month: "short", year: "numeric",
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
                           })}
                         </div>
                         <div className="text-xs text-slate-400">
                           {new Date(log.createdAt).toLocaleTimeString("es-MX", {
-                            hour: "2-digit", minute: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
                           })}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${actionStyle.bg} ${actionStyle.text}`}>
+                        <span
+                          className={`rounded-lg px-2.5 py-1 text-xs font-bold ${actionStyle.bg} ${actionStyle.text}`}
+                        >
                           {actionStyle.label}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${entityStyle.bg} ${entityStyle.text}`}>
+                        <span
+                          className={`rounded-lg px-2.5 py-1 text-xs font-bold ${entityStyle.bg} ${entityStyle.text}`}
+                        >
                           {log.entity}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <p className="text-sm text-slate-600 max-w-xs truncate">
-                          {log.detail ?? "—"}
+                        <p className="max-w-sm truncate text-sm text-slate-600">
+                          {log.detail ?? "-"}
                         </p>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center">
-                            <UserCog size={12} className="text-slate-500" />
-                          </div>
-                          <span className="text-xs text-slate-500 font-medium truncate max-w-[120px]">
-                            {userMap.get(log.userId) ?? "Sistema"}
-                          </span>
-                        </div>
+                        <span className="text-sm font-medium text-slate-500">
+                          {userMap.get(log.userId) ?? "Sistema"}
+                        </span>
                       </td>
                     </tr>
                   );
@@ -329,24 +460,7 @@ export default async function AdminPage() {
             </table>
           </div>
         )}
-      </div>
-
-
-      {!periodoActivo && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4">
-          <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-bold text-amber-800">No hay periodo de evaluación activo</p>
-            <p className="text-amber-600 text-sm mt-0.5">
-              Los alumnos no podrán evaluar hasta que actives un periodo.{" "}
-              <Link href="/admin/periodos" className="underline font-semibold hover:text-amber-800">
-                Ir a Periodos →
-              </Link>
-            </p>
-          </div>
-        </div>
-      )}
-
+      </section>
     </div>
   );
 }

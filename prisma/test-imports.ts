@@ -1,6 +1,7 @@
 /**
- * Script de validación para los parsers de importación CSV.
- * Ejecuta los tres parsers directamente contra la base de datos.
+ * Script de validacion para los parsers de importacion CSV.
+ * Ejecuta los tres parsers directamente contra la base de datos
+ * en el orden operativo recomendado.
  *
  * Uso: npx tsx prisma/test-imports.ts
  */
@@ -41,28 +42,42 @@ async function main() {
   const { parseAndImportDocentes } = await import("../src/lib/csv/parseDocentes");
   printResult("DOCENTES", await parseAndImportDocentes(readCsv("docentes_test.csv")));
 
-  // Alumnos — requiere periodo activo
-  const periodo = await prisma.period.findFirst({ where: { isActive: true }, select: { name: true } });
+  // Materias
+  const { parseAndImportMaterias } = await import("../src/lib/csv/parseMaterias");
+  printResult("MATERIAS", await parseAndImportMaterias(readCsv("materias_test.csv")));
+
+  // Alumnos
+  const periodo = await prisma.period.findFirst({
+    where: { isActive: true },
+    select: { name: true },
+  });
+
   if (!periodo) {
-    console.warn("  Sin periodo activo — omitiendo importacion de alumnos.");
+    console.warn("  Sin periodo activo - omitiendo importacion de alumnos.");
   } else {
     const { parseAndImportAlumnos } = await import("../src/lib/csv/parseAlumnos");
     printResult("ALUMNOS", await parseAndImportAlumnos(readCsv("alumnos_test.csv"), periodo.name));
   }
 
-  // Materias — requiere docentes existentes
-  const { parseAndImportMaterias } = await import("../src/lib/csv/parseMaterias");
-  printResult("MATERIAS", await parseAndImportMaterias(readCsv("materias_test.csv")));
-
-  // Totales finales
-  const [docentes, alumnos, materias] = await Promise.all([
+  const [docentes, alumnos, materias, grupos, relacionesGrupoMateria] = await Promise.all([
     prisma.teacher.count({ where: { isActive: true } }),
     prisma.student.count({ where: { isActive: true } }),
     prisma.subject.count({ where: { isActive: true } }),
+    prisma.group.count({ where: { isActive: true } }),
+    prisma.groupSubject.count(),
   ]);
-  console.log(`\nTotales en BD: Docentes=${docentes}  Alumnos=${alumnos}  Materias=${materias}`);
+
+  console.log(
+    `\nTotales en BD: Docentes=${docentes}  Alumnos=${alumnos}  Materias=${materias}  Grupos=${grupos}  GrupoMateria=${relacionesGrupoMateria}`,
+  );
 }
 
 main()
-  .catch((e) => { console.error("Error:", e); process.exit(1); })
-  .finally(async () => { await prisma.$disconnect(); await pool.end(); });
+  .catch((e) => {
+    console.error("Error:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+    await pool.end();
+  });

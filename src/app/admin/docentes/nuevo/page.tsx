@@ -22,6 +22,9 @@ export default function NuevoDocentePage() {
         try {
             const result = await createTeacher(formData);
             if (result.success) {
+                alert(
+                    `Cuenta docente creada para ${result.email}.\n\nContrasena temporal: ${result.temporaryPassword}\n\nCompartela por un canal seguro antes de salir de esta pantalla.`,
+                );
                 router.push("/admin/docentes");
             } else {
                 alert(result.error || "Error al registrar docente");
@@ -50,7 +53,7 @@ export default function NuevoDocentePage() {
                     Registrar Nuevo Docente
                 </h1>
                 <p className="text-gray-500 mt-2">
-                    Se creara un usuario con rol DOCENTE. La contrasena temporal sera su numero de empleado.
+                    Se creara un usuario con rol DOCENTE y una contrasena temporal aleatoria para entrega segura.
                 </p>
             </div>
 
@@ -77,7 +80,7 @@ export default function NuevoDocentePage() {
                         <div className="space-y-2">
                             <label htmlFor="employeeId" className={labelClass}>Numero de Empleado</label>
                             <input type="text" id="employeeId" name="employeeId" required className={inputClass} placeholder="Ej. E1234567" />
-                            <p className="text-xs text-gray-400">Tambien sera la contrasena temporal.</p>
+                            <p className="text-xs text-gray-400">Se conserva para identificacion institucional, no como contrasena.</p>
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="careerId" className={labelClass}>Carrera Principal</label>

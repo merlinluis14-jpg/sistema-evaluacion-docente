@@ -25,12 +25,12 @@ type ImportResult = {
 
 const CSV_TEMPLATE = `nombre,apellido,email,numero_empleado,carrera_code,tipo_docente,password
 Carlos,Ramirez,c.ramirez@uptex.edu.mx,DOC001,ISC,PA,uptx2026
-Maria,Gonzalez,m.gonzalez@uptex.edu.mx,DOC002,ISC,PTC,
+Maria,Gonzalez,m.gonzalez@uptex.edu.mx,DOC002,ISC,PTC,uptx2026b
 Pedro,Sanchez,p.sanchez@uptex.edu.mx,DOC003,IET,PA,uptx2026`;
 
 const EXAMPLE_PREVIEW = `nombre,apellido,email,numero_empleado,carrera_code,tipo_docente,password
 Carlos,Ramirez,c.ramirez@uptex.edu.mx,DOC001,ISC,PA,uptx2026
-Maria,Gonzalez,m.gonzalez@uptex.edu.mx,DOC002,ISC,PTC,`;
+Maria,Gonzalez,m.gonzalez@uptex.edu.mx,DOC002,ISC,PTC,uptx2026b`;
 
 export default function ImportarDocentesPage() {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -122,7 +122,7 @@ export default function ImportarDocentesPage() {
                     Importar <span className="text-blue-600">Docentes</span>
                 </h1>
                 <p className="mt-1 text-sm text-slate-400">
-                    Carga masiva de docentes desde archivo CSV; se crean cuentas de usuario automaticamente
+                    Carga masiva de docentes desde archivo CSV; las altas nuevas requieren password explicita por seguridad
                 </p>
             </div>
 
@@ -167,7 +167,7 @@ export default function ImportarDocentesPage() {
                                         ["numero_empleado", true, "Identificador unico del empleado"],
                                         ["carrera_code", true, "Codigo de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
                                         ["tipo_docente", true, "PA para asignatura o PTC para tiempo completo"],
-                                        ["password", false, "Contrasena inicial; si se omite, se usa numero_empleado"],
+                                        ["password", false, "Obligatoria para docentes nuevos; opcional si solo actualizas un docente existente"],
                                     ].map(([column, required, description]) => (
                                         <tr key={column as string}>
                                             <td className="px-4 py-2">
@@ -369,6 +369,14 @@ export default function ImportarDocentesPage() {
                                     <p className="flex items-center gap-2 text-sm font-bold text-emerald-700">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Todos los docentes fueron importados correctamente
+                                    </p>
+                                </div>
+                            )}
+
+                            {result.success > 0 && (
+                                <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                                    <p className="text-sm font-medium text-blue-700">
+                                        Las contrasenas importadas se toman exactamente de la columna <strong>password</strong>. Si dejas ese campo vacio en un docente nuevo, la fila se rechaza para evitar credenciales predecibles.
                                     </p>
                                 </div>
                             )}

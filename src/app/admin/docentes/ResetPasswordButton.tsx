@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { KeyRound, Check, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Check, KeyRound } from "lucide-react";
+
 import { resetTeacherPassword } from "./actions";
 
 export function ResetPasswordButton({ teacherId, teacherName }: { teacherId: string; teacherName: string }) {
@@ -9,7 +10,7 @@ export function ResetPasswordButton({ teacherId, teacherName }: { teacherId: str
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
     const handleReset = async () => {
-        if (!confirm(`¿Estás seguro de que deseas reiniciar la contraseña de ${teacherName}? Volverá a ser su Número de Empleado.`)) {
+        if (!confirm(`Se generara una nueva contrasena temporal para ${teacherName}. Deseas continuar?`)) {
             return;
         }
 
@@ -20,14 +21,17 @@ export function ResetPasswordButton({ teacherId, teacherName }: { teacherId: str
             const res = await resetTeacherPassword(teacherId);
             if (res.success) {
                 setStatus("success");
+                alert(
+                    `Nueva contrasena temporal para ${teacherName}: ${res.temporaryPassword}\n\nCompartela por un canal seguro y almacenala solo si es necesario.`,
+                );
                 setTimeout(() => setStatus("idle"), 3000);
             } else {
                 setStatus("error");
-                alert(res.error || "Error al reiniciar la contraseña");
+                alert(res.error || "Error al generar la contrasena temporal");
             }
         } catch {
             setStatus("error");
-            alert("Error de conexión");
+            alert("Error de conexion");
         } finally {
             setIsPending(false);
         }
@@ -37,16 +41,16 @@ export function ResetPasswordButton({ teacherId, teacherName }: { teacherId: str
         <button
             onClick={handleReset}
             disabled={isPending || status === "success"}
-            title="Reiniciar contraseña (volverá a ser su No. de Empleado)"
+            title="Generar nueva contrasena temporal"
             className={`p-2 rounded-xl transition-all ${
-                status === "success" 
-                ? "bg-emerald-50 text-emerald-600 cursor-default" 
-                : status === "error"
-                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                : "bg-slate-50 text-slate-400 hover:text-amber-600 hover:bg-amber-50"
+                status === "success"
+                    ? "bg-emerald-50 text-emerald-600 cursor-default"
+                    : status === "error"
+                        ? "bg-red-50 text-red-600 hover:bg-red-100"
+                        : "bg-slate-50 text-slate-400 hover:text-amber-600 hover:bg-amber-50"
             }`}
         >
-            <span className="sr-only">Reiniciar Contraseña</span>
+            <span className="sr-only">Generar nueva contrasena temporal</span>
             {status === "success" ? (
                 <Check className="w-5 h-5" />
             ) : status === "error" ? (

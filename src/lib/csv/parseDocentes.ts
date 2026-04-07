@@ -114,6 +114,15 @@ export async function parseAndImportDocentes(
       const normalizedEmail = email.toLowerCase();
       const providedPassword = row.password?.trim();
 
+      if (providedPassword && providedPassword.length < 8) {
+        errors.push({
+          row: rowNum,
+          identifier: numero_empleado,
+          reason: "La password debe tener al menos 8 caracteres",
+        });
+        continue;
+      }
+
       if (existingTeacher) {
         const conflictingUser = await prisma.user.findFirst({
           where: {
@@ -161,7 +170,16 @@ export async function parseAndImportDocentes(
           },
         });
       } else {
-        const passwordToStore = providedPassword || numero_empleado;
+        if (!providedPassword) {
+          errors.push({
+            row: rowNum,
+            identifier: numero_empleado,
+            reason: "La columna password es obligatoria para crear nuevos docentes por seguridad",
+          });
+          continue;
+        }
+
+        const passwordToStore = providedPassword;
         const hashedPassword = await bcrypt.hash(passwordToStore, 10);
 
         const existingUser = await prisma.user.findFirst({

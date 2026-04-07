@@ -1,19 +1,25 @@
-// Detalle de resultados por materia — promedios por ítem del FDA-24.5
-
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { getServerSession } from "next-auth/next";
+import { notFound, redirect } from "next/navigation";
+import { ArrowLeft, BarChart3, BookOpen, ClipboardList, ShieldCheck } from "lucide-react";
+
 import GraficasDetalle from "@/app/admin/reportes/[teacherId]/GraficasDetalle";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import {
+  buildStudentReport,
+  getPerformanceLevel,
+  getPerformanceLevelColor,
+} from "@/lib/reportes";
 
 export const dynamic = "force-dynamic";
 
 const NIVEL_BADGE: Record<string, string> = {
   emerald: "bg-emerald-100 text-emerald-700",
-  blue:    "bg-blue-100 text-blue-700",
-  amber:   "bg-amber-100 text-amber-700",
-  red:     "bg-red-100 text-red-700",
+  blue: "bg-blue-100 text-blue-700",
+  amber: "bg-amber-100 text-amber-700",
+  red: "bg-red-100 text-red-700",
+  slate: "bg-slate-100 text-slate-500",
 };
 
 export default async function ResultadosMateriaPage({
@@ -25,18 +31,25 @@ export default async function ResultadosMateriaPage({
   const session = await getServerSession(authOptions);
 
   const teacher = await prisma.teacher.findFirst({
-    where: { user: { email: session!.user.email! } },
+    where: { user: { id: session!.user.id! } },
     include: { career: true },
   });
-  if (!teacher) redirect("/docente");
+
+  if (!teacher) {
+    redirect("/docente");
+  }
 
   const subject = await prisma.subject.findUnique({
     where: { id: subjectId },
   });
-  if (!subject) notFound();
 
-  // Verificar que la materia pertenece al docente que está consultando
-  if (subject.teacherId !== teacher.id) redirect("/docente");
+  if (!subject) {
+    notFound();
+  }
+
+  if (subject.teacherId !== teacher.id) {
+    redirect("/docente");
+  }
 
   const periodoActivo = await prisma.period.findFirst({
     where: { isActive: true },
@@ -50,151 +63,204 @@ export default async function ResultadosMateriaPage({
     },
   });
 
-  const n = evaluaciones.length;
+  const totalEvaluaciones = evaluaciones.length;
 
-  if (n === 0) {
+  if (totalEvaluaciones === 0) {
     return (
-      <div className="space-y-6">
-        <Link href="/docente" className="text-sm text-slate-400 hover:text-slate-600 font-medium">
-          ← Volver a Mis Resultados
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        <Link
+          href="/docente/resultados"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-slate-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver a Mis Resultados
         </Link>
-        <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center">
-          <p className="text-4xl mb-3">📭</p>
+        <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
+            <ClipboardList className="h-7 w-7 text-slate-400" />
+          </div>
           <p className="font-bold text-slate-600">Sin evaluaciones para esta materia</p>
-          <p className="text-sm text-slate-400 mt-1">
-            Aún no hay alumnos que hayan evaluado {subject.name} en el periodo activo.
+          <p className="mt-1 text-sm text-slate-400">
+            Aun no hay alumnos que hayan evaluado {subject.name} en el periodo activo.
           </p>
         </div>
       </div>
     );
   }
 
-  // Calcular promedio por ítem
-  const avg = (key: keyof typeof evaluaciones[0]) => {
-    const valores = evaluaciones
-      .map(e => Number(e[key]) || 0)
-      .filter(v => v > 0);
-    return valores.length > 0
-      ? parseFloat((valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(2))
-      : 0;
-  };
+  const studentReport = buildStudentReport(evaluaciones);
+  const {
+    facilitador,
+    habilidades,
+    medios,
+    autoevaluacion,
+    teoriaPractica,
+    promedios: {
+      fac: promedioFac,
+      hab: promedioHab,
+      med: promedioMed,
+      auto: promedioAuto,
+      global: promedioGlobal,
+    },
+  } = studentReport;
 
-  const facilitador = [
-    { label: "Orientó sobre unidades al inicio", valor: avg("fac_item01"), max: 4 },
-    { label: "Domina los contenidos", valor: avg("fac_item02"), max: 4 },
-    { label: "Resumió temas por sesión", valor: avg("fac_item03"), max: 4 },
-    { label: "Resumió temas por unidad", valor: avg("fac_item04"), max: 4 },
-    { label: "Aclaró dudas", valor: avg("fac_item05"), max: 4 },
-    { label: "Impartió asesorías", valor: avg("fac_item06"), max: 4 },
-    { label: "Entregó resultados oportunamente", valor: avg("fac_item07"), max: 4 },
-    { label: "Logró objetivos del cuatrimestre", valor: avg("fac_item08"), max: 4 },
-    { label: "Promovió respeto y disciplina", valor: avg("fac_item09"), max: 4 },
-    { label: "Puntualidad del facilitador", valor: avg("fac_item10"), max: 4 },
-    { label: "Puntualidad del alumno (manejo)", valor: avg("fac_item11"), max: 4 },
-  ];
-
-  const habilidades = [
-    { label: "Manejo del lenguaje apropiado", valor: avg("hab_item01"), max: 5 },
-    { label: "Conducción al desarrollo profesional", valor: avg("hab_item02"), max: 5 },
-    { label: "Capacidad para captar atención", valor: avg("hab_item03"), max: 5 },
-    { label: "Relación con competencias del modelo", valor: avg("hab_item04"), max: 5 },
-  ];
-
-  const medios = [
-    { label: "Pizarrón", valor: avg("med_item01"), max: 5 },
-    { label: "TV / Pantalla", valor: avg("med_item02"), max: 5 },
-    { label: "Cañón / Proyector", valor: avg("med_item03"), max: 5 },
-    { label: "Webquest / Plataformas digitales", valor: avg("med_item04"), max: 5 },
-    { label: "Guías de trabajo", valor: avg("med_item05"), max: 5 },
-    { label: "Libros y bibliografía", valor: avg("med_item06"), max: 5 },
-  ];
-
-  const autoevaluacion = [
-    { label: "Participó en clase", valor: avg("auto_item01"), max: 5 },
-    { label: "Se ausentó a clases", valor: avg("auto_item02"), max: 5 },
-    { label: "Realizó todos los trabajos", valor: avg("auto_item03"), max: 5 },
-    { label: "Solicitó asesoría", valor: avg("auto_item04"), max: 5 },
-    { label: "Aplicó técnicas de autoestudio", valor: avg("auto_item05"), max: 5 },
-    { label: "Realizó investigación extra", valor: avg("auto_item06"), max: 5 },
-    { label: "Asistió con material necesario", valor: avg("auto_item07"), max: 5 },
-    { label: "Se preparó para exámenes", valor: avg("auto_item08"), max: 5 },
-    { label: "Puso en práctica conocimientos", valor: avg("auto_item09"), max: 5 },
-    { label: "Mantuvo atención en clase", valor: avg("auto_item10"), max: 5 },
-    { label: "Desarrolló competencias", valor: avg("auto_item11"), max: 5 },
-  ];
-
-  const promedioFac  = parseFloat((facilitador.reduce((a, i) => a + i.valor, 0) / facilitador.length).toFixed(2));
-  const promedioHab  = parseFloat((habilidades.reduce((a, i) => a + i.valor, 0) / habilidades.length).toFixed(2));
-  const promedioMed  = parseFloat((medios.reduce((a, i) => a + i.valor, 0) / medios.length).toFixed(2));
-  const promedioAuto = parseFloat((autoevaluacion.reduce((a, i) => a + i.valor, 0) / autoevaluacion.length).toFixed(2));
-  const promedioGlobal = parseFloat(((promedioFac + promedioHab + promedioMed) / 3).toFixed(2));
-
-  const nivel = promedioGlobal >= 3.5 ? "Excelente"
-    : promedioGlobal >= 2.5 ? "Bueno"
-    : promedioGlobal >= 1.5 ? "Regular"
-    : "Deficiente";
-
-  const nivelColor = promedioGlobal >= 3.5 ? "emerald"
-    : promedioGlobal >= 2.5 ? "blue"
-    : promedioGlobal >= 1.5 ? "amber"
-    : "red";
+  const nivel = getPerformanceLevel(promedioGlobal);
+  const nivelColor = getPerformanceLevelColor(promedioGlobal);
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-8 p-4 sm:p-6 lg:p-8">
+      <div className="pointer-events-none absolute inset-x-6 top-4 -z-10 h-72 rounded-[2rem] bg-gradient-to-b from-blue-50/70 via-slate-50 to-transparent blur-2xl sm:inset-x-10" />
 
-      {/* Navegación */}
-      <Link
-        href="/docente"
-        className="text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
-      >
-        ← Volver a Mis Resultados
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Link
+          href="/docente/resultados"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-slate-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver a Mis Resultados
+        </Link>
+      </div>
 
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-              Detalle por materia
+      <section className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_45px_-24px_rgba(15,23,42,0.2)] backdrop-blur">
+        <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-blue-100/60 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-10 h-24 w-24 rounded-full bg-indigo-100/60 blur-3xl" />
+
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
+              <BookOpen className="h-3.5 w-3.5 text-blue-600" />
+              Detalle por Materia
+            </div>
+
+            <h1 className="mt-4 text-2xl font-black text-slate-800 sm:text-3xl">{subject.name}</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {subject.code} · {periodoActivo?.name ?? "Periodo activo"}
             </p>
-            <h1 className="text-2xl font-black text-slate-800">{subject.name}</h1>
-            <p className="text-slate-400 text-sm mt-1">
-              {subject.code} · {periodoActivo?.name ?? "Periodo activo"} · {n} evaluación{n !== 1 ? "es" : ""} recibida{n !== 1 ? "s" : ""}
-            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                {totalEvaluaciones} evaluacion{totalEvaluaciones !== 1 ? "es" : ""} recibida
+                {totalEvaluaciones !== 1 ? "s" : ""}
+              </span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                {teacher.career.code}
+              </span>
+            </div>
           </div>
-          <div className="text-center">
-            <p className="text-4xl font-black text-blue-600">{promedioGlobal}</p>
-            <p className="text-xs font-bold text-slate-400 mt-0.5">Promedio Global</p>
-            <span className={`mt-1 inline-block px-3 py-1 rounded-full text-xs font-bold ${NIVEL_BADGE[nivelColor] ?? "bg-slate-100 text-slate-700"}`}>
-              {nivel}
-            </span>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[360px]">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 shadow-sm">
+              <div className="flex items-center gap-2 text-slate-400">
+                <BarChart3 className="h-4 w-4 text-blue-600" />
+                <span className="text-[11px] font-black uppercase tracking-wide">Promedio Global</span>
+              </div>
+              <p className="mt-2 text-2xl font-black text-slate-800">{promedioGlobal}</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 shadow-sm">
+              <div className="flex items-center gap-2 text-slate-400">
+                <ClipboardList className="h-4 w-4 text-emerald-600" />
+                <span className="text-[11px] font-black uppercase tracking-wide">Resultado</span>
+              </div>
+              <span
+                className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold ${
+                  NIVEL_BADGE[nivelColor] ?? "bg-slate-100 text-slate-700"
+                }`}
+              >
+                {nivel}
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 shadow-sm">
+              <div className="flex items-center gap-2 text-slate-400">
+                <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                <span className="text-[11px] font-black uppercase tracking-wide">Anonimato</span>
+              </div>
+              <p className="mt-2 text-sm font-bold text-slate-700">Respuestas protegidas</p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Aviso de anonimato */}
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-3 flex items-center gap-3">
-        <span className="text-blue-500">🔒</span>
-        <p className="text-sm text-blue-700">
-          Estos resultados son <strong>anónimos</strong>. Los promedios representan
-          al grupo completo — no puedes identificar a alumnos individuales.
-        </p>
-      </div>
+      <section className="space-y-4 rounded-3xl border border-blue-100 bg-blue-50/80 p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+            <ShieldCheck className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <h2 className="text-base font-black text-blue-900">Lectura del reporte</h2>
+            <p className="mt-1 text-sm text-blue-700">
+              Estos resultados son anonimos. Los promedios representan al grupo completo y pueden
+              usarse como evidencia para retroalimentacion y mejora docente.
+            </p>
+          </div>
+        </div>
+      </section>
 
-      {/* Gráficas — reutiliza el componente del admin */}
-      <GraficasDetalle
-        facilitador={facilitador}
-        habilidades={habilidades}
-        medios={medios}
-        autoevaluacion={autoevaluacion}
-        promedios={{
-          fac:  promedioFac,
-          hab:  promedioHab,
-          med:  promedioMed,
-          auto: promedioAuto,
-        }}
-      />
+      <section className="space-y-4 rounded-3xl border border-slate-200/80 bg-gradient-to-br from-slate-50 to-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-500 shadow-sm">
+              <BarChart3 className="h-3.5 w-3.5 text-blue-600" />
+              Resumen de la Materia
+            </div>
+            <h2 className="mt-3 text-xl font-black text-slate-800">
+              Sintesis general antes del desglose por reactivo
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Este bloque muestra la lectura compacta del resultado obtenido en la materia.
+            </p>
+          </div>
+        </div>
 
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {[
+            { label: "Facilitador", valor: promedioFac, max: 4, color: "text-blue-700", bg: "bg-blue-50 border-blue-100" },
+            { label: "Habilidades", valor: promedioHab, max: 5, color: "text-indigo-700", bg: "bg-indigo-50 border-indigo-100" },
+            { label: "Medios Did.", valor: promedioMed, max: 5, color: "text-violet-700", bg: "bg-violet-50 border-violet-100" },
+            { label: "Autoevaluac.", valor: promedioAuto, max: 5, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-100" },
+          ].map(({ label, valor, max, color, bg }) => (
+            <div key={label} className={`rounded-2xl border p-4 text-center shadow-sm ${bg}`}>
+              <p className={`text-2xl font-black ${color}`}>{valor}</p>
+              <p className="mt-1 text-xs font-bold text-slate-500">
+                /{max} · {label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+              <BarChart3 className="h-3.5 w-3.5 text-indigo-600" />
+              Analisis Grafico
+            </div>
+            <h2 className="mt-3 text-xl font-black text-slate-800">
+              Desglose visual por seccion y reactivo
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Aqui puedes revisar con mayor detalle el comportamiento de cada dimension evaluada.
+            </p>
+          </div>
+        </div>
+
+        <GraficasDetalle
+          facilitador={facilitador}
+          habilidades={habilidades}
+          medios={medios}
+          autoevaluacion={autoevaluacion}
+          teoriaPractica={teoriaPractica}
+          showSectionSummary={false}
+          promedios={{
+            fac: promedioFac,
+            hab: promedioHab,
+            med: promedioMed,
+            auto: promedioAuto,
+          }}
+        />
+      </section>
     </div>
   );
 }
