@@ -52,7 +52,7 @@ describe("utilidades de reportes", () => {
     expect(report.promedios.med).toBe(3);
     expect(report.promedios.auto).toBe(2);
     expect(report.promedios.global).toBe(4.33);
-    expect(report.teoriaPractica.predominant?.label).toContain("Buena combinacion");
+    expect(report.teoriaPractica.predominant?.label).toContain("Buena combinación");
   });
 
   it("omite factores no aplicables para docentes PA al calcular la evaluacion de coordinacion", () => {

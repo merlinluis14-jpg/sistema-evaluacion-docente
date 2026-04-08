@@ -25,12 +25,12 @@ type ImportResult = {
 
 const CSV_TEMPLATE = `nombre,codigo,cuatrimestre,carrera_code,numero_empleado
 Base de Datos I,ISC-BD1,3,ISC,DOC001
-Programacion Orientada a Objetos,ISC-POO,3,ISC,DOC002
+Programación Orientada a Objetos,ISC-POO,3,ISC,DOC002
 Redes de Computadoras,ISC-RC1,5,ISC,DOC003`;
 
 const EXAMPLE_PREVIEW = `nombre,codigo,cuatrimestre,carrera_code,numero_empleado
 Base de Datos I,ISC-BD1,3,ISC,DOC001
-Programacion OO,ISC-POO,3,ISC,DOC002`;
+Programación OO,ISC-POO,3,ISC,DOC002`;
 
 export default function ImportarMateriasPage() {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -155,17 +155,17 @@ export default function ImportarMateriasPage() {
                                             Requerido
                                         </th>
                                         <th className="rounded-r-xl px-4 py-2 text-left text-xs font-bold text-slate-500">
-                                            Descripcion
+                                            Descripción
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {[
                                         ["nombre", true, "Nombre completo de la materia"],
-                                        ["codigo", true, "Codigo unico por carrera: ISC-BD1, ISC-POO"],
-                                        ["cuatrimestre", true, "Numero de cuatrimestre (1-12)"],
-                                        ["carrera_code", true, "Codigo de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
-                                        ["numero_empleado", true, "Numero de empleado del docente asignado"],
+                                        ["codigo", true, "Código único por carrera: ISC-BD1, ISC-POO"],
+                                        ["cuatrimestre", true, "Número de cuatrimestre (1-12)"],
+                                        ["carrera_code", true, "Código de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
+                                        ["numero_empleado", true, "Número de empleado del docente asignado"],
                                     ].map(([column, required, description]) => (
                                         <tr key={column as string}>
                                             <td className="px-4 py-2">
@@ -271,7 +271,7 @@ export default function ImportarMateriasPage() {
                             ) : (
                                 <div className="space-y-2">
                                     <FolderOpen className="mx-auto h-10 w-10 text-slate-300" />
-                                    <p className="font-bold text-slate-600">Arrastra tu CSV aqui</p>
+                                    <p className="font-bold text-slate-600">Arrastra tu CSV aquí</p>
                                     <p className="text-sm text-slate-400">o haz clic para seleccionar</p>
                                     <p className="mt-2 text-xs text-slate-300">Maximo 5 MB</p>
                                 </div>
@@ -298,9 +298,9 @@ export default function ImportarMateriasPage() {
                                 disabled={loading}
                             />
                             <span className="text-sm text-amber-800">
-                                <strong className="block">Sincronizar catalogo importado</strong>
+                                <strong className="block">Sincronizar catálogo importado</strong>
                                 Si se activa, las materias activas de las carreras incluidas que no
-                                aparezcan en el CSV se desactivaran para reemplazar el catalogo.
+                                aparezcan en el CSV se desactivarán para reemplazar el catálogo.
                             </span>
                         </label>
 
@@ -320,7 +320,7 @@ export default function ImportarMateriasPage() {
                                 </span>
                             ) : (
                                 <span className="flex items-center justify-center gap-2">
-                                    <Upload className="h-4 w-4" /> Iniciar importacion
+                                    <Upload className="h-4 w-4" /> Iniciar importación
                                 </span>
                             )}
                         </button>
@@ -329,7 +329,7 @@ export default function ImportarMateriasPage() {
                     {result && (
                         <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
                             <h2 className="flex items-center gap-2 font-bold text-slate-700">
-                                <BarChart2 className="h-4 w-4" /> Resultado de la importacion
+                                <BarChart2 className="h-4 w-4" /> Resultado de la importación
                             </h2>
                             <div className="grid grid-cols-3 gap-3">
                                 <div className="rounded-xl bg-slate-50 p-4 text-center">
@@ -374,7 +374,7 @@ export default function ImportarMateriasPage() {
                             {(result.deactivatedCount ?? 0) > 0 && (
                                 <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
                                     <p className="text-sm font-bold text-amber-700">
-                                        Sincronizacion aplicada: {result.deactivatedCount} materia(s) fueron desactivadas por no aparecer en el CSV.
+                                        Sincronización aplicada: {result.deactivatedCount} materia(s) fueron desactivadas por no aparecer en el CSV.
                                     </p>
                                 </div>
                             )}
@@ -393,7 +393,7 @@ export default function ImportarMateriasPage() {
                                                         Fila
                                                     </th>
                                                     <th className="px-4 py-2 text-left font-bold text-slate-500">
-                                                        Codigo
+                                                        Código
                                                     </th>
                                                     <th className="px-4 py-2 text-left font-bold text-slate-500">
                                                         Motivo
@@ -433,7 +433,7 @@ export default function ImportarMateriasPage() {
                                         setProgress(null);
                                     }}
                                 >
-                                    Nueva importacion
+                                    Nueva importación
                                 </button>
                             </div>
                         </div>

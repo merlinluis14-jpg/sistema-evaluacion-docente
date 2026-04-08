@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { BarChart2, BookOpen, Building2, Calendar, ClipboardList, Inbox, Layers3, UserCog, Users } from "lucide-react";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -14,6 +14,7 @@ import {
   OFFICIAL_DEMO_CAREER_CODE,
   isAllCareersValue,
 } from "@/lib/officialScope";
+import { formatAcademicText } from "@/lib/text/academicText";
 import ExportButtons from "./ExportButtons";
 
 export const dynamic = "force-dynamic";
@@ -129,8 +130,8 @@ function getReferenceBucket(score: number) {
 }
 
 function getCompactCareerLabel(code: string, name: string) {
-  const simplifiedName = name
-    .replace(/^Ingenieria en\s+/i, "")
+  const simplifiedName = formatAcademicText(name)
+    .replace(/^Ingeniería en\s+/i, "")
     .replace(/^Licenciatura en\s+/i, "");
   const compactName =
     simplifiedName.length > 28 ? `${simplifiedName.slice(0, 25)}...` : simplifiedName;
@@ -301,7 +302,10 @@ export default async function ReportesPage({
 
     return {
       teacher,
-      contextCareer: career,
+      contextCareer: {
+        ...career,
+        name: formatAcademicText(career.name),
+      },
       totalEvals: evals.length,
       facAvg: promedios.fac.toFixed(2),
       habAvg: promedios.hab.toFixed(2),
@@ -329,7 +333,7 @@ export default async function ReportesPage({
         : null,
       nivel,
       nivelColor,
-      materias: [...new Set(evals.map((evaluation) => evaluation.subject.name))],
+      materias: [...new Set(evals.map((evaluation) => formatAcademicText(evaluation.subject.name)))],
     };
   });
 
@@ -364,7 +368,7 @@ export default async function ReportesPage({
       careerSummary = {
         id: careerId,
         code: evaluation.subject.career.code,
-        name: evaluation.subject.career.name,
+        name: formatAcademicText(evaluation.subject.career.name),
         totalEvals: 0,
         teacherScores: new Map(),
         groupIds: new Set(),
@@ -380,10 +384,10 @@ export default async function ReportesPage({
       subjectSummary = {
         id: evaluation.subjectId,
         code: evaluation.subject.code,
-        name: evaluation.subject.name,
+        name: formatAcademicText(evaluation.subject.name),
         careerId,
         careerCode: evaluation.subject.career.code,
-        careerName: evaluation.subject.career.name,
+        careerName: formatAcademicText(evaluation.subject.career.name),
         totalEvals: 0,
         teacherNames: new Set(),
         teacherScores: new Map(),
@@ -418,7 +422,7 @@ export default async function ReportesPage({
           careerId: evaluation.subject.career.id,
           careerCode: evaluation.subject.career.code,
           subjectId: evaluation.subjectId,
-          subjectName: evaluation.subject.name,
+          subjectName: formatAcademicText(evaluation.subject.name),
           subjectCode: evaluation.subject.code,
           groupId: group.id,
           groupName: group.name,
@@ -435,7 +439,7 @@ export default async function ReportesPage({
           id: group.id,
           name: group.name,
           careerCode: group.career.code,
-          careerName: group.career.name,
+          careerName: formatAcademicText(group.career.name),
           totalEvals: 0,
           teacherScores: new Map(),
         };
@@ -578,7 +582,7 @@ export default async function ReportesPage({
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div className="min-w-0">
           <h1 className="text-2xl font-black leading-tight text-slate-800 sm:text-3xl">
-            Reportes de <span className="text-blue-600">Evaluacion</span>
+            Reportes de <span className="text-blue-600">Evaluación</span>
           </h1>
           <p className="mt-1 break-words text-sm text-slate-400">
             Instrumento FDA-24.5 - {periodoNombre}
@@ -592,7 +596,7 @@ export default async function ReportesPage({
             href="/admin/reportes/importar-jefatura"
             className="inline-flex w-full items-center justify-center rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200 sm:w-auto"
           >
-            Importar Eval. Coordinacion
+            Importar Eval. Coordinación
           </Link>
           <ExportButtons
             data={reporteDocentes}
@@ -605,13 +609,13 @@ export default async function ReportesPage({
       <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5">
         <form className="flex gap-3 flex-wrap items-end">
           <div className="w-full sm:flex-1 sm:min-w-[220px]">
-            <label className="block text-xs font-bold text-slate-500 mb-1.5">Periodo</label>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">Período</label>
             <select
               name="periodoId"
               defaultValue={periodoId}
               className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="">Todos los periodos</option>
+              <option value="">Todos los períodos</option>
               {periodos.map((periodo) => (
                 <option key={periodo.id} value={periodo.id}>
                   {getCompactPeriodLabel(periodo.name, periodo.isActive)}
@@ -653,7 +657,7 @@ export default async function ReportesPage({
               <option value="">Todas las materias</option>
               {materias.map((subject) => (
                 <option key={subject.id} value={subject.id}>
-                  {subject.code} - {subject.name}
+                  {subject.code} - {formatAcademicText(subject.name)}
                 </option>
               ))}
             </select>
@@ -737,10 +741,10 @@ export default async function ReportesPage({
         <div className={`rounded-2xl p-5 ${periodoActivo ? "bg-blue-50 border border-blue-100" : "bg-slate-50 border border-slate-100"}`}>
           <Calendar className={`w-5 h-5 mb-1 ${periodoActivo ? "text-blue-500" : "text-slate-400"}`} />
           <p className={`text-2xl font-black ${periodoActivo ? "text-blue-700" : "text-slate-600"}`}>
-            {periodoActivo ? "Si" : "No"}
+            {periodoActivo ? "Sí" : "No"}
           </p>
           <p className={`text-xs font-bold mt-0.5 ${periodoActivo ? "text-blue-600" : "text-slate-500"}`}>
-            Periodo activo
+            Período activo
           </p>
         </div>
 
@@ -762,7 +766,7 @@ export default async function ReportesPage({
           <div className="px-6 py-4 border-b border-slate-100">
             <h2 className="font-bold text-slate-700">Seguimiento por Grupo y Materia</h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Control operativo por asignacion docente. Muestra avance de evaluacion y promedio total por grupo.
+              Control operativo por asignación docente. Muestra avance de evaluación y promedio total por grupo.
             </p>
           </div>
 
@@ -938,7 +942,7 @@ export default async function ReportesPage({
                 <h2 className="font-bold text-slate-700">Resumen por Carrera</h2>
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                Vista concentrada por carrera con grupos atendidos y calificacion total promedio.
+                Vista concentrada por carrera con grupos atendidos y calificación total promedio.
               </p>
             </div>
 
@@ -959,7 +963,7 @@ export default async function ReportesPage({
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-bold text-slate-800 text-sm">{career.code}</p>
-                          <p className="text-xs text-slate-400">{career.name}</p>
+                          <p className="text-xs text-slate-400">{formatAcademicText(career.name)}</p>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-center font-bold text-slate-600">{career.totalGroups}</td>
@@ -979,7 +983,7 @@ export default async function ReportesPage({
         <div className="px-6 py-4 border-b border-slate-100">
           <h2 className="font-bold text-slate-700">Resultados por Docente</h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Ordenados por calificacion de referencia /5. Si existe evaluacion de jefatura, se promedia con la evaluacion de alumnos.
+            Ordenados por calificación de referencia /5. Si existe evaluación de jefatura, se promedia con la evaluación de alumnos.
           </p>
         </div>
 
@@ -987,7 +991,7 @@ export default async function ReportesPage({
           <div className="text-center py-16">
             <Inbox className="w-12 h-12 mb-3 text-slate-300 mx-auto" />
             <p className="font-bold text-slate-500">No hay evaluaciones para este filtro</p>
-            <p className="text-sm text-slate-400 mt-1">Selecciona un periodo con evaluaciones registradas</p>
+            <p className="text-sm text-slate-400 mt-1">Selecciona un período con evaluaciones registradas</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

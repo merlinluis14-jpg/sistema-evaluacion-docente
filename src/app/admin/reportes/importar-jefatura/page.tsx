@@ -42,7 +42,7 @@ export default function ImportarJefaturaPage() {
         setPeriodId(active?.id ?? data[0]?.id ?? "");
       })
       .catch(() => {
-        setError("No fue posible cargar los periodos");
+        setError("No fue posible cargar los períodos");
       });
   }, []);
 
@@ -127,10 +127,10 @@ export default function ImportarJefaturaPage() {
 
       <div className="mb-8">
         <h1 className="text-3xl font-black text-slate-800">
-          Importar <span className="text-blue-600">Evaluacion de Coordinacion</span>
+          Importar <span className="text-blue-600">Evaluación de Coordinación</span>
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Carga en bloque la evaluacion de la jefa de carrera o coordinacion con una plantilla estandar del sistema.
+          Carga en bloque la evaluación de la jefa de carrera o coordinación con una plantilla estándar del sistema.
         </p>
       </div>
 
@@ -154,12 +154,12 @@ export default function ImportarJefaturaPage() {
 
             <div className="space-y-3 text-sm text-slate-600">
               <p>
-                La plantilla se descarga precargada con los docentes activos, su numero de empleado,
+                La plantilla se descarga precargada con los docentes activos, su número de empleado,
                 tipo de docente y carrera para que solo captures las calificaciones.
               </p>
               <p>
                 Para `PA` los campos `research_score`, `tutoring_score` y `advisory_score` salen como `N/A`.
-                Para `PTC` esos campos quedan vacios para que la coordinacion los capture.
+                Para `PTC` esos campos quedan vacíos para que la coordinación los capture.
               </p>
               <div className="overflow-x-auto rounded-xl bg-slate-900 p-4">
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -184,14 +184,14 @@ export default function ImportarJefaturaPage() {
 
             <div>
               <label className="mb-1.5 block text-xs font-bold text-slate-500">
-                Periodo del sistema
+                Período del sistema
               </label>
               <select
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 onChange={(event) => setPeriodId(event.target.value)}
                 value={periodId}
               >
-                <option value="">Selecciona un periodo</option>
+                <option value="">Selecciona un período</option>
                 {periods.map((period) => (
                   <option key={period.id} value={period.id}>
                     {period.name} {period.isActive ? "• Activo" : ""}
@@ -268,7 +268,7 @@ export default function ImportarJefaturaPage() {
               ) : (
                 <div className="space-y-2">
                   <FolderOpen className="mx-auto h-10 w-10 text-slate-300" />
-                  <p className="font-bold text-slate-600">Arrastra tu CSV aqui</p>
+                  <p className="font-bold text-slate-600">Arrastra tu CSV aquí</p>
                   <p className="text-sm text-slate-400">o haz clic para seleccionar</p>
                   <p className="mt-2 text-xs text-slate-300">Maximo 5 MB</p>
                 </div>
@@ -284,7 +284,7 @@ export default function ImportarJefaturaPage() {
 
             {loading && progress && (
               <ImportProgressPanel
-                label="Importando evaluacion de coordinacion"
+                label="Importando evaluación de coordinación"
                 progress={progress}
               />
             )}
@@ -301,11 +301,11 @@ export default function ImportarJefaturaPage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  Importando evaluacion de coordinacion... {progress?.percentage ?? 0}%
+                  Importando evaluación de coordinación... {progress?.percentage ?? 0}%
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <Upload className="h-4 w-4" /> Iniciar importacion
+                  <Upload className="h-4 w-4" /> Iniciar importación
                 </span>
               )}
             </button>
@@ -314,7 +314,7 @@ export default function ImportarJefaturaPage() {
           {result && (
             <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
               <h2 className="flex items-center gap-2 font-bold text-slate-700">
-                <BarChart2 className="h-4 w-4" /> Resultado de la importacion
+                <BarChart2 className="h-4 w-4" /> Resultado de la importación
               </h2>
 
               <div className="grid grid-cols-3 gap-3">
@@ -403,7 +403,7 @@ export default function ImportarJefaturaPage() {
                     setProgress(null);
                   }}
                 >
-                  Nueva importacion
+                  Nueva importación
                 </button>
               </div>
             </div>

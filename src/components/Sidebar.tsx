@@ -14,7 +14,7 @@ const navLinks = [
     { href: "/admin", label: "Inicio", icon: House },
     { href: "/admin/docentes", label: "Docentes", icon: GraduationCap },
     { href: "/admin/materias", label: "Materias", icon: BookOpen },
-    { href: "/admin/periodos", label: "Periodos", icon: CalendarDays },
+    { href: "/admin/periodos", label: "Períodos", icon: CalendarDays },
 ];
 
 export default function Sidebar() {
@@ -59,7 +59,7 @@ export default function Sidebar() {
                 <p className="text-center text-[10px] font-medium leading-relaxed text-blue-400">
                     Tesina · UPTEX
                     <br />
-                    Sistema de Evaluacion Docente
+                    Sistema de Evaluación Docente
                 </p>
             </div>
         </aside>

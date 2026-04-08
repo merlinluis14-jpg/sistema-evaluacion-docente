@@ -67,10 +67,10 @@ export default async function EditarCarreraPage({
       <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5">
         <p className="flex items-center gap-2 text-sm font-bold text-amber-700">
           <ShieldCheck className="h-4 w-4" />
-          Codigo protegido para no romper importaciones
+          Código protegido para no romper importaciones
         </p>
         <p className="mt-2 text-sm text-amber-700">
-          El codigo <strong>{career.code}</strong> se mantiene estable porque es la referencia que usan tus CSV.
+          El código <strong>{career.code}</strong> se mantiene estable porque es la referencia que usan tus CSV.
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export default async function EditarCarreraPage({
         <div className="bg-slate-900 px-6 py-4">
           <p className="font-black text-white">Datos de la carrera</p>
           <p className="mt-0.5 text-xs text-slate-400">
-            Ajusta el nombre oficial sin perder compatibilidad con catalogos existentes.
+            Ajusta el nombre oficial sin perder compatibilidad con catálogos existentes.
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export default async function EditarCarreraPage({
           <input type="hidden" name="id" value={career.id} />
 
           <div>
-            <label className="mb-1.5 block text-sm font-bold text-slate-700">Codigo</label>
+            <label className="mb-1.5 block text-sm font-bold text-slate-700">Código</label>
             <input
               value={career.code}
               disabled

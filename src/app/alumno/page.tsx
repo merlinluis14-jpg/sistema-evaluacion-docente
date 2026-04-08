@@ -11,6 +11,7 @@ import {
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 export const dynamic = "force-dynamic";
 
@@ -87,7 +88,7 @@ export default async function AlumnoPage({
       if (!subjectMap.has(subject.id)) {
         subjectMap.set(subject.id, {
           id: subject.id,
-          name: subject.name,
+          name: formatAcademicText(subject.name),
           code: subject.code,
           cuatrimestre: subject.cuatrimestre,
           teacher: subject.teacher,
@@ -209,7 +210,7 @@ export default async function AlumnoPage({
                 <h1 className="text-2xl font-black text-slate-800 sm:text-3xl">Mis Materias</h1>
                 <p className="mt-1 text-sm text-slate-500">
                   {student
-                    ? `${student.name} ${student.lastName} · ${student.career.name}`
+                    ? `${student.name} ${student.lastName} · ${formatAcademicText(student.career.name)}`
                     : "Perfil de alumno sin datos disponibles"}
                 </p>
 

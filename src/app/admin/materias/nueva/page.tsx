@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
 import { isPrismaKnownRequestError } from "@/lib/prismaErrors";
 import { getSessionRole } from "@/lib/sessionUser";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export default async function NuevaMateriaPage({
       redirect("/login");
     }
 
-    const nombre = (formData.get("name") as string)?.trim();
+    const nombre = formatAcademicText(formData.get("name") as string);
     const codigo = (formData.get("code") as string)?.trim().toUpperCase();
     const cuatrimestre = parseInt(formData.get("cuatrimestre") as string, 10);
     const careerId = formData.get("careerId") as string;
@@ -74,7 +75,7 @@ export default async function NuevaMateriaPage({
 
   const mensajesError: Record<string, string> = {
     campos: "Completa todos los campos obligatorios.",
-    duplicado: "Ya existe una materia con ese codigo en la carrera seleccionada.",
+    duplicado: "Ya existe una materia con ese código en la carrera seleccionada.",
     servidor: "Error interno del servidor. Intenta de nuevo.",
   };
 
@@ -92,7 +93,7 @@ export default async function NuevaMateriaPage({
           Nueva <span className="text-blue-600">Materia</span>
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Registra una nueva asignatura en el catalogo del sistema
+          Registra una nueva asignatura en el catálogo del sistema
         </p>
       </div>
 
@@ -107,7 +108,7 @@ export default async function NuevaMateriaPage({
         <div className="bg-slate-900 px-6 py-4">
           <p className="font-black text-white">Datos de la materia</p>
           <p className="mt-0.5 text-xs text-slate-400">
-            El codigo debe ser unico dentro de la carrera seleccionada
+            El código debe ser único dentro de la carrera seleccionada
           </p>
         </div>
 
@@ -126,7 +127,7 @@ export default async function NuevaMateriaPage({
 
           <div>
             <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Codigo <span className="text-red-500">*</span>
+              Código <span className="text-red-500">*</span>
             </label>
             <input
               name="code"
@@ -135,7 +136,7 @@ export default async function NuevaMateriaPage({
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
             <p className="mt-1 text-xs text-slate-400">
-              Se guardara en mayusculas. Debe ser unico dentro de la carrera.
+              Se guardará en mayúsculas. Debe ser único dentro de la carrera.
             </p>
           </div>
 

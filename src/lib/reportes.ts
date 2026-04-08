@@ -47,28 +47,28 @@ export const careerHeadFactors: CareerHeadFactorDefinition[] = [
   },
   {
     key: "competencyEvalScore",
-    label: "Evaluacion del aprendizaje por competencias EC, ED y EP",
+    label: "Evaluación del aprendizaje por competencias EC, ED y EP",
     description:
       "Registrar documentos de manera correcta, con informacion concreta, relevante y veraz para entregarlos en tiempo y forma.",
     appliesTo: ["PA", "PTC"],
   },
   {
     key: "researchScore",
-    label: "Investigacion",
+    label: "Investigación",
     description:
-      "Desarrollar investigacion, difundir resultados, asesorar tesis y promover la participacion estudiantil conforme a la normativa institucional.",
+      "Desarrollar investigación, difundir resultados, asesorar tesis y promover la participación estudiantil conforme a la normativa institucional.",
     appliesTo: ["PTC"],
   },
   {
     key: "tutoringScore",
-    label: "Tutorias",
+    label: "Tutorías",
     description:
-      "Diagnosticar, planear y atender acciones tutoriales grupales e individuales, canalizando casos especificos cuando corresponda.",
+      "Diagnosticar, planear y atender acciones tutoriales grupales e individuales, canalizando casos específicos cuando corresponda.",
     appliesTo: ["PTC"],
   },
   {
     key: "advisoryScore",
-    label: "Asesorias",
+    label: "Asesorías",
     description:
       "Orientar al estudiante para fortalecer su aprendizaje significativo y controlar los formatos establecidos por el programa institucional.",
     appliesTo: ["PTC"],
@@ -106,53 +106,53 @@ export const careerHeadFactors: CareerHeadFactorDefinition[] = [
 const facilitatorItems = [
   { key: "fac_item01", label: "Oriento sobre unidades al inicio", max: 4 },
   { key: "fac_item02", label: "Domina los contenidos", max: 4 },
-  { key: "fac_item03", label: "Resumio temas por sesion", max: 4 },
-  { key: "fac_item04", label: "Resumio temas por unidad", max: 4 },
-  { key: "fac_item05", label: "Aclaro dudas", max: 4 },
-  { key: "fac_item06", label: "Impartio asesorias", max: 4 },
-  { key: "fac_item07", label: "Entrego resultados oportunamente", max: 4 },
+  { key: "fac_item03", label: "Resumió temas por sesión", max: 4 },
+  { key: "fac_item04", label: "Resumió temas por unidad", max: 4 },
+  { key: "fac_item05", label: "Aclaró dudas", max: 4 },
+  { key: "fac_item06", label: "Impartió asesorías", max: 4 },
+  { key: "fac_item07", label: "Entregó resultados oportunamente", max: 4 },
   { key: "fac_item08", label: "Logro objetivos del cuatrimestre", max: 4 },
-  { key: "fac_item09", label: "Promovio respeto y disciplina", max: 4 },
+  { key: "fac_item09", label: "Promovió respeto y disciplina", max: 4 },
   { key: "fac_item10", label: "Puntualidad del facilitador", max: 4 },
   { key: "fac_item11", label: "Puntualidad del alumno (manejo)", max: 4 },
 ] as const;
 
 const skillItems = [
   { key: "hab_item01", label: "Manejo del lenguaje apropiado", max: 5 },
-  { key: "hab_item02", label: "Conduccion al desarrollo profesional", max: 5 },
-  { key: "hab_item03", label: "Capacidad para captar atencion", max: 5 },
-  { key: "hab_item04", label: "Relacion con competencias del modelo", max: 5 },
+  { key: "hab_item02", label: "Conducción al desarrollo profesional", max: 5 },
+  { key: "hab_item03", label: "Capacidad para captar atención", max: 5 },
+  { key: "hab_item04", label: "Relación con competencias del modelo", max: 5 },
 ] as const;
 
 const mediaItems = [
-  { key: "med_item01", label: "Pizarron", max: 5 },
+  { key: "med_item01", label: "Pizarrón", max: 5 },
   { key: "med_item02", label: "TV / Pantalla", max: 5 },
   { key: "med_item03", label: "Canon / Proyector", max: 5 },
   { key: "med_item04", label: "Webquest / Plataformas dig.", max: 5 },
-  { key: "med_item05", label: "Guias de trabajo", max: 5 },
-  { key: "med_item06", label: "Libros y bibliografia", max: 5 },
+  { key: "med_item05", label: "Guías de trabajo", max: 5 },
+  { key: "med_item06", label: "Libros y bibliografía", max: 5 },
 ] as const;
 
 const selfAssessmentItems = [
-  { key: "auto_item01", label: "Participo en clase", max: 5 },
-  { key: "auto_item02", label: "Se ausento a clases", max: 5 },
-  { key: "auto_item03", label: "Realizo todos los trabajos", max: 5 },
-  { key: "auto_item04", label: "Solicito asesoria", max: 5 },
-  { key: "auto_item05", label: "Aplico tecnicas de autoestudio", max: 5 },
-  { key: "auto_item06", label: "Realizo investigacion extra", max: 5 },
-  { key: "auto_item07", label: "Asistio con material necesario", max: 5 },
-  { key: "auto_item08", label: "Se preparo para examenes", max: 5 },
-  { key: "auto_item09", label: "Puso en practica conocimientos", max: 5 },
-  { key: "auto_item10", label: "Mantuvo atencion en clase", max: 5 },
-  { key: "auto_item11", label: "Desarrollo competencias", max: 5 },
+  { key: "auto_item01", label: "Participó en clase", max: 5 },
+  { key: "auto_item02", label: "Se ausentó a clases", max: 5 },
+  { key: "auto_item03", label: "Realizó todos los trabajos", max: 5 },
+  { key: "auto_item04", label: "Solicitó asesoría", max: 5 },
+  { key: "auto_item05", label: "Aplicó técnicas de autoestudio", max: 5 },
+  { key: "auto_item06", label: "Realizó investigación extra", max: 5 },
+  { key: "auto_item07", label: "Asistió con material necesario", max: 5 },
+  { key: "auto_item08", label: "Se preparó para exámenes", max: 5 },
+  { key: "auto_item09", label: "Puso en práctica conocimientos", max: 5 },
+  { key: "auto_item10", label: "Mantuvo atención en clase", max: 5 },
+  { key: "auto_item11", label: "Desarrolló competencias", max: 5 },
 ] as const;
 
 export const theoryPracticeOptions = [
   { value: 1, label: "De acuerdo a la naturaleza del curso, estuvo bien" },
-  { value: 2, label: "Buena combinacion de teoria y practica" },
-  { value: 3, label: "Demasiada teoria y poca practica" },
-  { value: 4, label: "Poca teoria y mucha practica" },
-  { value: 5, label: "Poca teoria y poca practica" },
+  { value: 2, label: "Buena combinación de teoría y práctica" },
+  { value: 3, label: "Demasiada teoría y poca práctica" },
+  { value: 4, label: "Poca teoría y mucha práctica" },
+  { value: 5, label: "Poca teoría y poca práctica" },
 ] as const;
 
 type EvaluationLike = Record<string, unknown>;

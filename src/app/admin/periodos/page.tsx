@@ -19,7 +19,7 @@ export default async function PeriodosPage() {
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl font-black text-slate-800 sm:text-3xl">
-            Periodos de <span className="text-blue-600">Evaluacion</span>
+            Períodos de <span className="text-blue-600">Evaluación</span>
           </h1>
           <p className="mt-2 text-sm text-gray-500 sm:text-base">
             Gestiona los cuatrimestres activos para el instrumento FDA-24.5.
@@ -31,7 +31,7 @@ export default async function PeriodosPage() {
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 active:scale-95 sm:w-auto"
         >
           <Plus size={16} />
-          Nuevo Periodo
+          Nuevo Período
         </Link>
       </div>
 
@@ -53,7 +53,7 @@ export default async function PeriodosPage() {
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Activo</p>
             <p className="mt-1 text-base font-black leading-tight text-emerald-700 sm:text-lg">
-              {active?.name ?? "Sin periodo activo"}
+              {active?.name ?? "Sin período activo"}
             </p>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default async function PeriodosPage() {
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/70">
               <th className="py-4 pl-6 pr-3 text-left text-xs font-black uppercase tracking-wider text-slate-400">
-                Periodo
+                Período
               </th>
               <th className="px-3 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-400">
                 Estado

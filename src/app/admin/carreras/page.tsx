@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, Inbox, Plus } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
+import { formatAcademicText } from "@/lib/text/academicText";
 import { CareerStatusButton } from "./CareerStatusButton";
 
 export const dynamic = "force-dynamic";
@@ -41,10 +42,10 @@ export default async function CarrerasPage({
       <div className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-black text-slate-800">
-            Gestion de <span className="text-blue-600">Carreras</span>
+            Gestión de <span className="text-blue-600">Carreras</span>
           </h1>
           <p className="mt-2 text-lg text-slate-500">
-            Administra el catalogo oficial de carreras sin comprometer la compatibilidad de importacion por codigo.
+            Administra el catálogo oficial de carreras sin comprometer la compatibilidad de importación por código.
           </p>
         </div>
 
@@ -91,7 +92,7 @@ export default async function CarrerasPage({
                 </div>
 
                 <h3 className="mb-6 text-xl font-bold leading-tight text-slate-800 transition-colors group-hover:text-blue-700">
-                  {career.name}
+                  {formatAcademicText(career.name)}
                 </h3>
 
                 <div className="mt-auto grid grid-cols-4 gap-2">
@@ -131,7 +132,7 @@ export default async function CarrerasPage({
               <CareerStatusButton
                 careerId={career.id}
                 careerCode={career.code}
-                careerName={career.name}
+                careerName={formatAcademicText(career.name)}
                 isActive={career.isActive}
               />
             </div>
@@ -143,7 +144,7 @@ export default async function CarrerasPage({
             <Inbox size={40} className="mx-auto mb-4 text-slate-300" />
             <p className="text-lg font-medium text-slate-500">No se han registrado carreras en el sistema.</p>
             <p className="mt-1 text-sm text-slate-400">
-              Agrega una carrera manualmente para habilitar catalogos e importaciones.
+              Agrega una carrera manualmente para habilitar catálogos e importaciones.
             </p>
           </div>
         ) : null}

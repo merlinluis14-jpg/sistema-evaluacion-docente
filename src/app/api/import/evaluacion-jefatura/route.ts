@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!periodId || typeof periodId !== "string") {
-      return NextResponse.json({ message: "Periodo requerido" }, { status: 400 });
+      return NextResponse.json({ message: "Período requerido" }, { status: 400 });
     }
 
     if (stream) {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
           await logAdminAction({
             action: "IMPORT",
             entity: "EVALUACION",
-            detail: `Importacion CSV jefatura: ${result.success} registros importados de ${result.total} filas`,
+            detail: `Importación CSV jefatura: ${result.success} registros importados de ${result.total} filas`,
           });
         },
       });
@@ -44,16 +44,16 @@ export async function POST(req: NextRequest) {
       await logAdminAction({
         action: "IMPORT",
         entity: "EVALUACION",
-        detail: `Importacion CSV jefatura: ${result.success} registros importados de ${result.total} filas`,
+        detail: `Importación CSV jefatura: ${result.success} registros importados de ${result.total} filas`,
       });
     } catch (loggingError) {
-      console.error("No fue posible registrar la importacion de jefatura:", loggingError);
+      console.error("No fue posible registrar la importación de jefatura:", loggingError);
     }
 
     return NextResponse.json(result, { status: 200 });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Error interno";
-    console.error("Error importando evaluacion de jefatura:", error);
+    console.error("Error importando evaluación de jefatura:", error);
     return NextResponse.json({ message }, { status: 500 });
   }
 }

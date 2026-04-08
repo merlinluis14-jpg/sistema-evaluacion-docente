@@ -3,8 +3,8 @@ import "./globals.css";
 import { NextAuthProvider } from "@/providers/NextAuthProvider";
 
 export const metadata: Metadata = {
-  title: "Sistema de Evaluacion Docente UPTEX",
-  description: "Plataforma de evaluacion docente institucional UPTEX",
+  title: "Sistema de Evaluación Docente UPTEX",
+  description: "Plataforma de evaluación docente institucional UPTEX",
 };
 
 export default function RootLayout({

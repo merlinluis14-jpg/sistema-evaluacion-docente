@@ -22,12 +22,12 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const ACTION_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  CREATE: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Creacion" },
-  DELETE: { bg: "bg-red-50", text: "text-red-700", label: "Eliminacion" },
-  UPDATE: { bg: "bg-blue-50", text: "text-blue-700", label: "Actualizacion" },
-  ACTIVATE: { bg: "bg-amber-50", text: "text-amber-700", label: "Activacion" },
-  DEACTIVATE: { bg: "bg-slate-100", text: "text-slate-600", label: "Desactivacion" },
-  IMPORT: { bg: "bg-violet-50", text: "text-violet-700", label: "Importacion" },
+  CREATE: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Creación" },
+  DELETE: { bg: "bg-red-50", text: "text-red-700", label: "Eliminación" },
+  UPDATE: { bg: "bg-blue-50", text: "text-blue-700", label: "Actualización" },
+  ACTIVATE: { bg: "bg-amber-50", text: "text-amber-700", label: "Activación" },
+  DEACTIVATE: { bg: "bg-slate-100", text: "text-slate-600", label: "Desactivación" },
+  IMPORT: { bg: "bg-violet-50", text: "text-violet-700", label: "Importación" },
 };
 
 const ENTITY_STYLES: Record<string, { bg: string; text: string }> = {
@@ -117,16 +117,16 @@ export default async function AdminPage() {
   const quickLinks = [
     { href: "/admin/docentes/nuevo", label: "Nuevo Docente", Icon: UserPlus },
     { href: "/admin/administradores", label: "Administradores", Icon: ShieldCheck },
-    { href: "/admin/periodos", label: "Gestionar Periodos", Icon: Calendar },
+    { href: "/admin/periodos", label: "Gestionar Períodos", Icon: Calendar },
     { href: "/admin/reportes", label: "Ver Reportes", Icon: BarChart2 },
   ];
 
   const recommendations = [
     {
-      title: periodoActivo ? "Periodo listo para evaluar" : "Activa un periodo antes de abrir evaluaciones",
+      title: periodoActivo ? "Período listo para evaluar" : "Activa un período antes de abrir evaluaciones",
       description: periodoActivo
-        ? `El periodo ${periodoActivo.name} ya esta disponible para operar.`
-        : "Sin un periodo activo, los alumnos no podran capturar evaluaciones.",
+        ? `El período ${periodoActivo.name} ya está disponible para operar.`
+        : "Sin un período activo, los alumnos no podrán capturar evaluaciones.",
       tone: periodoActivo ? "emerald" : "amber",
       Icon: Calendar,
     },
@@ -138,10 +138,10 @@ export default async function AdminPage() {
       Icon: Database,
     },
     {
-      title: totalEvaluaciones > 0 ? "Reportes listos para seguimiento" : "Realiza una prueba de evaluacion",
+      title: totalEvaluaciones > 0 ? "Reportes listos para seguimiento" : "Realiza una prueba de evaluación",
       description: totalEvaluaciones > 0
         ? "Ya puedes revisar resultados por docente, materia, grupo y carrera en reportes."
-        : "Captura al menos una evaluacion de prueba para validar reportes y exportaciones.",
+        : "Captura al menos una evaluación de prueba para validar reportes y exportaciones.",
       tone: totalEvaluaciones > 0 ? "blue" : "amber",
       Icon: BarChart2,
     },
@@ -208,7 +208,7 @@ export default async function AdminPage() {
             <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 shadow-sm">
               <div className="flex items-center gap-2 text-slate-400">
                 <Calendar className="h-4 w-4 text-blue-600" />
-                <span className="text-[11px] font-black uppercase tracking-wide">Estado del Periodo</span>
+                <span className="text-[11px] font-black uppercase tracking-wide">Estado del Período</span>
               </div>
               <p className="mt-2 text-lg font-black text-slate-800">
                 {periodoActivo ? "Activo" : "Pendiente"}
@@ -253,11 +253,11 @@ export default async function AdminPage() {
         <div className="flex items-start gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
           <AlertTriangle className="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-500" />
           <div>
-            <p className="font-bold text-amber-800">No hay periodo de evaluacion activo</p>
+            <p className="font-bold text-amber-800">No hay período de evaluación activo</p>
             <p className="mt-0.5 text-sm text-amber-700">
-              Los alumnos no podran evaluar hasta que actives un periodo.{" "}
+              Los alumnos no podrán evaluar hasta que actives un período.{" "}
               <Link href="/admin/periodos" className="font-semibold underline hover:text-amber-800">
-                Ir a Periodos
+                Ir a Períodos
               </Link>
             </p>
           </div>
@@ -271,9 +271,9 @@ export default async function AdminPage() {
               <ArrowRight className="h-3.5 w-3.5 text-blue-600" />
               Acciones Operativas
             </div>
-            <h2 className="mt-3 text-xl font-black text-slate-800">Accesos rapidos del panel</h2>
+            <h2 className="mt-3 text-xl font-black text-slate-800">Accesos rápidos del panel</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Atajos para las tareas administrativas mas frecuentes dentro del sistema.
+              Atajos para las tareas administrativas más frecuentes dentro del sistema.
             </p>
           </div>
         </div>
@@ -306,7 +306,7 @@ export default async function AdminPage() {
             <h2 className="font-bold text-slate-700">Recomendaciones de uso</h2>
           </div>
           <p className="mt-1 text-xs text-slate-400">
-            Sugerencias practicas para operar el sistema con orden y reducir errores en captura y reportes.
+            Sugerencias prácticas para operar el sistema con orden y reducir errores en captura y reportes.
           </p>
         </div>
 
@@ -328,19 +328,19 @@ export default async function AdminPage() {
         <div className="border-t border-slate-100 bg-slate-50/70 px-6 py-5">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-blue-600" />
-            <h3 className="text-sm font-bold text-slate-700">Flujo sugerido para administracion diaria</h3>
+            <h3 className="text-sm font-bold text-slate-700">Flujo sugerido para administración diaria</h3>
           </div>
           <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
             <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
               <p className="text-xs font-black uppercase tracking-wide text-slate-500">1. Configuracion</p>
               <p className="mt-1 text-sm text-slate-600">
-                Verifica periodo activo, cuentas admin y catalogos base antes de abrir captura.
+                Verifica período activo, cuentas admin y catálogos base antes de abrir captura.
               </p>
             </div>
             <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
               <p className="text-xs font-black uppercase tracking-wide text-slate-500">2. Operacion</p>
               <p className="mt-1 text-sm text-slate-600">
-                Importa datos en el orden recomendado y valida con una evaluacion de prueba.
+                Importa datos en el orden recomendado y valida con una evaluación de prueba.
               </p>
             </div>
             <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
@@ -361,7 +361,7 @@ export default async function AdminPage() {
               <h2 className="font-bold text-slate-700">Actividad reciente</h2>
             </div>
             <p className="mt-1 text-xs text-slate-400">
-              Ultimos movimientos administrativos registrados por el sistema.
+              Últimos movimientos administrativos registrados por el sistema.
             </p>
           </div>
           <Link
@@ -387,7 +387,7 @@ export default async function AdminPage() {
                     Fecha
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Accion
+                    Acción
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                     Entidad

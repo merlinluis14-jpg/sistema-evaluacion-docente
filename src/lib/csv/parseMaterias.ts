@@ -8,6 +8,7 @@ import {
   type ImportProgressOptions,
 } from "@/lib/import/progress";
 import { prisma } from "@/lib/prisma";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 type CsvRow = {
   nombre: string;
@@ -62,8 +63,9 @@ export async function parseAndImportMaterias(
 
     try {
       const { nombre, codigo, cuatrimestre, carrera_code, numero_empleado } = row;
+      const normalizedName = formatAcademicText(nombre);
       const missingFields: string[] = [];
-      if (!nombre) missingFields.push("nombre");
+      if (!normalizedName) missingFields.push("nombre");
       if (!codigo) missingFields.push("codigo");
       if (!cuatrimestre) missingFields.push("cuatrimestre");
       if (!carrera_code) missingFields.push("carrera_code");
@@ -72,7 +74,7 @@ export async function parseAndImportMaterias(
       if (missingFields.length > 0) {
         errors.push({
           row: rowNumber,
-          identifier: codigo || "(vacio)",
+        identifier: codigo || "(vacío)",
           reason: `Campos faltantes: ${missingFields.join(", ")}`,
         });
         continue;
@@ -119,7 +121,7 @@ export async function parseAndImportMaterias(
           errors.push({
             row: rowNumber,
             identifier: codigo,
-            reason: `Docente con numero "${numero_empleado}" no existe`,
+            reason: `Docente con número "${numero_empleado}" no existe`,
           });
           continue;
         }
@@ -136,14 +138,14 @@ export async function parseAndImportMaterias(
           },
         },
         update: {
-          name: nombre,
+          name: normalizedName,
           code: codigo.toUpperCase(),
           cuatrimestre: cuatrimestreValue,
           teacherId,
           isActive: true,
         },
         create: {
-          name: nombre,
+          name: normalizedName,
           code: codigo.toUpperCase(),
           cuatrimestre: cuatrimestreValue,
           teacherId,
@@ -162,9 +164,9 @@ export async function parseAndImportMaterias(
       const message = error instanceof Error ? error.message : "Error desconocido";
       errors.push({
         row: rowNumber,
-        identifier: codigo || "(vacio)",
+        identifier: codigo || "(vacío)",
         reason: message.includes("Unique constraint")
-          ? "Codigo de materia duplicado en la misma carrera"
+          ? "Código de materia duplicado en la misma carrera"
           : `Error: ${message}`,
       });
     } finally {

@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
                         action: "IMPORT",
                         entity: "DOCENTE",
                         detail: syncCatalog
-                            ? `Importacion CSV con sincronizacion: ${result.success} docentes importados de ${result.total} filas; ${result.deactivatedCount ?? 0} docentes desactivados`
-                            : `Importacion CSV: ${result.success} docentes importados de ${result.total} filas`,
+                            ? `Importación CSV con sincronización: ${result.success} docentes importados de ${result.total} filas; ${result.deactivatedCount ?? 0} docentes desactivados`
+                            : `Importación CSV: ${result.success} docentes importados de ${result.total} filas`,
                     });
                 },
             });
@@ -52,8 +52,8 @@ export async function POST(req: NextRequest) {
                 action: "IMPORT",
                 entity: "DOCENTE",
                 detail: syncCatalog
-                    ? `Importacion CSV con sincronizacion: ${result.success} docentes importados de ${result.total} filas; ${result.deactivatedCount ?? 0} docentes desactivados`
-                    : `Importacion CSV: ${result.success} docentes importados de ${result.total} filas`,
+                    ? `Importación CSV con sincronización: ${result.success} docentes importados de ${result.total} filas; ${result.deactivatedCount ?? 0} docentes desactivados`
+                    : `Importación CSV: ${result.success} docentes importados de ${result.total} filas`,
             });
         } catch (loggingError) {
             console.error("No fue posible registrar la importacion de docentes:", loggingError);

@@ -81,7 +81,7 @@ export default async function ResultadosMateriaPage({
           </div>
           <p className="font-bold text-slate-600">Sin evaluaciones para esta materia</p>
           <p className="mt-1 text-sm text-slate-400">
-            Aun no hay alumnos que hayan evaluado {subject.name} en el periodo activo.
+            Aún no hay alumnos que hayan evaluado {subject.name} en el período activo.
           </p>
         </div>
       </div>
@@ -134,12 +134,12 @@ export default async function ResultadosMateriaPage({
 
             <h1 className="mt-4 text-2xl font-black text-slate-800 sm:text-3xl">{subject.name}</h1>
             <p className="mt-1 text-sm text-slate-500">
-              {subject.code} · {periodoActivo?.name ?? "Periodo activo"}
+              {subject.code} · {periodoActivo?.name ?? "Período activo"}
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                {totalEvaluaciones} evaluacion{totalEvaluaciones !== 1 ? "es" : ""} recibida
+                {totalEvaluaciones} evaluación{totalEvaluaciones !== 1 ? "es" : ""} recibida
                 {totalEvaluaciones !== 1 ? "s" : ""}
               </span>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
@@ -190,8 +190,8 @@ export default async function ResultadosMateriaPage({
           <div>
             <h2 className="text-base font-black text-blue-900">Lectura del reporte</h2>
             <p className="mt-1 text-sm text-blue-700">
-              Estos resultados son anonimos. Los promedios representan al grupo completo y pueden
-              usarse como evidencia para retroalimentacion y mejora docente.
+              Estos resultados son anónimos. Los promedios representan al grupo completo y pueden
+              usarse como evidencia para retroalimentación y mejora docente.
             </p>
           </div>
         </div>
@@ -205,7 +205,7 @@ export default async function ResultadosMateriaPage({
               Resumen de la Materia
             </div>
             <h2 className="mt-3 text-xl font-black text-slate-800">
-              Sintesis general antes del desglose por reactivo
+              Síntesis general antes del desglose por reactivo
             </h2>
             <p className="mt-1 text-sm text-slate-500">
               Este bloque muestra la lectura compacta del resultado obtenido en la materia.
@@ -235,13 +235,13 @@ export default async function ResultadosMateriaPage({
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
               <BarChart3 className="h-3.5 w-3.5 text-indigo-600" />
-              Analisis Grafico
+              Análisis Gráfico
             </div>
             <h2 className="mt-3 text-xl font-black text-slate-800">
-              Desglose visual por seccion y reactivo
+              Desglose visual por sección y reactivo
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Aqui puedes revisar con mayor detalle el comportamiento de cada dimension evaluada.
+              Aquí puedes revisar con mayor detalle el comportamiento de cada dimensión evaluada.
             </p>
           </div>
         </div>

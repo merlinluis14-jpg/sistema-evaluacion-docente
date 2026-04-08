@@ -9,6 +9,7 @@ import { logAdminAction } from "@/lib/adminLog";
 import { resyncGroupsForSubject } from "@/lib/groupAssignments";
 import { prisma } from "@/lib/prisma";
 import { getSessionRole } from "@/lib/sessionUser";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 async function requireAdmin() {
     const session = await getServerSession(authOptions);
@@ -20,7 +21,7 @@ async function requireAdmin() {
 export async function createSubject(formData: FormData) {
     await requireAdmin();
 
-    const name = String(formData.get("name") ?? "").trim();
+    const name = formatAcademicText(String(formData.get("name") ?? ""));
     const code = String(formData.get("code") ?? "").trim().toUpperCase();
     const cuatrimestre = parseInt(String(formData.get("cuatrimestre") ?? ""), 10);
     const teacherId = String(formData.get("teacherId") ?? "").trim();
@@ -58,7 +59,7 @@ export async function createSubject(formData: FormData) {
         console.error("Error al crear materia:", error);
         return {
             success: false,
-            error: "Error al crear la materia. Verifica que el codigo no este duplicado en la misma carrera.",
+            error: "Error al crear la materia. Verifica que el código no esté duplicado en la misma carrera.",
         };
     }
 
@@ -92,7 +93,7 @@ export async function deleteSubject(id: string) {
             action: "DEACTIVATE",
             entity: "MATERIA",
             entityId: id,
-            detail: `Materia desactivada: ${subject.name} (${subject.code})`,
+            detail: `Materia desactivada: ${formatAcademicText(subject.name)} (${subject.code})`,
         });
 
         revalidatePath("/admin/materias");

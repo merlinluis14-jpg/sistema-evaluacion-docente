@@ -22,7 +22,7 @@ const navItems = [
     { href: "/admin/carreras", Icon: BookOpen,        label: "Carreras"  },
     { href: "/admin/grupos",   Icon: Layers,          label: "Grupos"    },
     { href: "/admin/materias", Icon: BookOpen,        label: "Materias"  },
-    { href: "/admin/periodos", Icon: Calendar,        label: "Periodos"  },
+    { href: "/admin/periodos", Icon: Calendar,        label: "Períodos"  },
     { href: "/admin/reportes", Icon: BarChart3,       label: "Reportes"  },
     { href: "/admin/administradores", Icon: ShieldCheck, label: "Administradores" },
 ];

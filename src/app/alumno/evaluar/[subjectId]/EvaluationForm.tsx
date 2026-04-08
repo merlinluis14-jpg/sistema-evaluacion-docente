@@ -86,11 +86,11 @@ const STEP_FIELDS: Record<number, string[]> = {
 };
 
 const STEP_TITLES: Record<number, string> = {
-  1: "Evaluacion del Facilitador",
+  1: "Evaluación del Facilitador",
   2: "Habilidades del Facilitador",
-  3: "Utilizacion de los Medios Didacticos",
-  4: "Relacion Teoria / Practica",
-  5: "Autoevaluacion del Alumno",
+  3: "Utilización de los Medios Didácticos",
+  4: "Relación Teoría / Práctica",
+  5: "Autoevaluación del Alumno",
 };
 
 type ScaleOption = { value: number; label: string; full: string };
@@ -209,7 +209,7 @@ function SectionHeader({
       <div className={`absolute left-0 top-0 h-full w-1.5 ${accentBg}`} />
       <div className="mb-3 flex flex-col gap-3 pl-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <span className={`text-xs font-black uppercase tracking-widest ${accentText}`}>Seccion {stepNum}</span>
+          <span className={`text-xs font-black uppercase tracking-widest ${accentText}`}>Sección {stepNum}</span>
           <h2 className="mt-0.5 text-lg font-black text-slate-800 sm:text-xl">{title}</h2>
         </div>
         <span className={`w-fit flex-shrink-0 rounded-full px-3 py-1 text-xs font-bold ${badgeBg} ${badgeText}`}>
@@ -251,7 +251,7 @@ export function EvaluationForm({
   };
 
   const showValidationError = (stepToShow: number, fieldName: string) => {
-    setValidationMessage(`Completa la seccion "${STEP_TITLES[stepToShow]}" antes de continuar.`);
+    setValidationMessage(`Completa la sección "${STEP_TITLES[stepToShow]}" antes de continuar.`);
 
     if (step === stepToShow) {
       focusField(fieldName);
@@ -288,8 +288,8 @@ export function EvaluationForm({
     { label: "Facilitador", bg: "bg-blue-600" },
     { label: "Habilidades", bg: "bg-indigo-600" },
     { label: "Medios", bg: "bg-violet-600" },
-    { label: "Teoria / Practica", bg: "bg-amber-500" },
-    { label: "Autoevaluacion", bg: "bg-emerald-600" },
+    { label: "Teoría / Práctica", bg: "bg-amber-500" },
+    { label: "Autoevaluación", bg: "bg-emerald-600" },
   ];
 
   return (
@@ -325,7 +325,7 @@ export function EvaluationForm({
 
       <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 sm:items-center sm:px-5">
         <p className="text-sm font-medium leading-relaxed text-blue-700">
-          Tu evaluacion es <strong>completamente anonima</strong>. El docente no podra identificarte.
+          Tu evaluación es <strong>completamente anónima</strong>. El docente no podrá identificarte.
         </p>
       </div>
 
@@ -342,7 +342,7 @@ export function EvaluationForm({
       <div
         className="scrollbar-hide flex items-center gap-2 overflow-x-auto pb-1"
         role="list"
-        aria-label="Progreso de la evaluacion"
+        aria-label="Progreso de la evaluación"
       >
         {steps.map((item, index) => (
           <div key={item.label} className="flex flex-shrink-0 items-center gap-2" role="listitem">
@@ -373,8 +373,8 @@ export function EvaluationForm({
       <div className={`space-y-4 ${step === 1 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
         <SectionHeader
           stepNum="01"
-          title="Evaluacion del Facilitador"
-          subtitle="Desempeno general, puntualidad, dominio de contenidos y cumplimiento de objetivos institucionales."
+          title="Evaluación del Facilitador"
+          subtitle="Desempeño general, puntualidad, dominio de contenidos y cumplimiento de objetivos institucionales."
           badge="11 Items"
           accentBg="bg-blue-600"
           accentText="text-blue-600"
@@ -441,7 +441,7 @@ export function EvaluationForm({
       <div className={`space-y-4 ${step === 3 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
         <SectionHeader
           stepNum="03"
-          title="Utilizacion de los Medios Didacticos"
+          title="Utilización de los Medios Didácticos"
           subtitle="Indica con que frecuencia el facilitador utilizo cada recurso durante el cuatrimestre."
           badge="6 Items"
           accentBg="bg-violet-600"
@@ -474,8 +474,8 @@ export function EvaluationForm({
       <div className={`space-y-4 ${step === 4 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
         <SectionHeader
           stepNum="04"
-          title="Relacion Teoria / Practica"
-          subtitle="Selecciona la opcion que mejor describe el equilibrio entre teoria y practica durante el curso."
+          title="Relación Teoría / Práctica"
+          subtitle="Selecciona la opción que mejor describe el equilibrio entre teoría y práctica durante el curso."
           badge="1 Item"
           accentBg="bg-amber-500"
           accentText="text-amber-600"
@@ -507,8 +507,8 @@ export function EvaluationForm({
       <div className={`space-y-4 ${step === 5 ? "animate-in slide-in-from-right-4" : "hidden"}`}>
         <SectionHeader
           stepNum="05"
-          title="Autoevaluacion del Alumno"
-          subtitle="Evalua tu propio desempeno, compromiso y participacion durante el cuatrimestre."
+          title="Autoevaluación del Alumno"
+          subtitle="Evalúa tu propio desempeño, compromiso y participación durante el cuatrimestre."
           badge="11 Items"
           accentBg="bg-emerald-600"
           accentText="text-emerald-600"
@@ -539,26 +539,26 @@ export function EvaluationForm({
         <div className="space-y-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
           <div>
             <span className="text-xs font-black uppercase tracking-widest text-slate-400">
-              Seccion 06
+              Sección 06
             </span>
             <h2 className="mt-0.5 text-xl font-black text-slate-800">Comentarios</h2>
           </div>
 
           <div className="space-y-2">
             <label htmlFor="comentario_fortalezas" className="block text-sm font-bold text-slate-700">
-              Cuales son las fortalezas del docente y que sugerencias darias para hacer mas dinamicas las clases?
+              ¿Cuáles son las fortalezas del docente y qué sugerencias darías para hacer más dinámicas las clases?
             </label>
             <textarea
               id="comentario_fortalezas"
               name="comentario_fortalezas"
-              placeholder="Escribe aqui tu retroalimentacion... (Opcional)"
+              placeholder="Escribe aquí tu retroalimentación... (Opcional)"
               className="h-28 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50/50 p-4 text-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="comentario_adicional" className="block text-sm font-bold text-slate-700">
-              Consideras necesario realizar algun otro comentario respecto a tu docente?
+              ¿Consideras necesario realizar algún otro comentario respecto a tu docente?
             </label>
             <textarea
               id="comentario_adicional"
@@ -637,7 +637,7 @@ export function EvaluationForm({
                   Enviando...
                 </>
               ) : (
-                "Enviar Evaluacion"
+                "Enviar Evaluación"
               )}
             </button>
           )}

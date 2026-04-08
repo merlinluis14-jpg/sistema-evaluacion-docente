@@ -7,12 +7,12 @@ import { fixMojibake } from "@/lib/text/fixMojibake";
 export const dynamic = "force-dynamic";
 
 const ACTION_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-    CREATE: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Creacion" },
-    DELETE: { bg: "bg-red-50", text: "text-red-700", label: "Eliminacion" },
-    UPDATE: { bg: "bg-blue-50", text: "text-blue-700", label: "Actualizacion" },
-    ACTIVATE: { bg: "bg-amber-50", text: "text-amber-700", label: "Activacion" },
-    DEACTIVATE: { bg: "bg-slate-100", text: "text-slate-600", label: "Desactivacion" },
-    IMPORT: { bg: "bg-violet-50", text: "text-violet-700", label: "Importacion" },
+    CREATE: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Creación" },
+    DELETE: { bg: "bg-red-50", text: "text-red-700", label: "Eliminación" },
+    UPDATE: { bg: "bg-blue-50", text: "text-blue-700", label: "Actualización" },
+    ACTIVATE: { bg: "bg-amber-50", text: "text-amber-700", label: "Activación" },
+    DEACTIVATE: { bg: "bg-slate-100", text: "text-slate-600", label: "Desactivación" },
+    IMPORT: { bg: "bg-violet-50", text: "text-violet-700", label: "Importación" },
     LOGIN: { bg: "bg-cyan-50", text: "text-cyan-700", label: "Acceso exitoso" },
     LOGIN_FAILED: { bg: "bg-rose-50", text: "text-rose-700", label: "Acceso fallido" },
 };
@@ -79,7 +79,7 @@ export default async function LogsPage({
                 </div>
                 <div className="flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
                     <Shield size={12} />
-                    Auditoria del sistema
+                    Auditoría del sistema
                 </div>
             </div>
 
@@ -146,9 +146,9 @@ export default async function LogsPage({
 
             <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
                 <div className="border-b border-slate-100 px-6 py-4">
-                    <h2 className="font-bold text-slate-700">Ultimos 100 registros</h2>
+                    <h2 className="font-bold text-slate-700">Últimos 100 registros</h2>
                     <p className="mt-0.5 text-xs text-slate-400">
-                        Ordenados por fecha mas reciente
+                        Ordenados por fecha más reciente
                     </p>
                 </div>
 
@@ -157,7 +157,7 @@ export default async function LogsPage({
                         <ClipboardList className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                         <p className="font-bold text-slate-500">No hay registros de acciones</p>
                         <p className="mt-1 text-sm text-slate-400">
-                            Las acciones y accesos administrativos apareceran aqui automaticamente
+                            Las acciones y accesos administrativos aparecerán aquí automáticamente
                         </p>
                     </div>
                 ) : (
@@ -169,7 +169,7 @@ export default async function LogsPage({
                                         Fecha
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                                        Accion
+                                        Acción
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                                         Entidad

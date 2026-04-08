@@ -63,7 +63,7 @@ export default async function NuevoPeriodoPage({
         action: activar ? "ACTIVATE" : "CREATE",
         entity: "PERIODO",
         entityId: period.id,
-        detail: `${activar ? "Periodo creado y activado" : "Periodo creado"}: ${nombre}`,
+        detail: `${activar ? "Período creado y activado" : "Período creado"}: ${nombre}`,
       });
     } catch {
       redirect("/admin/periodos/nuevo?error=servidor");
@@ -84,12 +84,12 @@ export default async function NuevoPeriodoPage({
         href="/admin/periodos"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-colors hover:text-slate-600"
       >
-        <ArrowLeft size={15} /> Volver a Periodos
+        <ArrowLeft size={15} /> Volver a Períodos
       </Link>
 
       <div>
         <h1 className="text-3xl font-black text-slate-800">
-          Nuevo <span className="text-blue-600">Periodo</span>
+          Nuevo <span className="text-blue-600">Período</span>
         </h1>
         <p className="mt-1 text-sm text-slate-400">
           Selecciona una plantilla del calendario UPTX o ingresa las fechas manualmente
@@ -108,7 +108,7 @@ export default async function NuevoPeriodoPage({
           <CalendarDays className="h-4 w-4" /> Plantillas del Calendario Oficial UPTX
         </p>
         <p className="text-xs text-blue-500">
-          Selecciona una para pre-llenar el formulario automaticamente
+          Selecciona una para prellenar el formulario automáticamente
         </p>
         <div className="grid grid-cols-1 gap-2">
           {PERIODOS_UPTX.map((periodo, index) => (
@@ -134,16 +134,16 @@ export default async function NuevoPeriodoPage({
 
       <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
         <div className="bg-slate-900 px-6 py-4">
-          <p className="font-black text-white">Datos del periodo</p>
+          <p className="font-black text-white">Datos del período</p>
           <p className="mt-0.5 text-xs text-slate-400">
-            Puedes ajustar las fechas segun el calendario institucional
+            Puedes ajustar las fechas según el calendario institucional
           </p>
         </div>
 
         <form action={crearPeriodo} className="space-y-5 p-6">
           <div>
             <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Nombre del periodo <span className="text-red-500">*</span>
+              Nombre del período <span className="text-red-500">*</span>
             </label>
             <input
               name="nombre"
@@ -190,10 +190,10 @@ export default async function NuevoPeriodoPage({
             />
             <div>
               <label htmlFor="activar" className="cursor-pointer text-sm font-bold text-amber-700">
-                Activar este periodo inmediatamente
+                Activar este período inmediatamente
               </label>
               <p className="mt-0.5 text-xs text-amber-600">
-                Desactivara el periodo actual y permitira que los alumnos comiencen a evaluar.
+                Desactivará el período actual y permitirá que los alumnos comiencen a evaluar.
               </p>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default async function NuevoPeriodoPage({
               type="submit"
               className="flex-1 rounded-xl bg-blue-700 py-3 text-sm font-black text-white shadow-lg shadow-blue-700/20 transition-all hover:bg-blue-800 active:scale-[0.99]"
             >
-              Crear periodo
+              Crear período
             </button>
             <Link
               href="/admin/periodos"

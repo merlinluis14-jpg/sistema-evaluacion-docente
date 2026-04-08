@@ -117,7 +117,7 @@ export default async function EditarDocentePage({
   const mensajesError: Record<string, string> = {
     campos: "Completa todos los campos obligatorios.",
     tipo: "El tipo de docente debe ser PA o PTC.",
-    duplicado: "Ya existe otro docente con ese email o numero de empleado.",
+    duplicado: "Ya existe otro docente con ese email o número de empleado.",
     servidor: "No fue posible guardar los cambios. Intenta de nuevo.",
   };
 
@@ -199,7 +199,7 @@ export default async function EditarDocentePage({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-bold text-slate-700">
-                Numero de empleado <span className="text-red-500">*</span>
+                Número de empleado <span className="text-red-500">*</span>
               </label>
               <input
                 name="employeeId"

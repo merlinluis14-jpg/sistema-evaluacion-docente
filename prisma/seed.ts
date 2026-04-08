@@ -18,11 +18,11 @@ async function main() {
     const periodName = "Cuatrimestre Enero-Abril 2026";
 
     const carreras = [
-        { code: "ISC", name: "Ingenieria en Sistemas Computacionales" },
-        { code: "IRO", name: "Ingenieria en Robotica" },
-        { code: "IET", name: "Ingenieria en Electronica y Telecomunicaciones" },
-        { code: "ILT", name: "Ingenieria en Logistica y Transporte" },
-        { code: "LAGE", name: "Licenciatura en Administracion y Gestion Empresarial" },
+        { code: "ISC", name: "Ingeniería en Sistemas Computacionales" },
+        { code: "IRO", name: "Ingeniería en Robótica" },
+        { code: "IET", name: "Ingeniería en Electrónica y Telecomunicaciones" },
+        { code: "ILT", name: "Ingeniería en Logística y Transporte" },
+        { code: "LAGE", name: "Licenciatura en Administración y Gestión Empresarial" },
         { code: "LCIA", name: "Licenciatura en Comercio Internacional y Aduanas" },
     ];
 

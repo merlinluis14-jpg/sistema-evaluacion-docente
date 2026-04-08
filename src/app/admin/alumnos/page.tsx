@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { ChevronLeft, ChevronRight, GraduationCap, Pencil, Plus, Upload } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
+import { formatAcademicText } from "@/lib/text/academicText";
 import { ResetStudentPasswordButton } from "./ResetStudentPasswordButton";
 
 export default async function AlumnosPage({
@@ -90,7 +91,7 @@ export default async function AlumnosPage({
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">
-                        Gestion de <span className="text-blue-600">Alumnos</span>
+                        Gestión de <span className="text-blue-600">Alumnos</span>
                     </h1>
                     <p className="mt-1 text-sm text-slate-400">
                         {totalAlumnos} alumnos registrados en el sistema
@@ -122,7 +123,7 @@ export default async function AlumnosPage({
 
             {success === "creado" && (
                 <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700">
-                    El alumno se registro correctamente con una contrasena temporal.
+                    El alumno se registró correctamente con una contraseña temporal.
                 </div>
             )}
 
@@ -135,7 +136,7 @@ export default async function AlumnosPage({
                         <input
                             name="q"
                             defaultValue={q}
-                            placeholder="Matricula, nombre o apellido..."
+                            placeholder="Matrícula, nombre o apellido..."
                             className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                         />
                     </div>
@@ -152,7 +153,7 @@ export default async function AlumnosPage({
                             <option value="">Todas las carreras</option>
                             {carreras.map((career) => (
                                 <option key={career.id} value={career.id}>
-                                    {career.code} - {career.name}
+                                    {career.code} - {formatAcademicText(career.name)}
                                 </option>
                             ))}
                         </select>
@@ -238,7 +239,7 @@ export default async function AlumnosPage({
                                     </p>
                                     {alumno.user.canChangeInitialPassword && (
                                         <p className="mt-1 text-xs font-bold text-amber-600">
-                                            Contrasena temporal activa
+                                            Contraseña temporal activa
                                         </p>
                                     )}
                                 </td>
@@ -307,7 +308,7 @@ export default async function AlumnosPage({
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
                         <span className="text-sm font-medium text-slate-500">
-                            Pagina {currentPage} de {totalPages}
+                            Página {currentPage} de {totalPages}
                         </span>
                         <div className="flex items-center gap-2">
                             {currentPage > 1 ? (

@@ -114,7 +114,7 @@ function ResumenSecciones({ promedios }: { promedios: Props["promedios"] }) {
 
   return (
     <div className="rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] p-4 sm:p-6">
-      <h3 className="font-black text-slate-700 mb-4">Resumen por Seccion</h3>
+      <h3 className="font-black text-slate-700 mb-4">Resumen por Sección</h3>
       <div className="space-y-4">
         {secciones.map(({ label, valor, max, color }) => {
           const pct = max > 0 ? (valor / max) * 100 : 0;
@@ -153,10 +153,10 @@ function RadarSecciones({ promedios }: { promedios: Props["promedios"] }) {
   const autoPct = (promedios.auto / 5) * 100;
 
   const data = {
-    labels: ["Facilitador", "Habilidades", "Medios Didacticos", "Autoevaluacion"],
+    labels: ["Facilitador", "Habilidades", "Medios Didácticos", "Autoevaluación"],
     datasets: [
       {
-        label: "Porcentaje por seccion",
+        label: "Porcentaje por sección",
         data: [facPct, habPct, medPct, autoPct],
         backgroundColor: "rgba(59, 130, 246, 0.15)",
         borderColor: "rgba(59, 130, 246, 0.8)",
@@ -210,7 +210,7 @@ function RadarSecciones({ promedios }: { promedios: Props["promedios"] }) {
     <div className="rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50/70 p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] sm:p-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="mb-1 font-black text-slate-700">Grafica radar por seccion</h3>
+          <h3 className="mb-1 font-black text-slate-700">Gráfica radar por sección</h3>
           <p className="text-xs text-slate-400">
             Valores normalizados a porcentaje para comparar secciones con distintas escalas
           </p>
@@ -252,7 +252,7 @@ function TheoryPracticeSection({ theoryPractice }: { theoryPractice: TheoryPract
     <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)]">
       <div className={`${c.header} px-4 sm:px-6 py-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between`}>
         <div>
-          <h3 className="font-black text-white">Seccion 4 - Relacion teoria / practica</h3>
+          <h3 className="font-black text-white">Sección 4 - Relación teoría / práctica</h3>
           <p className="text-white/70 text-xs mt-0.5">
             Respuesta categorica del instrumento FDA-24.5. Se reporta aparte y no altera el promedio global.
           </p>
@@ -301,7 +301,7 @@ export default function GraficasDetalle({
       {showSectionSummary && <ResumenSecciones promedios={promedios} />}
       <RadarSecciones promedios={promedios} />
       <SeccionGrafica
-        titulo="Seccion 1 - Evaluacion del Facilitador"
+        titulo="Sección 1 - Evaluación del Facilitador"
         subtitulo="11 items - Escala E/MB/B/M (1-4)"
         items={facilitador}
         color="blue"
@@ -309,7 +309,7 @@ export default function GraficasDetalle({
         max={4}
       />
       <SeccionGrafica
-        titulo="Seccion 2 - Habilidades del Facilitador"
+        titulo="Sección 2 - Habilidades del Facilitador"
         subtitulo="4 items - Escala E/MB/B/R/M (1-5)"
         items={habilidades}
         color="indigo"
@@ -317,7 +317,7 @@ export default function GraficasDetalle({
         max={5}
       />
       <SeccionGrafica
-        titulo="Seccion 3 - Medios Didacticos"
+        titulo="Sección 3 - Medios Didácticos"
         subtitulo="6 items - Frecuencia de uso (1-5)"
         items={medios}
         color="violet"
@@ -326,7 +326,7 @@ export default function GraficasDetalle({
       />
       <TheoryPracticeSection theoryPractice={teoriaPractica} />
       <SeccionGrafica
-        titulo="Seccion 5 - Autoevaluacion del Alumno"
+        titulo="Sección 5 - Autoevaluación del Alumno"
         subtitulo="11 items - Frecuencia (1-5)"
         items={autoevaluacion}
         color="emerald"

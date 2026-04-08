@@ -87,7 +87,7 @@ export default function CreateAdminForm() {
           <h2 className="font-bold text-slate-800">Registrar Administrador</h2>
         </div>
         <p className="mt-1 text-xs text-slate-400">
-          La autorizacion exige la contrasena actual del admin que realiza el alta.
+          La autorización exige la contraseña actual del admin que realiza el alta.
         </p>
       </div>
 
@@ -146,7 +146,7 @@ export default function CreateAdminForm() {
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-xs sm:tracking-[0.2em]">
-                    Contrasena inicial
+                    Contraseña inicial
                   </p>
                   <p className="mt-2 break-all font-mono text-sm font-bold text-slate-900">
                     {createdAccount.password}
@@ -159,7 +159,7 @@ export default function CreateAdminForm() {
                   type="button"
                   onClick={() =>
                     copyToClipboard(
-                      `Correo: ${createdAccount.email}\nContrasena inicial: ${createdAccount.password}`,
+                      `Correo: ${createdAccount.email}\nContraseña inicial: ${createdAccount.password}`,
                     )
                   }
                   className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
@@ -174,8 +174,8 @@ export default function CreateAdminForm() {
                       [
                         "Acceso al Panel Administrativo UPTX",
                         `Usuario: ${createdAccount.email}`,
-                        `Contrasena inicial: ${createdAccount.password}`,
-                        "Comparte esta informacion por un canal seguro.",
+                        `Contraseña inicial: ${createdAccount.password}`,
+                        "Comparte esta información por un canal seguro.",
                       ].join("\n"),
                     )
                   }
@@ -194,7 +194,7 @@ export default function CreateAdminForm() {
 
               {copyStatus === "error" ? (
                 <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                  No se pudo copiar automaticamente. Copia los datos manualmente desde la tarjeta.
+                  No se pudo copiar automáticamente. Copia los datos manualmente desde la tarjeta.
                 </div>
               ) : null}
             </div>
@@ -213,12 +213,12 @@ export default function CreateAdminForm() {
               className={inputClass}
             />
             <p className="mt-1 text-xs text-slate-400">
-              Esta cuenta administrativa sera independiente y no afectara accesos de docentes.
+              Esta cuenta administrativa será independiente y no afectará accesos de docentes.
             </p>
           </div>
 
           <div>
-            <label htmlFor="currentPassword" className={labelClass}>Tu contrasena actual</label>
+            <label htmlFor="currentPassword" className={labelClass}>Tu contraseña actual</label>
             <div className="relative">
               <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
@@ -226,7 +226,7 @@ export default function CreateAdminForm() {
                 name="currentPassword"
                 type="password"
                 required
-                placeholder="Confirma la autorizacion"
+                placeholder="Confirma la autorización"
                 className={`${inputClass} pl-10`}
               />
             </div>
@@ -235,7 +235,7 @@ export default function CreateAdminForm() {
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <div>
-            <label htmlFor="password" className={labelClass}>Contrasena inicial</label>
+            <label htmlFor="password" className={labelClass}>Contraseña inicial</label>
             <input
               id="password"
               name="password"
@@ -248,14 +248,14 @@ export default function CreateAdminForm() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className={labelClass}>Confirmar contrasena</label>
+            <label htmlFor="confirmPassword" className={labelClass}>Confirmar contraseña</label>
             <input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
               required
               minLength={8}
-              placeholder="Repite la contrasena"
+              placeholder="Repite la contraseña"
               className={inputClass}
             />
           </div>
@@ -267,7 +267,7 @@ export default function CreateAdminForm() {
             <p className="text-sm font-bold">Control recomendado</p>
           </div>
           <p className="mt-1 text-xs leading-relaxed text-blue-700/90">
-            Comparte esta cuenta solo con responsables autorizados. La creacion se registra automaticamente en logs como entidad ADMIN.
+            Comparte esta cuenta solo con responsables autorizados. La creación se registra automáticamente en logs como entidad ADMIN.
           </p>
         </div>
 

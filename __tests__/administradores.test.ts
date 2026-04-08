@@ -147,7 +147,7 @@ describe("administradores actions", () => {
 
     expect(result).toEqual({
       success: false,
-      error: "La contrasena actual del administrador no es correcta",
+      error: "La contraseña actual del administrador no es correcta",
     });
     expect(prisma.user.update).not.toHaveBeenCalled();
   });

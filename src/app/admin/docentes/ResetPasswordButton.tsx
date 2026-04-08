@@ -34,11 +34,11 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
 
     const handleCopyMessage = async () => {
         const messageLines = [
-            "Acceso al Sistema de Evaluacion Docente UPTX",
+            "Acceso al Sistema de Evaluación Docente UPTX",
             `Docente: ${teacherName}`,
             `Usuario: ${teacherEmail}`,
-            `Contrasena temporal: ${temporaryPassword}`,
-            "Comparte esta informacion por un canal seguro.",
+            `Contraseña temporal: ${temporaryPassword}`,
+            "Comparte esta información por un canal seguro.",
         ];
 
         try {
@@ -52,7 +52,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
     };
 
     const handleReset = async () => {
-        if (!confirm(`Se generara una nueva contrasena temporal para ${teacherName}. Deseas continuar?`)) {
+        if (!confirm(`Se generará una nueva contraseña temporal para ${teacherName}. ¿Deseas continuar?`)) {
             return;
         }
 
@@ -68,7 +68,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
                 setTimeout(() => setStatus("idle"), 3000);
             } else {
                 setStatus("error");
-                alert(res.error || "Error al generar la contrasena temporal");
+                alert(res.error || "Error al generar la contraseña temporal");
             }
         } catch {
             setStatus("error");
@@ -83,7 +83,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
             <button
                 onClick={handleReset}
                 disabled={isPending}
-                title="Generar nueva contrasena temporal"
+                title="Generar nueva contraseña temporal"
                 className={`p-2 rounded-xl transition-all ${
                     status === "success"
                         ? "bg-emerald-50 text-emerald-600"
@@ -92,7 +92,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
                             : "bg-slate-50 text-slate-400 hover:text-amber-600 hover:bg-amber-50"
                 } ${isPending ? "cursor-wait opacity-70" : ""}`}
             >
-                <span className="sr-only">Generar nueva contrasena temporal</span>
+                <span className="sr-only">Generar nueva contraseña temporal</span>
                 {status === "success" ? (
                     <Check className="w-5 h-5" />
                 ) : status === "error" ? (
@@ -109,7 +109,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
                             <div className="min-w-0 flex-1 space-y-1">
                                 <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-blue-100 sm:text-xs sm:tracking-[0.24em]">
                                     <ShieldCheck className="h-4 w-4" />
-                                    Contrasena temporal generada
+                                    Contraseña temporal generada
                                 </p>
                                 <h3 className="break-words text-base font-black leading-tight sm:text-lg">{teacherName}</h3>
                                 <p className="flex items-center gap-2 break-all text-sm text-blue-50">
@@ -135,7 +135,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
                     <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
                         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-xs sm:tracking-[0.2em]">
-                                Nueva contrasena
+                                Nueva contraseña
                             </p>
                             <p className="mt-2 break-all font-mono text-base font-bold text-slate-900 sm:text-lg">
                                 {temporaryPassword}
@@ -143,7 +143,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
                         </div>
 
                         <p className="text-sm leading-6 text-slate-600">
-                            Comparte esta informacion solo por un canal seguro.
+                            Comparte esta información solo por un canal seguro.
                         </p>
 
                         <div className="flex flex-col gap-2 sm:flex-row">
@@ -153,7 +153,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
                                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
                             >
                                 <Clipboard className="h-4 w-4" />
-                                Copiar contrasena
+                                Copiar contraseña
                             </button>
                             <button
                                 type="button"
@@ -173,7 +173,7 @@ export function ResetPasswordButton({ teacherId, teacherName, teacherEmail }: Re
 
                         {copyStatus === "error" && (
                             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                                No se pudo copiar automaticamente. Selecciona el texto y copialo manualmente.
+                                No se pudo copiar automáticamente. Selecciona el texto y cópialo manualmente.
                             </div>
                         )}
                     </div>

@@ -360,10 +360,10 @@ export default async function ReporteDocenteDetallePage({
                   {teacher.employeeId}
                 </span>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                  {periodo?.name ?? "Sin periodo"}
+                  {periodo?.name ?? "Sin período"}
                 </span>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                  {n} evaluacion{n !== 1 ? "es" : ""} de alumnos
+                  {n} evaluación{n !== 1 ? "es" : ""} de alumnos
                 </span>
               </div>
             </div>
@@ -424,10 +424,10 @@ export default async function ReporteDocenteDetallePage({
       {n === 0 && (
         <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
           <p className="font-bold text-amber-800">
-            Aun no hay evaluaciones de alumnos en esta carrera para este periodo.
+            Aún no hay evaluaciones de alumnos en esta carrera para este período.
           </p>
           <p className="mt-1 text-sm text-amber-700">
-            La coordinacion puede capturar su evaluacion institucional, pero el promedio combinado se vera
+            La coordinación puede capturar su evaluación institucional, pero el promedio combinado se verá
             completo cuando existan resultados de alumnos en este contexto.
           </p>
         </div>
@@ -440,7 +440,7 @@ export default async function ReporteDocenteDetallePage({
         careerName={selectedCareer.name}
         teacherName={`${teacher.name} ${teacher.lastName}`}
         periodId={periodoId}
-        periodName={periodo?.name ?? "Sin periodo"}
+        periodName={periodo?.name ?? "Sin período"}
         position={teacher.position}
         initialEvaluation={careerHeadEvaluation}
         assignmentOverview={assignmentOverview}
@@ -456,10 +456,10 @@ export default async function ReporteDocenteDetallePage({
                   Resumen Estudiantil
                 </div>
                 <h2 className="mt-3 text-xl font-black text-slate-800">
-                  Sintesis de resultados capturados por los alumnos
+                  Síntesis de resultados capturados por los alumnos
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Este bloque concentra los promedios por seccion y las materias evaluadas en el
+                  Este bloque concentra los promedios por sección y las materias evaluadas en el
                   contexto seleccionado.
                 </p>
               </div>
@@ -493,7 +493,7 @@ export default async function ReporteDocenteDetallePage({
             <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
               <h3 className="mb-1 text-sm font-bold text-slate-700">Materias evaluadas en este contexto</h3>
               <p className="mb-3 text-xs text-slate-400">
-                Las siguientes asignaturas aportan informacion al resumen mostrado arriba.
+                Las siguientes asignaturas aportan información al resumen mostrado arriba.
               </p>
               <div className="flex flex-wrap gap-2">
                 {materias.map((materia) => (
@@ -513,13 +513,13 @@ export default async function ReporteDocenteDetallePage({
               <div className="max-w-2xl">
                 <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
                   <BarChart3 className="h-3.5 w-3.5 text-indigo-600" />
-                  Analisis Grafico
+                  Análisis Gráfico
                 </div>
                 <h2 className="mt-3 text-xl font-black text-slate-800">
-                  Desglose visual por seccion y reactivo
+                  Desglose visual por sección y reactivo
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Aqui se muestra el comportamiento detallado de las respuestas estudiantiles para
+                  Aquí se muestra el comportamiento detallado de las respuestas estudiantiles para
                   sustentar el reporte del docente.
                 </p>
               </div>
@@ -544,9 +544,9 @@ export default async function ReporteDocenteDetallePage({
       ) : (
         <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center shadow-sm">
           <Inbox className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-          <p className="font-bold text-slate-600">Sin graficas disponibles aun</p>
+          <p className="font-bold text-slate-600">Sin gráficas disponibles aún</p>
           <p className="mt-1 text-sm text-slate-400">
-            Cuando los alumnos evaluen materias de {selectedCareer.code}, aqui veras el detalle estadistico.
+            Cuando los alumnos evalúen materias de {selectedCareer.code}, aquí verás el detalle estadístico.
           </p>
         </div>
       )}

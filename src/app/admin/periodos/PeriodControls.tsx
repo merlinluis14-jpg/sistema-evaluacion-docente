@@ -74,7 +74,7 @@ export function PeriodControls({
   };
 
   const handleDelete = () => {
-    if (!confirm(`Eliminar el periodo "${period.name}"? Esta accion no se puede deshacer.`)) {
+    if (!confirm(`Eliminar el período "${period.name}"? Esta acción no se puede deshacer.`)) {
       return;
     }
 
@@ -83,7 +83,7 @@ export function PeriodControls({
         await deletePeriod(period.id);
         router.refresh();
       } catch {
-        alert("No se puede eliminar: este periodo tiene evaluaciones registradas.");
+        alert("No se puede eliminar: este período tiene evaluaciones registradas.");
       }
     });
   };
@@ -114,7 +114,7 @@ export function PeriodControls({
         title={
           period._count.evaluations > 0
             ? "Tiene evaluaciones registradas, no se puede eliminar"
-            : "Eliminar periodo"
+            : "Eliminar período"
         }
         className="rounded-lg px-2 py-2 text-xs font-bold text-red-500 transition-all hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-30"
       >

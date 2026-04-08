@@ -112,7 +112,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
             <div className="mb-6 inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
                 <span className="text-sm font-medium text-blue-700">
-                    Periodo activo: <strong>{periodName}</strong>
+                    Período activo: <strong>{periodName}</strong>
                 </span>
             </div>
 
@@ -145,19 +145,19 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                                             Requerido
                                         </th>
                                         <th className="rounded-r-xl px-4 py-2 text-left text-xs font-bold text-slate-500">
-                                            Descripcion
+                                            Descripción
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {[
-                                        ["matricula", true, "Matricula institucional unica; se usa para el login"],
+                                        ["matricula", true, "Matrícula institucional única; se usa para el login"],
                                         ["nombre", true, "Nombre(s) del alumno"],
                                         ["apellido", true, "Apellido(s) del alumno"],
                                         ["email", false, "Email institucional opcional"],
-                                        ["carrera_code", true, "Codigo de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
+                                        ["carrera_code", true, "Código de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
                                         ["grupo", true, "Nombre del grupo: 3A, 5B, 2C; se crea si no existe"],
-                                        ["password", false, "Contrasena temporal inicial; si se omite, se usa la matricula"],
+                                        ["password", false, "Contraseña temporal inicial; si se omite, se usa la matrícula"],
                                     ].map(([column, required, description]) => (
                                         <tr key={column as string}>
                                             <td className="px-4 py-2">
@@ -263,7 +263,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                             ) : (
                                 <div className="space-y-2">
                                     <FolderOpen className="mx-auto h-10 w-10 text-slate-300" />
-                                    <p className="font-bold text-slate-600">Arrastra tu CSV aqui</p>
+                                    <p className="font-bold text-slate-600">Arrastra tu CSV aquí</p>
                                     <p className="text-sm text-slate-400">o haz clic para seleccionar</p>
                                     <p className="mt-2 text-xs text-slate-300">Maximo 5 MB</p>
                                 </div>
@@ -290,8 +290,8 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                                 disabled={loading}
                             />
                             <span className="text-sm text-amber-800">
-                                <strong className="block">Sincronizar roster del periodo activo</strong>
-                                Si se activa, las asignaciones de grupo del periodo <strong>{periodName}</strong>
+                                <strong className="block">Sincronizar roster del período activo</strong>
+                                Si se activa, las asignaciones de grupo del período <strong>{periodName}</strong>
                                 se reemplazaran con el contenido del CSV para las carreras importadas, sin borrar el historial.
                             </span>
                         </label>
@@ -312,7 +312,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                                 </span>
                             ) : (
                                 <span className="flex items-center justify-center gap-2">
-                                    <Upload className="h-4 w-4" /> Iniciar importacion
+                                    <Upload className="h-4 w-4" /> Iniciar importación
                                 </span>
                             )}
                         </button>
@@ -321,7 +321,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                     {result && (
                         <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
                             <h2 className="flex items-center gap-2 font-bold text-slate-700">
-                                <BarChart2 className="h-4 w-4" /> Resultado de la importacion
+                                <BarChart2 className="h-4 w-4" /> Resultado de la importación
                             </h2>
                             <div className="grid grid-cols-3 gap-3">
                                 <div className="rounded-xl bg-slate-50 p-4 text-center">
@@ -361,7 +361,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                                         Todos los alumnos fueron importados correctamente
                                     </p>
                                     <p className="mt-1 text-xs text-emerald-600">
-                                        Cada alumno conserva una contrasena temporal y puede reemplazarla una sola vez desde su panel.
+                                        Cada alumno conserva una contraseña temporal y puede reemplazarla una sola vez desde su panel.
                                     </p>
                                 </div>
                             )}
@@ -369,7 +369,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                             {(result.removedEnrollments ?? 0) > 0 && (
                                 <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
                                     <p className="text-sm font-bold text-amber-700">
-                                        Sincronizacion aplicada: {result.removedEnrollments} asignacion(es) de grupo del periodo fueron retiradas por no aparecer en el CSV.
+                                        Sincronización aplicada: {result.removedEnrollments} asignación(es) de grupo del período fueron retiradas por no aparecer en el CSV.
                                     </p>
                                 </div>
                             )}
@@ -428,7 +428,7 @@ export default function ImportarAlumnosClient({ periodName }: { periodName: stri
                                         setProgress(null);
                                     }}
                                 >
-                                    Nueva importacion
+                                    Nueva importación
                                 </button>
                             </div>
                         </div>

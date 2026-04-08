@@ -155,7 +155,7 @@ export default function ImportarDocentesPage() {
                                             Requerido
                                         </th>
                                         <th className="rounded-r-xl px-4 py-2 text-left text-xs font-bold text-slate-500">
-                                            Descripcion
+                                            Descripción
                                         </th>
                                     </tr>
                                 </thead>
@@ -164,8 +164,8 @@ export default function ImportarDocentesPage() {
                                         ["nombre", true, "Nombre(s) del docente"],
                                         ["apellido", true, "Apellido(s) del docente"],
                                         ["email", true, "Email institucional; se usa como login"],
-                                        ["numero_empleado", true, "Identificador unico del empleado"],
-                                        ["carrera_code", true, "Codigo de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
+                                        ["numero_empleado", true, "Identificador único del empleado"],
+                                        ["carrera_code", true, "Código de carrera: ISC, IRO, IET, ILT, LAGE, LCIA"],
                                         ["tipo_docente", true, "PA para asignatura o PTC para tiempo completo"],
                                         ["password", false, "Obligatoria para docentes nuevos; opcional si solo actualizas un docente existente"],
                                     ].map(([column, required, description]) => (
@@ -273,7 +273,7 @@ export default function ImportarDocentesPage() {
                             ) : (
                                 <div className="space-y-2">
                                     <FolderOpen className="mx-auto h-10 w-10 text-slate-300" />
-                                    <p className="font-bold text-slate-600">Arrastra tu CSV aqui</p>
+                                    <p className="font-bold text-slate-600">Arrastra tu CSV aquí</p>
                                     <p className="text-sm text-slate-400">o haz clic para seleccionar</p>
                                     <p className="mt-2 text-xs text-slate-300">Maximo 5 MB</p>
                                 </div>
@@ -300,9 +300,9 @@ export default function ImportarDocentesPage() {
                                 disabled={loading}
                             />
                             <span className="text-sm text-amber-800">
-                                <strong className="block">Sincronizar catalogo importado</strong>
+                                <strong className="block">Sincronizar catálogo importado</strong>
                                 Si se activa, los docentes activos de las carreras incluidas que no
-                                vengan en el CSV se desactivaran para reflejar un reemplazo de catalogo.
+                                vengan en el CSV se desactivarán para reflejar un reemplazo de catálogo.
                             </span>
                         </label>
 
@@ -322,7 +322,7 @@ export default function ImportarDocentesPage() {
                                 </span>
                             ) : (
                                 <span className="flex items-center justify-center gap-2">
-                                    <Upload className="h-4 w-4" /> Iniciar importacion
+                                    <Upload className="h-4 w-4" /> Iniciar importación
                                 </span>
                             )}
                         </button>
@@ -331,7 +331,7 @@ export default function ImportarDocentesPage() {
                     {result && (
                         <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
                             <h2 className="flex items-center gap-2 font-bold text-slate-700">
-                                <BarChart2 className="h-4 w-4" /> Resultado de la importacion
+                                <BarChart2 className="h-4 w-4" /> Resultado de la importación
                             </h2>
                             <div className="grid grid-cols-3 gap-3">
                                 <div className="rounded-xl bg-slate-50 p-4 text-center">
@@ -376,7 +376,7 @@ export default function ImportarDocentesPage() {
                             {result.success > 0 && (
                                 <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
                                     <p className="text-sm font-medium text-blue-700">
-                                        Las contrasenas importadas se toman exactamente de la columna <strong>password</strong>. Si dejas ese campo vacio en un docente nuevo, la fila se rechaza para evitar credenciales predecibles.
+                                        Las contraseñas importadas se toman exactamente de la columna <strong>password</strong>. Si dejas ese campo vacío en un docente nuevo, la fila se rechaza para evitar credenciales predecibles.
                                     </p>
                                 </div>
                             )}
@@ -384,7 +384,7 @@ export default function ImportarDocentesPage() {
                             {(result.deactivatedCount ?? 0) > 0 && (
                                 <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
                                     <p className="text-sm font-bold text-amber-700">
-                                        Sincronizacion aplicada: {result.deactivatedCount} docente(s) fueron desactivados por no aparecer en el CSV.
+                                        Sincronización aplicada: {result.deactivatedCount} docente(s) fueron desactivados por no aparecer en el CSV.
                                     </p>
                                 </div>
                             )}
@@ -443,7 +443,7 @@ export default function ImportarDocentesPage() {
                                         setProgress(null);
                                     }}
                                 >
-                                    Nueva importacion
+                                    Nueva importación
                                 </button>
                             </div>
                         </div>

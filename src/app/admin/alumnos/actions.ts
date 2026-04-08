@@ -39,7 +39,7 @@ export async function resetStudentPassword(id: string) {
       action: "UPDATE",
       entity: "ALUMNO",
       entityId: student.id,
-      detail: `Contrasena restablecida a matricula para alumno: ${student.name} ${student.lastName} (${student.matricula})`,
+      detail: `Contraseña restablecida a matrícula para alumno: ${student.name} ${student.lastName} (${student.matricula})`,
     });
 
     revalidatePath("/admin/alumnos");
@@ -49,7 +49,7 @@ export async function resetStudentPassword(id: string) {
 
     return { success: true };
   } catch (error) {
-    console.error("Error al restablecer la contrasena del alumno:", error);
-    return { success: false, error: "No fue posible restablecer la contrasena del alumno" };
+    console.error("Error al restablecer la contraseña del alumno:", error);
+    return { success: false, error: "No fue posible restablecer la contraseña del alumno" };
   }
 }

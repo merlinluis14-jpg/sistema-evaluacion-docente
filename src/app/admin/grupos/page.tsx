@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Calendar, CheckCircle2, Plus, Users } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
+import { formatAcademicText } from "@/lib/text/academicText";
 import { CareerFilter } from "./CareerFilter";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +31,10 @@ export default async function GruposPage({
             <div className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">
-                        Gestion de <span className="text-blue-600">Grupos</span>
+                        Gestión de <span className="text-blue-600">Grupos</span>
                     </h1>
                     <p className="mt-2 text-lg text-slate-500">
-                        Control de grupos academicos y matriculacion por carrera.
+                        Control de grupos académicos y matriculación por carrera.
                     </p>
                 </div>
                 <div className="flex w-full flex-col gap-3 sm:w-auto sm:items-end">
@@ -52,14 +53,14 @@ export default async function GruposPage({
                 <div className="mb-6 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-700">
                     <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
                     <p className="text-sm font-bold">
-                        El grupo se registro correctamente y ya puede usarse para matriculacion y evaluaciones.
+                        El grupo se registró correctamente y ya puede usarse para matriculación y evaluaciones.
                     </p>
                 </div>
             ) : null}
 
             {error === "duplicado" ? (
                 <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-bold text-rose-700">
-                    Ya existe un grupo con ese nombre, carrera y periodo.
+                    Ya existe un grupo con ese nombre, carrera y período.
                 </div>
             ) : null}
 
@@ -75,7 +76,7 @@ export default async function GruposPage({
                                     Carrera
                                 </th>
                                 <th className="px-4 py-5 text-left text-xs font-bold uppercase tracking-widest text-slate-400">
-                                    Periodo
+                                    Período
                                 </th>
                                 <th className="px-4 py-5 text-center text-xs font-bold uppercase tracking-widest text-slate-400">
                                     Alumnos
@@ -97,7 +98,7 @@ export default async function GruposPage({
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-slate-700">{group.career.code}</span>
                                             <span className="max-w-[200px] truncate text-xs font-medium text-slate-400">
-                                                {group.career.name}
+                                                {formatAcademicText(group.career.name)}
                                             </span>
                                         </div>
                                     </td>

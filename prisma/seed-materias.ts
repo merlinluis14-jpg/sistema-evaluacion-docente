@@ -66,10 +66,10 @@ async function main() {
 
   const materiasData = [
     { code: "ISC-BD1", name: "Base de Datos I", cuatrimestre: 3, teacherIdx: 0 },
-    { code: "ISC-POO", name: "Programacion Orientada a Objetos", cuatrimestre: 3, teacherIdx: 1 },
-    { code: "ISC-MAT", name: "Matematicas Discretas", cuatrimestre: 3, teacherIdx: 2 },
+    { code: "ISC-POO", name: "Programación Orientada a Objetos", cuatrimestre: 3, teacherIdx: 1 },
+    { code: "ISC-MAT", name: "Matemáticas Discretas", cuatrimestre: 3, teacherIdx: 2 },
     { code: "ISC-REDES", name: "Redes y Telecomunicaciones", cuatrimestre: 3, teacherIdx: 0 },
-    { code: "ISC-ING", name: "Ingenieria de Software", cuatrimestre: 3, teacherIdx: 1 },
+    { code: "ISC-ING", name: "Ingeniería de Software", cuatrimestre: 3, teacherIdx: 1 },
   ];
 
   console.log("\nCreando materias...");

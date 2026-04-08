@@ -29,7 +29,7 @@ export default function ImportProgressPanel({
       </div>
 
       <div
-        aria-label="Progreso de importacion"
+        aria-label="Progreso de importación"
         aria-valuemax={progress.total || 1}
         aria-valuemin={0}
         aria-valuenow={progress.processed}

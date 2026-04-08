@@ -46,7 +46,7 @@ export default function AdminAccountControls({
       });
 
       if (!result.success) {
-        setError(result.error || "No se pudo restablecer la contrasena");
+        setError(result.error || "No se pudo restablecer la contraseña");
         return;
       }
 
@@ -125,16 +125,16 @@ export default function AdminAccountControls({
       {!canDeactivate && isActive ? (
         <p className="mt-2 text-right text-[11px] font-medium text-slate-400">
           {isCurrent
-            ? "Tu cuenta actual no puede desactivarse aqui"
+            ? "Tu cuenta actual no puede desactivarse aquí"
             : isLastActive
-              ? "No se puede desactivar la ultima cuenta activa"
+              ? "No se puede desactivar la última cuenta activa"
               : ""}
         </p>
       ) : null}
 
       {canActivate ? (
         <p className="mt-2 text-right text-[11px] font-medium text-slate-400">
-          Reactiva la cuenta con tu contrasena actual para devolverle acceso.
+          Reactiva la cuenta con tu contraseña actual para devolverle acceso.
         </p>
       ) : null}
 
@@ -145,7 +145,7 @@ export default function AdminAccountControls({
               <div>
                 <h3 className="text-base font-bold text-slate-800 sm:text-lg">
                   {mode === "reset"
-                    ? "Restablecer contrasena admin"
+                    ? "Restablecer contraseña admin"
                     : mode === "activate"
                       ? "Activar admin"
                       : "Desactivar admin"}
@@ -164,11 +164,11 @@ export default function AdminAccountControls({
             {mode === "reset" ? (
               <form action={handleResetSubmit} className="space-y-4 px-4 py-5 sm:px-6">
                 <p className="text-sm text-slate-600">
-                  Define una nueva contrasena para esta cuenta administrativa. Debes autorizar la accion con tu contrasena actual.
+                  Define una nueva contraseña para esta cuenta administrativa. Debes autorizar la acción con tu contraseña actual.
                 </p>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Tu contrasena actual</label>
+                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Tu contraseña actual</label>
                   <input
                     name="currentPassword"
                     type="password"
@@ -178,7 +178,7 @@ export default function AdminAccountControls({
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Nueva contrasena</label>
+                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Nueva contraseña</label>
                   <input
                     name="newPassword"
                     type="password"
@@ -189,7 +189,7 @@ export default function AdminAccountControls({
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Confirmar nueva contrasena</label>
+                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Confirmar nueva contraseña</label>
                   <input
                     name="confirmPassword"
                     type="password"
@@ -227,18 +227,18 @@ export default function AdminAccountControls({
             ) : mode === "deactivate" ? (
               <form action={handleDeactivateSubmit} className="space-y-4 px-4 py-5 sm:px-6">
                 <p className="text-sm text-slate-600">
-                  Esta cuenta perdera acceso al panel administrativo. Debes confirmar la accion con tu contrasena actual.
+                  Esta cuenta perderá acceso al panel administrativo. Debes confirmar la acción con tu contraseña actual.
                 </p>
 
                 <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
                   <p className="text-xs font-bold uppercase tracking-wide text-amber-700">Importante</p>
                   <p className="mt-1 text-sm text-amber-700">
-                    No se desactiva la ultima cuenta admin activa y tampoco tu cuenta actual desde esta pantalla.
+                    No se desactiva la última cuenta admin activa y tampoco tu cuenta actual desde esta pantalla.
                   </p>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Tu contrasena actual</label>
+                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Tu contraseña actual</label>
                   <input
                     name="currentPassword"
                     type="password"
@@ -275,18 +275,18 @@ export default function AdminAccountControls({
             ) : (
               <form action={handleActivateSubmit} className="space-y-4 px-4 py-5 sm:px-6">
                 <p className="text-sm text-slate-600">
-                  Esta cuenta volvera a tener acceso al panel administrativo. Autoriza la reactivacion con tu contrasena actual.
+                  Esta cuenta volverá a tener acceso al panel administrativo. Autoriza la reactivación con tu contraseña actual.
                 </p>
 
                 <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
                   <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Validacion requerida</p>
                   <p className="mt-1 text-sm text-emerald-700">
-                    La reactivacion solo puede realizarla un administrador activo que confirme su propia contrasena.
+                    La reactivación solo puede realizarla un administrador activo que confirme su propia contraseña.
                   </p>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Tu contrasena actual</label>
+                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Tu contraseña actual</label>
                   <input
                     name="currentPassword"
                     type="password"

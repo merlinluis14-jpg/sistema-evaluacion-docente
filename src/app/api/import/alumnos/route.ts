@@ -36,14 +36,14 @@ export async function POST(req: NextRequest) {
 
         if (!periodo || typeof periodo !== "string") {
             return NextResponse.json(
-                { message: "El periodo es requerido" },
+                { message: "El período es requerido" },
                 { status: 400 }
             );
         }
 
         if (csv.length > 5 * 1024 * 1024) {
             return NextResponse.json(
-                { message: "El archivo supera el lÃ­mite de 5 MB" },
+                { message: "El archivo supera el límite de 5 MB" },
                 { status: 400 }
             );
         }
@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
                         action: "IMPORT",
                         entity: "ALUMNO",
                         detail: syncCatalog
-                            ? `Importacion CSV con sincronizacion: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()}); ${result.removedEnrollments ?? 0} asignaciones retiradas`
-                            : `Importacion CSV: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()})`,
+                            ? `Importación CSV con sincronización: ${result.success} alumnos importados de ${result.total} filas (período: ${periodo.trim()}); ${result.removedEnrollments ?? 0} asignaciones retiradas`
+                            : `Importación CSV: ${result.success} alumnos importados de ${result.total} filas (período: ${periodo.trim()})`,
                     });
                 },
             });
@@ -74,8 +74,8 @@ export async function POST(req: NextRequest) {
                 action: "IMPORT",
                 entity: "ALUMNO",
                 detail: syncCatalog
-                    ? `Importacion CSV con sincronizacion: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()}); ${result.removedEnrollments ?? 0} asignaciones retiradas`
-                    : `Importacion CSV: ${result.success} alumnos importados de ${result.total} filas (periodo: ${periodo.trim()})`,
+                    ? `Importación CSV con sincronización: ${result.success} alumnos importados de ${result.total} filas (período: ${periodo.trim()}); ${result.removedEnrollments ?? 0} asignaciones retiradas`
+                    : `Importación CSV: ${result.success} alumnos importados de ${result.total} filas (período: ${periodo.trim()})`,
             });
         } catch (loggingError) {
             console.error("No fue posible registrar la importacion de alumnos:", loggingError);

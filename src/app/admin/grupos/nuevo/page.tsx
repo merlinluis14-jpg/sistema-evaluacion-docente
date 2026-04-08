@@ -8,6 +8,7 @@ import { logAdminAction } from "@/lib/adminLog";
 import { syncSubjectsForGroup } from "@/lib/groupAssignments";
 import { prisma } from "@/lib/prisma";
 import { getSessionRole } from "@/lib/sessionUser";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ export default async function NuevoGrupoPage({
             action: "CREATE",
             entity: "GRUPO",
             entityId: group.id,
-            detail: `Grupo creado: ${group.name} / ${group.period} / ${group.career.code}. Materias enlazadas automaticamente: ${linkedSubjects}.`,
+            detail: `Grupo creado: ${group.name} / ${group.period} / ${group.career.code}. Materias enlazadas automáticamente: ${linkedSubjects}.`,
         });
 
         redirect("/admin/grupos?success=creado");
@@ -94,7 +95,7 @@ export default async function NuevoGrupoPage({
                     Nuevo <span className="text-blue-600">Grupo</span>
                 </h1>
                 <p className="mt-1 text-sm text-slate-400">
-                    Da de alta grupos manualmente cuando no provengan de una importacion CSV
+                    Da de alta grupos manualmente cuando no provengan de una importación CSV
                 </p>
             </div>
 
@@ -108,11 +109,11 @@ export default async function NuevoGrupoPage({
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
                 <p className="flex items-center gap-2 text-sm font-bold text-blue-700">
                     <Layers3 className="h-4 w-4" />
-                    Enlace automatico por cuatrimestre
+                    Enlace automático por cuatrimestre
                 </p>
                 <p className="mt-2 text-sm text-blue-600">
-                    Si el grupo inicia con un numero como <strong>3A</strong> o <strong>5B</strong>,
-                    el sistema intenta enlazar automaticamente las materias activas del mismo cuatrimestre.
+                    Si el grupo inicia con un número como <strong>3A</strong> o <strong>5B</strong>,
+                    el sistema intenta enlazar automáticamente las materias activas del mismo cuatrimestre.
                 </p>
             </div>
 
@@ -120,7 +121,7 @@ export default async function NuevoGrupoPage({
                 <div className="bg-slate-900 px-6 py-4">
                     <p className="font-black text-white">Datos del grupo</p>
                     <p className="mt-0.5 text-xs text-slate-400">
-                        El nombre del grupo se guarda en mayusculas para mantener consistencia institucional
+                        El nombre del grupo se guarda en mayúsculas para mantener consistencia institucional
                     </p>
                 </div>
 
@@ -139,7 +140,7 @@ export default async function NuevoGrupoPage({
 
                     <div>
                         <label className="mb-1.5 block text-sm font-bold text-slate-700">
-                            Periodo academico <span className="text-red-500">*</span>
+                            Período académico <span className="text-red-500">*</span>
                         </label>
                         <input
                             name="period"
@@ -164,7 +165,7 @@ export default async function NuevoGrupoPage({
                             </option>
                             {careers.map((career) => (
                                 <option key={career.id} value={career.id}>
-                                    {career.code} - {career.name}
+                                    {career.code} - {formatAcademicText(career.name)}
                                 </option>
                             ))}
                         </select>

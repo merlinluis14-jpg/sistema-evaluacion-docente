@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 export async function GET() {
     const careers = await prisma.career.findMany({
@@ -12,5 +13,10 @@ export async function GET() {
         select: { id: true, code: true, name: true },
         orderBy: { code: "asc" },
     });
-    return NextResponse.json(careers);
+    return NextResponse.json(
+        careers.map((career) => ({
+            ...career,
+            name: formatAcademicText(career.name),
+        })),
+    );
 }

@@ -46,7 +46,7 @@ export default function ExportTeacherPdf({
       const grayTheme: [number, number, number] = [160, 160, 160];
 
       autoTable(doc, {
-        body: [["Evaluacion de Desempeno"]],
+        body: [["Evaluación de Desempeño"]],
         theme: "plain",
         styles: {
           fillColor: greenTheme,
@@ -59,7 +59,7 @@ export default function ExportTeacherPdf({
       });
 
       autoTable(doc, {
-        body: [["Area: Direccion Academica", `Vigencia: ${periodo}`, "Codigo: FDA-24.5"]],
+        body: [["Área: Dirección Académica", `Vigencia: ${periodo}`, "Código: FDA-24.5"]],
         theme: "plain",
         styles: { fillColor: grayTheme, textColor: [255, 255, 255], fontSize: 9, halign: "center" },
         margin: { top: 0, left: 15, right: 15 },
@@ -70,7 +70,7 @@ export default function ExportTeacherPdf({
           ["NOMBRE:", `${teacher.name} ${teacher.lastName}`, "Evaluaciones recibidas:", evaluacionesCount.toString()],
           ["PUESTO:", "Docencia", "Promedio Global /5:", promedios.global.toString()],
           ["CARRERA:", teacher.career.name, "Nivel alcanzado:", nivel],
-          ["PERIODO A EVALUAR:", periodo, "Clave docente:", teacher.employeeId],
+          ["PERÍODO A EVALUAR:", periodo, "Clave docente:", teacher.employeeId],
         ],
         theme: "grid",
         styles: { fontSize: 8, cellPadding: 2, lineColor: [200, 200, 200], lineWidth: 0.1 },
@@ -111,12 +111,12 @@ export default function ExportTeacherPdf({
         });
       };
 
-      addSection("Seccion I. Facilitador del Aprendizaje", facilitador, 4);
-      addSection("Seccion II. Habilidades del Facilitador", habilidades, 5);
-      addSection("Seccion III. Utilizacion de Medios Didacticos", medios, 5);
+      addSection("Sección I. Facilitador del Aprendizaje", facilitador, 4);
+      addSection("Sección II. Habilidades del Facilitador", habilidades, 5);
+      addSection("Sección III. Utilización de Medios Didácticos", medios, 5);
 
       autoTable(doc, {
-        body: [["Seccion IV. Relacion Teoria / Practica"]],
+        body: [["Sección IV. Relación Teoría / Práctica"]],
         theme: "grid",
         styles: {
           fillColor: [230, 230, 230],
@@ -131,7 +131,7 @@ export default function ExportTeacherPdf({
       });
 
       autoTable(doc, {
-        head: [["OPCION", "RESPUESTAS", "PORCENTAJE"]],
+        head: [["OPCIÓN", "RESPUESTAS", "PORCENTAJE"]],
         body: teoriaPractica.items.map((item) => [
           item.label,
           String(item.count),
@@ -140,7 +140,7 @@ export default function ExportTeacherPdf({
         foot: [[
           "Percepcion predominante",
           teoriaPractica.predominant?.label ?? "Sin respuestas",
-          `${teoriaPractica.totalResponses} respuestas validas`,
+          `${teoriaPractica.totalResponses} respuestas válidas`,
         ]],
         theme: "grid",
         styles: { fontSize: 8, cellPadding: 2, lineColor: [200, 200, 200], lineWidth: 0.1 },
@@ -149,7 +149,7 @@ export default function ExportTeacherPdf({
         margin: { top: 0, left: 15, right: 15 },
       });
 
-      addSection("Seccion V. Autoevaluacion del Alumno", autoevaluacion, 5);
+      addSection("Sección V. Autoevaluación del Alumno", autoevaluacion, 5);
 
       const finalY = ((doc as PdfWithAutoTable).lastAutoTable?.finalY ?? 180) + 20;
       doc.setFontSize(8);
@@ -173,7 +173,7 @@ export default function ExportTeacherPdf({
       className="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 active:scale-95 transition-all outline-none disabled:opacity-50"
     >
       <Download size={16} />
-      {loading ? "Generando PDF..." : "PDF Evaluacion de Alumnos"}
+      {loading ? "Generando PDF..." : "PDF Evaluación de Alumnos"}
     </button>
   );
 }

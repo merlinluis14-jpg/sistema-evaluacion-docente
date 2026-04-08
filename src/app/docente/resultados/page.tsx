@@ -10,6 +10,7 @@ import {
   getPerformanceLevel,
   getPerformanceLevelColor,
 } from "@/lib/reportes";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 export const dynamic = "force-dynamic";
 
@@ -103,18 +104,18 @@ export default async function DocenteResultadosPage() {
                   Mis Resultados
                 </h1>
                 <p className="mt-1 text-sm text-slate-500">
-                  {teacher.name} {teacher.lastName} · {teacher.career.name}
+                  {teacher.name} {teacher.lastName} · {formatAcademicText(teacher.career.name)}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                    {periodoActivo?.name ?? "Sin periodo activo"}
+                    {periodoActivo?.name ?? "Sin período activo"}
                   </span>
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
                     {resultados.length} materia{resultados.length !== 1 ? "s" : ""} evaluada
                     {resultados.length !== 1 ? "s" : ""}
                   </span>
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                    {evaluaciones.length} evaluacion{evaluaciones.length !== 1 ? "es" : ""} recibida
+                    {evaluaciones.length} evaluación{evaluaciones.length !== 1 ? "es" : ""} recibida
                     {evaluaciones.length !== 1 ? "s" : ""}
                   </span>
                 </div>
@@ -155,9 +156,9 @@ export default async function DocenteResultadosPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
             <ClipboardList className="h-7 w-7 text-slate-400" />
           </div>
-          <p className="font-bold text-slate-600">Aun no tienes evaluaciones</p>
+          <p className="font-bold text-slate-600">Aún no tienes evaluaciones</p>
           <p className="mt-1 text-sm text-slate-400">
-            Los alumnos podran evaluarte cuando el periodo este activo.
+            Los alumnos podrán evaluarte cuando el período esté activo.
           </p>
         </div>
       )}
@@ -174,8 +175,8 @@ export default async function DocenteResultadosPage() {
                 Resultados resumidos por asignatura
               </h2>
               <p className="mt-1 text-sm text-slate-500">
-                Cada tarjeta muestra el promedio global y el comportamiento por seccion para cada
-                materia evaluada en el periodo actual.
+                Cada tarjeta muestra el promedio global y el comportamiento por sección para cada
+                materia evaluada en el período actual.
               </p>
             </div>
           </div>
@@ -197,10 +198,10 @@ export default async function DocenteResultadosPage() {
                       </span>
                     </div>
                     <h3 className="mt-3 text-lg font-black leading-tight text-slate-800">
-                      {subject.name}
+                      {formatAcademicText(subject.name)}
                     </h3>
                     <p className="mt-1 text-xs text-slate-400">
-                      {n} evaluacion{n !== 1 ? "es" : ""} recibida{n !== 1 ? "s" : ""}
+                      {n} evaluación{n !== 1 ? "es" : ""} recibida{n !== 1 ? "s" : ""}
                     </p>
                   </div>
 

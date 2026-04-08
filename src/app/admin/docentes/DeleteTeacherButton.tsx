@@ -9,7 +9,7 @@ export function DeleteTeacherButton({ teacherId, teacherName }: { teacherId: str
     const [isPending, startTransition] = useTransition();
 
     const handleDelete = () => {
-        if (confirm(`Se desactivara al docente ${teacherName}. Sus evaluaciones historicas se conservaran. Deseas continuar?`)) {
+        if (confirm(`Se desactivará al docente ${teacherName}. Sus evaluaciones históricas se conservarán. ¿Deseas continuar?`)) {
             startTransition(async () => {
                 const result = await deleteTeacher(teacherId);
                 if (!result.success) {

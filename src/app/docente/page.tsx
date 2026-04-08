@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 export const dynamic = "force-dynamic";
 
@@ -127,11 +128,11 @@ export default async function DocentePage() {
                 </h1>
                 {teacher ? (
                     <p className="text-sm text-slate-500 sm:text-base">
-                        {teacher.name} {teacher.lastName} | {teacher.career.name}
+                        {teacher.name} {teacher.lastName} | {formatAcademicText(teacher.career.name)}
                     </p>
                 ) : (
                     <p className="text-sm italic text-slate-400">
-                        No se encontro perfil de docente para esta sesion.
+                        No se encontró perfil de docente para esta sesión.
                     </p>
                 )}
             </div>
@@ -153,13 +154,13 @@ export default async function DocentePage() {
             <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
                 <div className="flex flex-col gap-1 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <h2 className="font-bold text-slate-800">Evaluaciones Recientes</h2>
-                    <span className="text-xs font-medium text-slate-400">Ultimas 10</span>
+                    <span className="text-xs font-medium text-slate-400">Últimas 10</span>
                 </div>
 
                 {allEvaluations.length === 0 ? (
                     <div className="p-8 text-center sm:p-16">
-                        <p className="font-medium text-slate-400">Aun no tienes evaluaciones registradas.</p>
-                        <p className="mt-1 text-sm text-slate-300">Los alumnos podran evaluarte cuando el periodo este activo.</p>
+                        <p className="font-medium text-slate-400">Aún no tienes evaluaciones registradas.</p>
+                        <p className="mt-1 text-sm text-slate-300">Los alumnos podrán evaluarte cuando el período esté activo.</p>
                     </div>
                 ) : (
                     <>
@@ -175,7 +176,7 @@ export default async function DocentePage() {
                                                 href={`/docente/resultados/${evaluation.subjectId}`}
                                                 className="mt-1 block text-sm font-semibold leading-snug text-slate-800 transition-colors hover:text-indigo-600"
                                             >
-                                                {evaluation.subject.name}
+                                                {formatAcademicText(evaluation.subject.name)}
                                             </Link>
                                         </div>
                                         <span className="flex-shrink-0 text-xs text-slate-400">
@@ -204,7 +205,7 @@ export default async function DocentePage() {
                                 <thead>
                                     <tr className="bg-slate-50/70 text-left text-xs font-black uppercase tracking-wider text-slate-400">
                                         <th className="py-3 pl-6 pr-3">Materia</th>
-                                        <th className="px-3 py-3">Periodo</th>
+                                        <th className="px-3 py-3">Período</th>
                                         <th className="px-3 py-3 text-center">Fac.</th>
                                         <th className="px-3 py-3 text-center">Hab.</th>
                                         <th className="px-3 py-3 text-center">Med.</th>
@@ -216,7 +217,7 @@ export default async function DocentePage() {
                                         <tr key={evaluation.id} className="transition-colors hover:bg-slate-50/50">
                                             <td className="py-3 pl-6 pr-3 text-sm font-semibold text-slate-800">
                                                 <Link href={`/docente/resultados/${evaluation.subjectId}`} className="transition-colors hover:text-indigo-600">
-                                                    {evaluation.subject.name}
+                                                    {formatAcademicText(evaluation.subject.name)}
                                                 </Link>
                                             </td>
                                             <td className="px-3 py-3 text-xs text-slate-500">{evaluation.period.name}</td>

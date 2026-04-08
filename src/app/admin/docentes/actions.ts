@@ -87,7 +87,7 @@ export async function createTeacher(formData: FormData) {
         console.error("Error al crear docente:", error);
         return {
             success: false,
-            error: "Error al crear el docente. El email o numero de empleado ya puede estar en uso.",
+            error: "Error al crear el docente. El email o número de empleado ya puede estar en uso.",
         };
     }
 }
@@ -160,7 +160,7 @@ export async function resetTeacherPassword(id: string) {
             action: "UPDATE",
             entity: "DOCENTE",
             entityId: id,
-            detail: `Contrasena temporal regenerada para docente: ${teacher.name} ${teacher.lastName}`,
+            detail: `Contraseña temporal regenerada para docente: ${teacher.name} ${teacher.lastName}`,
         });
 
         revalidatePath("/admin/docentes");
@@ -168,7 +168,7 @@ export async function resetTeacherPassword(id: string) {
 
         return { success: true, temporaryPassword };
     } catch (error) {
-        console.error("Error al resetear contrasena:", error);
-        return { success: false, error: "Error al resetear contrasena." };
+        console.error("Error al resetear contraseña:", error);
+        return { success: false, error: "Error al resetear contraseña." };
     }
 }

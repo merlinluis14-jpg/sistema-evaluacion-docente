@@ -96,7 +96,7 @@ export async function createEvaluation(formData: FormData) {
         : null;
 
     if (!student?.id || !student.isActive) {
-        throw new Error("No autorizado - sesion de alumno requerida");
+        throw new Error("No autorizado - sesión de alumno requerida");
     }
 
     const subjectId = formData.get("subjectId") as string;
@@ -190,7 +190,7 @@ export async function createEvaluation(formData: FormData) {
         if (isPrismaKnownRequestError(error) && error.code === "P2002") {
             redirect("/alumno?error=duplicada");
         }
-        console.error("Error al guardar evaluacion:", error);
+        console.error("Error al guardar evaluación:", error);
         redirect("/alumno?error=general");
     }
 

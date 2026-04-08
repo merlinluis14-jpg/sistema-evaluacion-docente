@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createTeacher } from "../actions";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 type Career = { id: string; code: string; name: string };
 
@@ -23,7 +24,7 @@ export default function NuevoDocentePage() {
             const result = await createTeacher(formData);
             if (result.success) {
                 alert(
-                    `Cuenta docente creada para ${result.email}.\n\nContrasena temporal: ${result.temporaryPassword}\n\nCompartela por un canal seguro antes de salir de esta pantalla.`,
+                    `Cuenta docente creada para ${result.email}.\n\nContraseña temporal: ${result.temporaryPassword}\n\nCompártela por un canal seguro antes de salir de esta pantalla.`,
                 );
                 router.push("/admin/docentes");
             } else {
@@ -53,7 +54,7 @@ export default function NuevoDocentePage() {
                     Registrar Nuevo Docente
                 </h1>
                 <p className="text-gray-500 mt-2">
-                    Se creara un usuario con rol DOCENTE y una contrasena temporal aleatoria para entrega segura.
+                    Se creará un usuario con rol DOCENTE y una contraseña temporal aleatoria para entrega segura.
                 </p>
             </div>
 
@@ -73,21 +74,21 @@ export default function NuevoDocentePage() {
                     <div className="space-y-2">
                         <label htmlFor="email" className={labelClass}>Correo Electronico Institucional</label>
                         <input type="email" id="email" name="email" required className={inputClass} placeholder="juan.perez@uptx.edu.mx" />
-                        <p className="text-xs text-gray-400">Este sera el usuario de inicio de sesion del docente.</p>
+                        <p className="text-xs text-gray-400">Este será el usuario de inicio de sesión del docente.</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="employeeId" className={labelClass}>Numero de Empleado</label>
+                            <label htmlFor="employeeId" className={labelClass}>Número de Empleado</label>
                             <input type="text" id="employeeId" name="employeeId" required className={inputClass} placeholder="Ej. E1234567" />
-                            <p className="text-xs text-gray-400">Se conserva para identificacion institucional, no como contrasena.</p>
+                            <p className="text-xs text-gray-400">Se conserva para identificación institucional, no como contraseña.</p>
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="careerId" className={labelClass}>Carrera Principal</label>
                             <select id="careerId" name="careerId" required className={inputClass}>
                                 <option value="">Selecciona una carrera</option>
                                 {careers.map((career) => (
-                                    <option key={career.id} value={career.id}>{career.code} - {career.name}</option>
+                                    <option key={career.id} value={career.id}>{career.code} - {formatAcademicText(career.name)}</option>
                                 ))}
                             </select>
                         </div>
@@ -99,7 +100,7 @@ export default function NuevoDocentePage() {
                             <option value="PA">PA - Profesor(a) de Asignatura</option>
                             <option value="PTC">PTC - Profesor(a) de Tiempo Completo</option>
                         </select>
-                        <p className="text-xs text-gray-400">Este dato se usa en la evaluacion y reportes institucionales.</p>
+                        <p className="text-xs text-gray-400">Este dato se usa en la evaluación y reportes institucionales.</p>
                     </div>
 
                     <div className="pt-4 flex items-center justify-end gap-4">

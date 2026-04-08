@@ -68,21 +68,21 @@ export default async function DocenteLayout({ children }: { children: ReactNode 
                 <div className="px-4 pb-4 lg:hidden">
                     <div className="rounded-xl bg-white/5 px-4 py-3">
                         <p className="text-[11px] leading-relaxed text-slate-300">
-                            Los resultados son anonimos. No puedes identificar a los alumnos que te evaluaron.
+                            Los resultados son anónimos. No puedes identificar a los alumnos que te evaluaron.
                         </p>
                     </div>
                 </div>
 
                 <div className="mx-3 mb-3 hidden rounded-xl bg-white/5 px-4 py-3 lg:block">
                     <p className="text-[10px] leading-relaxed text-slate-400">
-                        Los resultados son anonimos. No puedes identificar a los alumnos que te evaluaron.
+                        Los resultados son anónimos. No puedes identificar a los alumnos que te evaluaron.
                     </p>
                 </div>
 
                 <div className="hidden space-y-2 border-t border-white/10 px-4 py-4 lg:block">
                     <p className="truncate text-[10px] text-slate-500">{session.user.email}</p>
                     <SignOutButton className="cursor-pointer border-none bg-transparent p-0 text-xs font-medium text-slate-400 transition-colors hover:text-red-400">
-                        Cerrar sesion
+                        Cerrar sesión
                     </SignOutButton>
                 </div>
             </aside>

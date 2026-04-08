@@ -102,7 +102,7 @@ export default async function NuevoAlumnoPage({
 
   const mensajesError: Record<string, string> = {
     campos: "Completa todos los campos obligatorios.",
-    duplicado: "Ya existe un alumno con esa matricula o email.",
+    duplicado: "Ya existe un alumno con esa matrícula o email.",
     servidor: "Error interno del servidor. Intenta de nuevo.",
   };
 
@@ -135,7 +135,7 @@ export default async function NuevoAlumnoPage({
         <div className="bg-slate-900 px-6 py-4">
           <p className="font-black text-white">Datos del alumno</p>
           <p className="mt-0.5 text-xs text-slate-400">
-            La contrasena inicial sera temporal y el alumno podra cambiarla una sola vez desde su panel
+            La contraseña inicial será temporal y el alumno podrá cambiarla una sola vez desde su panel
           </p>
         </div>
 
@@ -231,17 +231,17 @@ export default async function NuevoAlumnoPage({
 
           <div>
             <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Contrasena inicial
+              Contraseña inicial
               <span className="ml-1 font-normal text-slate-400">(opcional)</span>
             </label>
             <input
               name="password"
               type="password"
-              placeholder="Dejar vacio para usar la matricula"
+              placeholder="Dejar vacío para usar la matrícula"
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
             <p className="mt-1 text-xs text-slate-400">
-              Esta contrasena queda como temporal hasta que el alumno la cambie por unica vez.
+              Esta contraseña queda como temporal hasta que el alumno la cambie por única vez.
             </p>
           </div>
 

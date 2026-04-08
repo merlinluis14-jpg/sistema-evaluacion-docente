@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, FilterX, Layers3, Pencil, Plus, Upload, UserCog } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { formatAcademicText } from "@/lib/text/academicText";
 import { DeleteTeacherButton } from "./DeleteTeacherButton";
 import { ResetPasswordButton } from "./ResetPasswordButton";
 
@@ -63,10 +64,10 @@ export default async function DocentesPage({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">
-                        Gestion de <span className="text-blue-600">Docentes</span>
+                        Gestión de <span className="text-blue-600">Docentes</span>
                     </h1>
                     <p className="text-gray-500 mt-2">
-                        Administra los catedraticos registrados en el sistema de evaluacion.
+                        Administra los catedráticos registrados en el sistema de evaluación.
                     </p>
                 </div>
                 <div className="flex w-full flex-wrap gap-2 sm:w-auto">
@@ -91,7 +92,7 @@ export default async function DocentesPage({
                 <div className="mb-6 flex items-center gap-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl px-5 py-3 text-sm font-medium">
                     <FilterX size={16} className="shrink-0 text-blue-500" />
                     <span>
-                        Mostrando docentes de la carrera: <strong>{activeCareer.code} - {activeCareer.name}</strong>
+                        Mostrando docentes de la carrera: <strong>{activeCareer.code} - {formatAcademicText(activeCareer.name)}</strong>
                     </span>
                     <Link
                         href="/admin/docentes"
@@ -141,7 +142,7 @@ export default async function DocentesPage({
                                 <tr>
                                     <td colSpan={7} className="py-16 text-center text-gray-400 font-medium">
                                         <UserCog className="w-10 h-10 mb-2 text-slate-300 mx-auto" />
-                                        No hay docentes registrados aun.{" "}
+                                        No hay docentes registrados aún.{" "}
                                         <Link href="/admin/docentes/nuevo" className="text-blue-600 hover:underline font-semibold">
                                             Registra el primero
                                         </Link>
@@ -172,7 +173,7 @@ export default async function DocentesPage({
                                         <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">
                                             {teacher.career.code}
                                         </span>
-                                        <div className="text-gray-400 text-xs mt-1 truncate max-w-[160px]">{teacher.career.name}</div>
+                                        <div className="text-gray-400 text-xs mt-1 truncate max-w-[160px]">{formatAcademicText(teacher.career.name)}</div>
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-4 text-sm">
                                         <span

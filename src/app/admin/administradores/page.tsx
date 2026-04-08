@@ -52,7 +52,7 @@ export default async function AdministradoresPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-black text-slate-800">
-            Gestion de <span className="text-blue-600">Administradores</span>
+            Gestión de <span className="text-blue-600">Administradores</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
             Controla las cuentas con acceso al panel administrativo sin afectar el rol de docentes.
@@ -144,14 +144,14 @@ export default async function AdministradoresPage() {
         <div className="border-b border-slate-100 px-6 py-4">
           <h2 className="font-bold text-slate-800">Actividad Reciente de Administradores</h2>
           <p className="mt-1 text-xs text-slate-400">
-            Las altas de cuentas administrativas quedan auditadas automaticamente.
+            Las altas de cuentas administrativas quedan auditadas automáticamente.
           </p>
         </div>
 
         {recentAdminLogs.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <ShieldCheck className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-            <p className="font-bold text-slate-500">Aun no hay eventos administrativos registrados</p>
+            <p className="font-bold text-slate-500">Aún no hay eventos administrativos registrados</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -159,7 +159,7 @@ export default async function AdministradoresPage() {
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Fecha</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Accion</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Acción</th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Detalle</th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Autorizo</th>
                 </tr>

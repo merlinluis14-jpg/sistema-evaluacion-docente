@@ -39,26 +39,26 @@ export async function POST(req: NextRequest) {
       const calFinal = ((parseFloat(calIF) * 0.4) + (parseFloat(calIIE) * 0.6)).toFixed(1);
 
       const factoresFac = [
-        "Orientacion inicial sobre unidades de aprendizaje",
+        "Orientación inicial sobre unidades de aprendizaje",
         "Dominio de los contenidos de la materia",
-        "Resumen de temas por sesion y unidad",
-        "Aclaracion de dudas y asesorias",
+        "Resumen de temas por sesión y unidad",
+        "Aclaración de dudas y asesorías",
         "Entrega oportuna de resultados de examen",
         "Logro de objetivos del cuatrimestre",
-        "Promocion de respeto y disciplina",
+        "Promoción de respeto y disciplina",
         "Puntualidad y manejo del tiempo en clase",
       ];
 
       const factoresHab = [
         "Manejo del lenguaje apropiado de la asignatura",
-        "Conduccion al desarrollo profesional del alumno",
-        "Capacidad para captar la atencion del grupo",
-        "Relacion de contenidos con competencias del modelo educativo",
+        "Conducción al desarrollo profesional del alumno",
+        "Capacidad para captar la atención del grupo",
+        "Relación de contenidos con competencias del modelo educativo",
       ];
 
       const factoresMed = [
-        "Uso de medios didacticos (pizarron, canon, TV, webquest)",
-        "Uso de guias de trabajo y bibliografia",
+        "Uso de medios didácticos (pizarrón, cañón, TV, webquest)",
+        "Uso de guías de trabajo y bibliografía",
       ];
 
       return `
@@ -68,18 +68,18 @@ export async function POST(req: NextRequest) {
         <table style="width:100%; border-collapse:collapse;">
           <tr>
             <td colspan="3" style="background:#1a6b3c; color:white; text-align:center; font-size:14px; font-weight:bold; padding:8px; border:1px solid #ccc;">
-              Evaluacion de Desempeno
+              Evaluación de Desempeño
             </td>
           </tr>
           <tr>
             <td style="border:1px solid #ccc; padding:6px; font-size:10px; text-align:center;">
-              Area: Direccion Academica
+              Área: Dirección Académica
             </td>
             <td style="border:1px solid #ccc; padding:6px; font-size:10px; text-align:center;">
               Vigencia: ${fecha}
             </td>
             <td style="border:1px solid #ccc; padding:6px; font-size:10px; text-align:center;">
-              Codigo: FDA-24.5
+              Código: FDA-24.5
             </td>
           </tr>
         </table>
@@ -99,10 +99,10 @@ export async function POST(req: NextRequest) {
               </tr>
               <tr>
                 <td style="font-size:10px; font-weight:bold; padding:3px 0;">EVALUADOR/A:</td>
-                <td style="font-size:10px; padding:3px 0;">Sistema de Evaluacion Docente UPTX</td>
+                <td style="font-size:10px; padding:3px 0;">Sistema de Evaluación Docente UPTX</td>
               </tr>
               <tr>
-                <td style="font-size:10px; font-weight:bold; padding:3px 0;">PERIODO A EVALUAR:</td>
+                <td style="font-size:10px; font-weight:bold; padding:3px 0;">PERÍODO A EVALUAR:</td>
                 <td style="font-size:10px; padding:3px 0;">${periodo}</td>
               </tr>
             </table>
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
             <table style="width:100%; border-collapse:collapse;">
               <tr>
                 <td style="font-size:9px; font-weight:bold; padding:4px; border:1px solid #ccc; background:#f5f5f5;">
-                  Calificacion I<br>Resp.PE
+                  Calificación I<br>Resp.PE
                 </td>
                 <td rowspan="2" style="font-size:20px; font-weight:bold; text-align:center; padding:8px; border:1px solid #ccc; vertical-align:middle;">
                   ${calFinal}
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
               </tr>
               <tr>
                 <td style="font-size:9px; font-weight:bold; padding:4px; border:1px solid #ccc; background:#f5f5f5;">
-                  Calificacion II<br>ESTUDIANTE
+                  Calificación II<br>ESTUDIANTE
                 </td>
                 <td style="font-size:9px; text-align:center; padding:4px; border:1px solid #ccc;">
                   ${calIIE}
@@ -136,14 +136,14 @@ export async function POST(req: NextRequest) {
       </table>
 
       <div style="background:#e8e8e8; border:1px solid #ccc; text-align:center; padding:5px; font-size:10px; font-weight:bold; margin-bottom:0;">
-        Seccion. Evaluacion de la Presentacion y Trabajo de Documentos · Instrumento FDA-24.5
+        Sección. Evaluación de la Presentación y Trabajo de Documentos · Instrumento FDA-24.5
       </div>
 
       <table style="width:100%; border-collapse:collapse; margin-bottom:12px;">
         <thead>
           <tr style="background:#d0d0d0;">
             <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:left; width:60%;">FACTOR</th>
-            <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:left;">DESCRIPCION</th>
+            <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:left;">DESCRIPCIÓN</th>
             <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center; width:8%;">CALIF.</th>
           </tr>
         </thead>
@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
             <tr>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px; font-weight:bold;">${factor}</td>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px;">
-                Evaluado por alumnos mediante instrumento FDA-24.5 · Seccion Facilitador. Escala E/MB/B/M (1-4).
+                Evaluado por alumnos mediante instrumento FDA-24.5 · Sección Facilitador. Escala E/MB/B/M (1-4).
               </td>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center; font-weight:bold;">${docente.facAvg}</td>
             </tr>
@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
             <tr>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px; font-weight:bold;">${factor}</td>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px;">
-                Evaluado por alumnos mediante instrumento FDA-24.5 · Seccion Habilidades. Escala E/MB/B/R/M (1-5).
+                Evaluado por alumnos mediante instrumento FDA-24.5 · Sección Habilidades. Escala E/MB/B/R/M (1-5).
               </td>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center; font-weight:bold;">${docente.habAvg}</td>
             </tr>
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
             <tr>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px; font-weight:bold;">${factor}</td>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px;">
-                Evaluado por alumnos mediante instrumento FDA-24.5 · Seccion Medios Didacticos. Escala de frecuencia (1-5).
+                Evaluado por alumnos mediante instrumento FDA-24.5 · Sección Medios Didácticos. Escala de frecuencia (1-5).
               </td>
               <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center; font-weight:bold;">${docente.medAvg}</td>
             </tr>
@@ -183,9 +183,9 @@ export async function POST(req: NextRequest) {
       <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
         <tr>
           <td style="border:1px solid #ccc; padding:6px; font-size:9px; width:60%;">
-            <strong>COMENTARIOS:</strong> Reporte generado automaticamente por el Sistema de Evaluacion Docente UPTX
-            con base en ${docente.totalEvals} evaluacion(es) recibida(s) durante el periodo ${periodo}.
-            Nivel de desempeno: <strong>${docente.nivel}</strong>.
+            <strong>COMENTARIOS:</strong> Reporte generado automáticamente por el Sistema de Evaluación Docente UPTX
+            con base en ${docente.totalEvals} evaluación(es) recibida(s) durante el período ${periodo}.
+            Nivel de desempeño: <strong>${docente.nivel}</strong>.
           </td>
           <td style="border:1px solid #ccc; padding:6px; font-size:9px; text-align:center; width:15%;">
             <strong>Sub<br>total</strong>
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
         </tr>
         <tr>
           <td colspan="2" style="border:1px solid #ccc; padding:6px; font-size:9px; text-align:right; font-weight:bold;">
-            Calificacion final:
+            Calificación final:
           </td>
           <td colspan="2" style="border:1px solid #ccc; padding:6px; font-size:14px; font-weight:bold; text-align:center; background:#f0f0f0;">
             ${calFinal}
@@ -210,15 +210,15 @@ export async function POST(req: NextRequest) {
       <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
         <thead>
           <tr style="background:#d0d0d0;">
-            <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">Seccion</th>
+            <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">Sección</th>
             <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">Promedio obtenido</th>
-            <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">Escala maxima</th>
+            <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">Escala máxima</th>
             <th style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">Porcentaje</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="border:1px solid #ccc; padding:5px; font-size:9px;">1. Evaluacion del Facilitador</td>
+            <td style="border:1px solid #ccc; padding:5px; font-size:9px;">1. Evaluación del Facilitador</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center; font-weight:bold;">${docente.facAvg}</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">4.00</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">${(parseFloat(docente.facAvg) / 4 * 100).toFixed(0)}%</td>
@@ -230,13 +230,13 @@ export async function POST(req: NextRequest) {
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">${(parseFloat(docente.habAvg) / 5 * 100).toFixed(0)}%</td>
           </tr>
           <tr>
-            <td style="border:1px solid #ccc; padding:5px; font-size:9px;">3. Medios Didacticos</td>
+            <td style="border:1px solid #ccc; padding:5px; font-size:9px;">3. Medios Didácticos</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center; font-weight:bold;">${docente.medAvg}</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">5.00</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">${(parseFloat(docente.medAvg) / 5 * 100).toFixed(0)}%</td>
           </tr>
           <tr>
-            <td style="border:1px solid #ccc; padding:5px; font-size:9px;">5. Autoevaluacion del Alumno</td>
+            <td style="border:1px solid #ccc; padding:5px; font-size:9px;">5. Autoevaluación del Alumno</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center; font-weight:bold;">${docente.autoAvg}</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">5.00</td>
             <td style="border:1px solid #ccc; padding:5px; font-size:9px; text-align:center;">${(parseFloat(docente.autoAvg) / 5 * 100).toFixed(0)}%</td>
@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
       </table>
 
       <div style="font-size:9px; color:#666; margin-bottom:16px;">
-        <strong>Evaluaciones recibidas en este periodo:</strong> ${docente.totalEvals}
+            <strong>Evaluaciones recibidas en este período:</strong> ${docente.totalEvals}
       </div>
 
       <table style="width:100%; border-collapse:collapse; margin-top:24px;">

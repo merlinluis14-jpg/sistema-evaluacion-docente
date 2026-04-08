@@ -39,7 +39,7 @@ export async function createPeriod(formData: FormData) {
     });
     await logAdminAction({
         action: "CREATE", entity: "PERIODO", entityId: period.id,
-        detail: `Periodo creado: ${name}`,
+      detail: `Período creado: ${name}`,
     });
 
     revalidatePath("/admin/periodos");
@@ -55,7 +55,7 @@ export async function activatePeriod(id: string) {
     const period = await prisma.period.findUnique({ where: { id }, select: { name: true } });
     await logAdminAction({
         action: "ACTIVATE", entity: "PERIODO", entityId: id,
-        detail: `Periodo activado: ${period?.name ?? id}`,
+      detail: `Período activado: ${period?.name ?? id}`,
     });
     revalidatePath("/admin/periodos");
 }
@@ -66,7 +66,7 @@ export async function deactivatePeriod(id: string) {
     const period = await prisma.period.findUnique({ where: { id }, select: { name: true } });
     await logAdminAction({
         action: "DEACTIVATE", entity: "PERIODO", entityId: id,
-        detail: `Periodo desactivado: ${period?.name ?? id}`,
+      detail: `Período desactivado: ${period?.name ?? id}`,
     });
     revalidatePath("/admin/periodos");
 }
@@ -74,12 +74,12 @@ export async function deactivatePeriod(id: string) {
 export async function deletePeriod(id: string) {
     await requireAdmin();
     const count = await prisma.evaluation.count({ where: { periodId: id } });
-    if (count > 0) throw new Error("No se puede eliminar un periodo con evaluaciones registradas.");
+  if (count > 0) throw new Error("No se puede eliminar un período con evaluaciones registradas.");
     const period = await prisma.period.findUnique({ where: { id }, select: { name: true } });
     await prisma.period.delete({ where: { id } });
     await logAdminAction({
         action: "DELETE", entity: "PERIODO", entityId: id,
-        detail: `Periodo eliminado: ${period?.name ?? id}`,
+      detail: `Período eliminado: ${period?.name ?? id}`,
     });
     revalidatePath("/admin/periodos");
 }

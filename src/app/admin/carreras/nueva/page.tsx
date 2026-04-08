@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 const errorMessages: Record<string, string> = {
   campos: "Completa todos los campos obligatorios.",
   codigo:
-    "El codigo debe usar solo letras, numeros o guiones y medir entre 2 y 12 caracteres.",
-  duplicado: "Ya existe una carrera con ese codigo.",
+    "El código debe usar solo letras, números o guiones y medir entre 2 y 12 caracteres.",
+  duplicado: "Ya existe una carrera con ese código.",
 };
 
 export default async function NuevaCarreraPage({
@@ -34,7 +34,7 @@ export default async function NuevaCarreraPage({
           Nueva <span className="text-blue-600">Carrera</span>
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Registra una carrera institucional para que quede disponible en catalogos e importaciones.
+          Registra una carrera institucional para que quede disponible en catálogos e importaciones.
         </p>
       </div>
 
@@ -51,7 +51,7 @@ export default async function NuevaCarreraPage({
           Compatibilidad con CSV
         </p>
         <p className="mt-2 text-sm text-blue-600">
-          El codigo de carrera se usa en tus importaciones CSV. Por eso se define al crearla y luego se conserva estable.
+          El código de carrera se usa en tus importaciones CSV. Por eso se define al crearla y luego se conserva estable.
         </p>
       </div>
 
@@ -59,14 +59,14 @@ export default async function NuevaCarreraPage({
         <div className="bg-slate-900 px-6 py-4">
           <p className="font-black text-white">Datos de la carrera</p>
           <p className="mt-0.5 text-xs text-slate-400">
-            Usa un codigo corto institucional, por ejemplo ISC, IRO o LAGE.
+            Usa un código corto institucional, por ejemplo ISC, IRO o LAGE.
           </p>
         </div>
 
         <form action={createCareer} className="space-y-5 p-6">
           <div>
             <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Codigo <span className="text-red-500">*</span>
+              Código <span className="text-red-500">*</span>
             </label>
             <input
               name="code"
@@ -75,7 +75,7 @@ export default async function NuevaCarreraPage({
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-sm uppercase outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
             <p className="mt-1 text-xs text-slate-400">
-              Se guardara en mayusculas y sera la referencia usada por tus archivos CSV.
+              Se guardará en mayúsculas y será la referencia usada por tus archivos CSV.
             </p>
           </div>
 
@@ -86,7 +86,7 @@ export default async function NuevaCarreraPage({
             <input
               name="name"
               required
-              placeholder="Ej: Ingenieria en Sistemas Computacionales"
+              placeholder="Ej: Ingeniería en Sistemas Computacionales"
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
           </div>

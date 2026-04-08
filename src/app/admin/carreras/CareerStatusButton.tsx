@@ -18,7 +18,7 @@ export function CareerStatusButton({ careerId, careerCode, careerName, isActive 
 
   const handleToggle = () => {
     const message = isActive
-      ? `Se desactivara la carrera ${careerCode} - ${careerName}. Esto solo se permite si no tiene catalogos activos asociados. Deseas continuar?`
+      ? `Se desactivará la carrera ${careerCode} - ${careerName}. Esto solo se permite si no tiene catálogos activos asociados. ¿Deseas continuar?`
       : `Se reactivara la carrera ${careerCode} - ${careerName}. Deseas continuar?`;
 
     if (!confirm(message)) {

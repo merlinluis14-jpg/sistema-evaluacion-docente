@@ -26,7 +26,7 @@ export async function runStreamedImport<Result>({
   }
 
   if (!response.body) {
-    throw new Error("El servidor no pudo enviar el progreso de la importacion");
+    throw new Error("El servidor no pudo enviar el progreso de la importación");
   }
 
   const reader = response.body.getReader();
@@ -75,7 +75,7 @@ export async function runStreamedImport<Result>({
   }
 
   if (!result) {
-    throw new Error("La importacion termino sin devolver un resultado");
+    throw new Error("La importación terminó sin devolver un resultado");
   }
 
   return result;

@@ -83,7 +83,7 @@ export async function parseAndImportAlumnos(
       if (missingFields.length > 0) {
         errors.push({
           row: rowNumber,
-          matricula: matricula || "(vacio)",
+          matricula: matricula || "(vacío)",
           reason: `Campos requeridos faltantes: ${missingFields.join(", ")}`,
         });
         continue;
@@ -214,9 +214,9 @@ export async function parseAndImportAlumnos(
       const message = error instanceof Error ? error.message : "Error desconocido";
       errors.push({
         row: rowNumber,
-        matricula: matricula || "(vacio)",
+        matricula: matricula || "(vacío)",
         reason: message.includes("Unique constraint")
-          ? "Matricula, usuario o email duplicado en el sistema"
+          ? "Matrícula, usuario o email duplicado en el sistema"
           : `Error inesperado: ${message}`,
       });
     } finally {

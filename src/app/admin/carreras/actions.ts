@@ -9,6 +9,7 @@ import { logAdminAction } from "@/lib/adminLog";
 import { normalizeCareerCode } from "@/lib/careers";
 import { prisma } from "@/lib/prisma";
 import { getSessionRole } from "@/lib/sessionUser";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
@@ -18,7 +19,7 @@ async function requireAdmin() {
 }
 
 function normalizeCareerName(value: string) {
-  return value.trim().replace(/\s+/g, " ");
+  return formatAcademicText(value);
 }
 
 function validateCareerCode(code: string) {
@@ -109,7 +110,7 @@ export async function updateCareer(formData: FormData) {
     action: "UPDATE",
     entity: "CARRERA",
     entityId: id,
-    detail: `Carrera actualizada: ${existingCareer.code} - ${existingCareer.name} -> ${name}`,
+    detail: `Carrera actualizada: ${existingCareer.code} - ${formatAcademicText(existingCareer.name)} -> ${name}`,
   });
 
   revalidateCareerViews();
@@ -156,7 +157,7 @@ export async function deactivateCareer(id: string) {
     action: "DEACTIVATE",
     entity: "CARRERA",
     entityId: id,
-    detail: `Carrera desactivada: ${career.code} - ${career.name}`,
+    detail: `Carrera desactivada: ${career.code} - ${formatAcademicText(career.name)}`,
   });
 
   revalidateCareerViews();
@@ -188,7 +189,7 @@ export async function activateCareer(id: string) {
     action: "ACTIVATE",
     entity: "CARRERA",
     entityId: id,
-    detail: `Carrera reactivada: ${career.code} - ${career.name}`,
+    detail: `Carrera reactivada: ${career.code} - ${formatAcademicText(career.name)}`,
   });
 
   revalidateCareerViews();

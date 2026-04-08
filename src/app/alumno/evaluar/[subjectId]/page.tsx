@@ -82,10 +82,10 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="max-w-md rounded-3xl border border-amber-100 bg-white p-6 text-center shadow-xl sm:p-10">
-          <h2 className="mb-2 text-2xl font-bold text-amber-700">Sin periodo activo</h2>
+          <h2 className="mb-2 text-2xl font-bold text-amber-700">Sin período activo</h2>
           <p className="mb-6 text-slate-500">
-            No hay un periodo de evaluacion activo en este momento. Solicita al administrador que
-            active el periodo.
+            No hay un período de evaluación activo en este momento. Solicita al administrador que
+            active el período.
           </p>
           <Link
             href="/alumno"
@@ -102,7 +102,7 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
     <div className="space-y-5 pb-8 sm:space-y-6 sm:pb-12">
       <div className="space-y-1 py-2 text-center sm:py-4">
         <h1 className="text-2xl font-extrabold tracking-tight text-blue-900 sm:text-4xl">
-          Evaluacion Docente
+          Evaluación Docente
         </h1>
         <p className="break-words text-sm text-slate-500 sm:text-base">
           Instrumento FDA-24.5 - {activePeriod.name}

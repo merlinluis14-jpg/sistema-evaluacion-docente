@@ -73,10 +73,10 @@ export default function CareerHeadEvaluationForm({
     return (
       <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
         <h3 className="text-sm font-black text-amber-800">
-          Evaluacion de coordinacion pendiente de periodo
+          Evaluación de coordinación pendiente de período
         </h3>
         <p className="mt-2 text-sm text-amber-700">
-          Selecciona un periodo especifico para capturar la evaluacion institucional de {teacherName}.
+          Selecciona un período específico para capturar la evaluación institucional de {teacherName}.
         </p>
       </div>
     );
@@ -90,7 +90,7 @@ export default function CareerHeadEvaluationForm({
             Formato Institucional
           </span>
           <h2 className="mt-3 text-lg font-black text-slate-800 sm:text-xl">
-            Evaluacion de Jefatura / Coordinacion
+            Evaluación de Jefatura / Coordinación
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             Formato institucional para {getTeacherPositionLabel(position)} - {periodName}
@@ -109,11 +109,11 @@ export default function CareerHeadEvaluationForm({
           startTransition(async () => {
             try {
               await saveCareerHeadEvaluation(formData);
-              setStatusMessage("Evaluacion de coordinacion guardada correctamente.");
+              setStatusMessage("Evaluación de coordinación guardada correctamente.");
               router.refresh();
             } catch (error) {
               setStatusMessage(
-                error instanceof Error ? error.message : "No se pudo guardar la evaluacion de coordinacion.",
+                error instanceof Error ? error.message : "No se pudo guardar la evaluación de coordinación.",
               );
             }
           });
@@ -129,13 +129,13 @@ export default function CareerHeadEvaluationForm({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                Contexto de evaluacion
+                Contexto de evaluación
               </p>
               <p className="mt-1 text-sm font-black text-slate-700">
                 {careerCode} - {careerName}
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                La coordinacion se guardara para esta carrera dentro del periodo seleccionado.
+                La coordinación se guardará para esta carrera dentro del período seleccionado.
               </p>
             </div>
 
@@ -207,7 +207,7 @@ export default function CareerHeadEvaluationForm({
             </div>
           ) : (
             <p className="text-xs text-slate-400">
-              Aun no hay asignaciones detectadas en esta carrera para este periodo. La coordinacion
+              Aún no hay asignaciones detectadas en esta carrera para este período. La coordinación
               se puede capturar, pero conviene revisar primero las materias y grupos enlazados del docente.
             </p>
           )}
@@ -252,7 +252,7 @@ export default function CareerHeadEvaluationForm({
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-4 sm:px-5">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-                Factores de Evaluacion
+                Factores de Evaluación
               </p>
               <h3 className="mt-1 text-base font-black text-slate-800">
                 Captura institucional por factor
@@ -322,7 +322,7 @@ export default function CareerHeadEvaluationForm({
         {scoreKeys.every((key) => (initialEvaluation?.[key] ?? null) === null) &&
           !initialEvaluation?.comments && (
             <p className="text-xs text-slate-400">
-              Captura esta evaluacion para habilitar el calculo combinado del formato institucional.
+              Captura esta evaluación para habilitar el cálculo combinado del formato institucional.
             </p>
           )}
 
@@ -345,7 +345,7 @@ export default function CareerHeadEvaluationForm({
             className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {pending ? "Guardando..." : "Guardar Evaluacion de Jefatura"}
+            {pending ? "Guardando..." : "Guardar Evaluación de Jefatura"}
           </button>
         </div>
       </form>

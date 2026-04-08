@@ -39,9 +39,9 @@ export default async function EvaluatePage({ params }: { params: Promise<{ id: s
                 <div className="flex justify-center mb-4 text-slate-400">
                     <CalendarDays size={48} />
                 </div>
-                <h2 className="text-2xl font-bold text-amber-700 mb-2">Sin periodo activo</h2>
+                <h2 className="text-2xl font-bold text-amber-700 mb-2">Sin período activo</h2>
                 <p className="text-gray-500 mb-6">
-                    No hay un periodo de evaluación activo. Solicita al administrador que active el periodo correspondiente.
+                    No hay un período de evaluación activo. Solicita al administrador que active el período correspondiente.
                 </p>
                 <Link href="/admin/materias" className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all">
                     ← Volver a materias

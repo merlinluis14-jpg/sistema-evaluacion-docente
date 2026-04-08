@@ -27,7 +27,7 @@ const NAV_ITEMS = [
   { href: "/admin/carreras", label: "Carreras", icon: BookOpen },
   { href: "/admin/grupos", label: "Grupos", icon: Layers },
   { href: "/admin/materias", label: "Materias", icon: BookOpen },
-  { href: "/admin/periodos", label: "Periodos", icon: Calendar },
+  { href: "/admin/periodos", label: "Períodos", icon: Calendar },
   { href: "/admin/reportes", label: "Reportes", icon: BarChart3 },
   { href: "/admin/administradores", label: "Administradores", icon: ShieldCheck },
   { href: "/admin/logs", label: "Logs", icon: ClipboardList },
@@ -93,7 +93,7 @@ function SidebarContent({
         <p className="truncate text-[10px] text-slate-500">{userEmail}</p>
         <SignOutButton className="flex flex-row items-center gap-2 border-none bg-transparent p-0 text-xs font-medium text-slate-400 transition-colors hover:text-red-400">
           <LogOut size={14} />
-          Cerrar sesion
+          Cerrar sesión
         </SignOutButton>
       </div>
     </div>

@@ -144,7 +144,7 @@ export default async function EditarAlumnoPage({
 
   const mensajesError: Record<string, string> = {
     campos: "Completa todos los campos obligatorios.",
-    duplicado: "Ya existe otro alumno con esa matricula, usuario o email.",
+    duplicado: "Ya existe otro alumno con esa matrícula, usuario o email.",
     servidor: "No fue posible guardar los cambios. Intenta de nuevo.",
   };
 
@@ -163,7 +163,7 @@ export default async function EditarAlumnoPage({
           Editar <span className="text-blue-600">Alumno</span>
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Actualiza datos y asignacion del periodo actual sin borrar historial
+          Actualiza datos y asignación del período actual sin borrar historial
         </p>
       </div>
 
@@ -269,7 +269,7 @@ export default async function EditarAlumnoPage({
 
           <div>
             <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Grupo del periodo actual
+              Grupo del período actual
             </label>
             <select
               name="groupId"
@@ -284,13 +284,13 @@ export default async function EditarAlumnoPage({
               ))}
             </select>
             <p className="mt-1 text-xs text-slate-400">
-              Si eliges un grupo, reemplaza la asignacion del mismo periodo. Si lo dejas vacio y hay un periodo activo, se limpia esa asignacion.
+              Si eliges un grupo, reemplaza la asignación del mismo período. Si lo dejas vacío y hay un período activo, se limpia esa asignación.
             </p>
           </div>
 
           <div>
             <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Nueva contrasena
+              Nueva contraseña
               <span className="ml-1 font-normal text-slate-400">(opcional)</span>
             </label>
             <input
@@ -300,7 +300,7 @@ export default async function EditarAlumnoPage({
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
             <p className="mt-1 text-xs text-slate-400">
-              Si capturas una nueva contrasena, quedara como temporal y el alumno podra reemplazarla una sola vez.
+              Si capturas una nueva contraseña, quedará como temporal y el alumno podrá reemplazarla una sola vez.
             </p>
           </div>
 

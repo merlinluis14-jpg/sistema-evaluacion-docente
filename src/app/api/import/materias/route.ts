@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
                         action: "IMPORT",
                         entity: "MATERIA",
                         detail: syncCatalog
-                            ? `Importacion CSV con sincronizacion: ${result.success} materias importadas de ${result.total} filas; ${result.deactivatedCount ?? 0} materias desactivadas`
-                            : `Importacion CSV: ${result.success} materias importadas de ${result.total} filas`,
+                            ? `Importación CSV con sincronización: ${result.success} materias importadas de ${result.total} filas; ${result.deactivatedCount ?? 0} materias desactivadas`
+                            : `Importación CSV: ${result.success} materias importadas de ${result.total} filas`,
                     });
                 },
             });
@@ -52,8 +52,8 @@ export async function POST(req: NextRequest) {
                 action: "IMPORT",
                 entity: "MATERIA",
                 detail: syncCatalog
-                    ? `Importacion CSV con sincronizacion: ${result.success} materias importadas de ${result.total} filas; ${result.deactivatedCount ?? 0} materias desactivadas`
-                    : `Importacion CSV: ${result.success} materias importadas de ${result.total} filas`,
+                    ? `Importación CSV con sincronización: ${result.success} materias importadas de ${result.total} filas; ${result.deactivatedCount ?? 0} materias desactivadas`
+                    : `Importación CSV: ${result.success} materias importadas de ${result.total} filas`,
             });
         } catch (loggingError) {
             console.error("No fue posible registrar la importacion de materias:", loggingError);

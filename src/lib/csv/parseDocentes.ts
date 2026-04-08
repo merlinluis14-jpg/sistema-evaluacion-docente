@@ -75,7 +75,7 @@ export async function parseAndImportDocentes(
       if (missing.length > 0) {
         errors.push({
           row: rowNum,
-          identifier: numero_empleado || "(vacio)",
+          identifier: numero_empleado || "(vacío)",
           reason: `Campos faltantes: ${missing.join(", ")}`,
         });
         continue;
@@ -84,7 +84,7 @@ export async function parseAndImportDocentes(
       if (position !== "PA" && position !== "PTC") {
         errors.push({
           row: rowNum,
-          identifier: numero_empleado || "(vacio)",
+          identifier: numero_empleado || "(vacío)",
           reason: "tipo_docente debe ser PA o PTC",
         });
         continue;
@@ -247,9 +247,9 @@ export async function parseAndImportDocentes(
       const message = error instanceof Error ? error.message : "Error desconocido";
       errors.push({
         row: rowNum,
-        identifier: numero_empleado || "(vacio)",
+        identifier: numero_empleado || "(vacío)",
         reason: message.includes("Unique constraint")
-          ? "Email o numero de empleado duplicado"
+          ? "Email o número de empleado duplicado"
           : `Error: ${message}`,
       });
     } finally {

@@ -10,6 +10,7 @@ import {
   getCareerHeadAverage,
   getTeacherPositionLabel,
 } from "@/lib/reportes";
+import { formatAcademicText } from "@/lib/text/academicText";
 
 type DocenteReporte = {
   teacher: {
@@ -141,7 +142,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
     const teacherName = `${teacherReport.teacher.name} ${teacherReport.teacher.lastName}`;
     const evaluatorName = teacherReport.careerHeadEvaluation?.evaluatorName?.trim() || "Pendiente de captura";
     const comments = teacherReport.careerHeadEvaluation?.comments?.trim()
-      || "Sin comentarios registrados por coordinacion.";
+      || "Sin comentarios registrados por coordinación.";
     const careerHeadAverage = teacherReport.careerHeadEvaluation
       ? getCareerHeadAverage(teacherReport.careerHeadEvaluation, teacherReport.teacher.position)
       : Number(teacherReport.careerHeadAvg) || 0;
@@ -156,7 +157,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
 
     drawBox(doc, margin, currentY, contentWidth, 10, {
       fillColor: COLORS.uptxGreen,
-      text: "Evaluacion de Desempeno",
+      text: "Evaluación de Desempeño",
       fontSize: 13,
       bold: true,
       align: "center",
@@ -167,7 +168,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
     const metaColWidth = contentWidth / 3;
     drawBox(doc, margin, currentY, metaColWidth, 8, {
       fillColor: COLORS.headerGray,
-      text: "Area: Direccion Academica",
+      text: "Área: Dirección Académica",
       fontSize: 7.5,
       align: "center",
     });
@@ -179,7 +180,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
     });
     drawBox(doc, margin + (metaColWidth * 2), currentY, metaColWidth, 8, {
       fillColor: COLORS.headerGray,
-      text: "Codigo: FDA-24.5",
+      text: "Código: FDA-24.5",
       fontSize: 7.5,
       align: "center",
     });
@@ -199,7 +200,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
         value: `${teacherReport.teacher.position} - ${getTeacherPositionLabel(teacherReport.teacher.position)}`,
       },
       { label: "EVALUADOR/A:", value: evaluatorName },
-      { label: "PERIODO A EVALUAR:", value: periodo },
+      { label: "PERÍODO A EVALUAR:", value: periodo },
     ];
 
     leftRows.forEach((row, rowIndex) => {
@@ -217,7 +218,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
 
     drawBox(doc, margin + leftWidth, currentY, smallScoreWidth, rowHeight, {
       fillColor: COLORS.headerGray,
-      text: "Calificacion I.\nResp.PE",
+      text: "Calificación I.\nResp.PE",
       fontSize: 7.2,
       bold: true,
       align: "center",
@@ -230,7 +231,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
     });
     drawBox(doc, margin + leftWidth, currentY + (rowHeight * 2), smallScoreWidth, rowHeight, {
       fillColor: COLORS.headerGray,
-      text: "Calificacion II.\nESTUDIANTE",
+      text: "Calificación II.\nESTUDIANTE",
       fontSize: 7.2,
       bold: true,
       align: "center",
@@ -252,7 +253,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
 
     drawBox(doc, margin, currentY, contentWidth, 8, {
       fillColor: COLORS.sectionGray,
-      text: "Seccion. Evaluacion de la Presentacion y Trabajo de Documentos",
+      text: "Sección. Evaluación de la Presentación y Trabajo de Documentos",
       fontSize: 8,
       bold: true,
       align: "center",
@@ -313,7 +314,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
       startY: currentY,
       body: [
         ["Sub total", formatScore(careerHeadAverage), formatScore(studentAverage), formatScore(finalScore)],
-        ["Calificacion:", { content: formatScore(finalScore), colSpan: 3, styles: { halign: "center", fontStyle: "bold", fillColor: COLORS.finalBlue, fontSize: 12 } }],
+      ["Calificación:", { content: formatScore(finalScore), colSpan: 3, styles: { halign: "center", fontStyle: "bold", fillColor: COLORS.finalBlue, fontSize: 12 } }],
       ],
       margin: { left: margin, right: margin },
       theme: "grid",
@@ -341,7 +342,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
       body: [
         ["Elaborado por:", evaluatorName],
         ["Evaluaciones de alumnos:", String(teacherReport.totalEvals)],
-        ["Carrera:", `${teacherReport.contextCareer.code} - ${teacherReport.contextCareer.name}`],
+        ["Carrera:", `${teacherReport.contextCareer.code} - ${formatAcademicText(teacherReport.contextCareer.name)}`],
       ],
       margin: { left: margin, right: margin },
       theme: "grid",
@@ -404,7 +405,7 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
 
     drawBox(doc, margin, currentY, contentWidth, 10, {
       fillColor: COLORS.uptxGreen,
-      text: "Evaluacion de Desempeno",
+      text: "Evaluación de Desempeño",
       fontSize: 13,
       bold: true,
       align: "center",
@@ -415,19 +416,19 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
     const metaColWidth = contentWidth / 3;
     drawBox(doc, margin, currentY, metaColWidth, 8, {
       fillColor: COLORS.headerGray,
-      text: "Area: Direccion Academica",
+      text: "Área: Dirección Académica",
       fontSize: 7.5,
       align: "center",
     });
     drawBox(doc, margin + metaColWidth, currentY, metaColWidth, 8, {
       fillColor: COLORS.headerGray,
-      text: `Periodo: ${periodo}`,
+      text: `Período: ${periodo}`,
       fontSize: 7.5,
       align: "center",
     });
     drawBox(doc, margin + (metaColWidth * 2), currentY, metaColWidth, 8, {
       fillColor: COLORS.headerGray,
-      text: "Codigo: FDA-24.5",
+      text: "Código: FDA-24.5",
       fontSize: 7.5,
       align: "center",
     });
@@ -444,8 +445,8 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
         label: "PUESTO:",
         value: `${teacherReport.teacher.position} - ${getTeacherPositionLabel(teacherReport.teacher.position)}`,
       },
-      { label: "CARRERA:", value: `${teacherReport.contextCareer.code} - ${teacherReport.contextCareer.name}` },
-      { label: "MATERIAS:", value: teacherReport.materias.join(", ") || "Sin materias visibles" },
+      { label: "CARRERA:", value: `${teacherReport.contextCareer.code} - ${formatAcademicText(teacherReport.contextCareer.name)}` },
+      { label: "MATERIAS:", value: teacherReport.materias.map((subject) => formatAcademicText(subject)).join(", ") || "Sin materias visibles" },
     ];
 
     leftRows.forEach((row, rowIndex) => {
@@ -463,7 +464,7 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
 
     drawBox(doc, margin + leftWidth, currentY, rightWidth, rowHeight * 2, {
       fillColor: COLORS.headerGray,
-      text: "Calificacion de alumnos",
+      text: "Calificación de alumnos",
       fontSize: 8,
       bold: true,
       align: "center",
@@ -479,7 +480,7 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
 
     drawBox(doc, margin, currentY, contentWidth, 8, {
       fillColor: COLORS.sectionGray,
-      text: "Resultados de evaluacion de alumnos",
+      text: "Resultados de evaluación de alumnos",
       fontSize: 8,
       bold: true,
       align: "center",
@@ -488,31 +489,31 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
 
     autoTable(doc, {
       startY: currentY,
-      head: [["SECCION", "DESCRIPCION", "PROMEDIO"]],
+      head: [["SECCIÓN", "DESCRIPCIÓN", "PROMEDIO"]],
       body: [
         [
           "Facilitador del aprendizaje",
-          "Promedio general de orientacion, dominio del contenido, asesorias, respeto y puntualidad.",
+          "Promedio general de orientación, dominio del contenido, asesorías, respeto y puntualidad.",
           `${formatScore(facAverage)} /4`,
         ],
         [
           "Habilidades del facilitador",
-          "Promedio de lenguaje, conduccion profesional, atencion al grupo y relacion con competencias.",
+          "Promedio de lenguaje, conducción profesional, atención al grupo y relación con competencias.",
           `${formatScore(habAverage)} /5`,
         ],
         [
-          "Medios didacticos",
-          "Promedio de uso de pizarron, proyector, plataformas, guias y bibliografia.",
+          "Medios didácticos",
+          "Promedio de uso de pizarrón, proyector, plataformas, guías y bibliografía.",
           `${formatScore(medAverage)} /5`,
         ],
         [
-          "Autoevaluacion del alumno",
-          "Promedio de participacion, preparacion y actividades realizadas por el alumno.",
+          "Autoevaluación del alumno",
+          "Promedio de participación, preparación y actividades realizadas por el alumno.",
           `${formatScore(autoAverage)} /5`,
         ],
         [
           "Resultado global",
-          "Calificacion final obtenida a partir de las respuestas del instrumento FDA-24.5 aplicadas por alumnos.",
+          "Calificación final obtenida a partir de las respuestas del instrumento FDA-24.5 aplicadas por alumnos.",
           `${formatScore(globalAverage)} /5`,
         ],
       ],
@@ -546,8 +547,8 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
       startY: currentY,
       body: [
         ["Evaluaciones registradas:", String(teacherReport.totalEvals)],
-        ["Nivel de desempeno:", teacherReport.nivel],
-        ["Periodo evaluado:", periodo],
+        ["Nivel de desempeño:", teacherReport.nivel],
+        ["Período evaluado:", periodo],
       ],
       margin: { left: margin, right: margin },
       theme: "grid",
@@ -575,7 +576,7 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
     doc.setFontSize(7.5);
     doc.setTextColor(...COLORS.text);
     doc.text("Reporte generado por el sistema", signatureX + (signatureWidth / 2), currentY + 5, { align: "center" });
-    doc.text("Evaluacion de alumnos", signatureX + (signatureWidth / 2), currentY + 9, { align: "center" });
+    doc.text("Evaluación de alumnos", signatureX + (signatureWidth / 2), currentY + 9, { align: "center" });
   });
 
   doc.save(`reporte_alumnos_${periodo.replace(/\s+/g, "_")}.pdf`);
@@ -592,7 +593,7 @@ export default function ExportButtons({ data, periodo, canExportInstitutional }:
       const headers = [
         "Docente", "Carrera", "Evaluaciones",
         "Prom. Facilitador (/4)", "Prom. Habilidades (/5)",
-        "Prom. Medios (/5)", "Prom. Autoevaluacion (/5)",
+        "Prom. Medios (/5)", "Prom. Autoevaluación (/5)",
         "Promedio Global", "Nivel", "Materias evaluadas",
       ];
 
@@ -610,7 +611,7 @@ export default function ExportButtons({ data, periodo, canExportInstitutional }:
       ]);
 
       const csvContent = [
-        `Reporte de Evaluacion Docente FDA-24.5 - ${periodo}`,
+        `Reporte de Evaluación Docente FDA-24.5 - ${periodo}`,
         `Generado el: ${new Date().toLocaleDateString("es-MX")}`,
         "",
         headers.join(","),
@@ -645,7 +646,7 @@ export default function ExportButtons({ data, periodo, canExportInstitutional }:
 
   const exportInstitutionalPdf = async () => {
     if (!canExportInstitutional) {
-      alert("Selecciona un periodo especifico para exportar el formato institucional.");
+      alert("Selecciona un período específico para exportar el formato institucional.");
       return;
     }
 

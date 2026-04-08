@@ -57,7 +57,7 @@ function parseOptionalScore(value?: string) {
 // Conserva en la base el origen del registro importado para facilitar auditoria manual.
 function buildAuditComment(row: CsvRow) {
   const segments = [
-    row.periodo_origen ? `Periodo origen: ${row.periodo_origen}` : null,
+    row.periodo_origen ? `Período origen: ${row.periodo_origen}` : null,
     row.resp_pe_avg ? `Resp.PE: ${row.resp_pe_avg}` : null,
     row.student_avg ? `Estudiante: ${row.student_avg}` : null,
     row.source_final_avg ? `Final fuente: ${row.source_final_avg}` : null,
@@ -90,7 +90,7 @@ export async function parseAndImportCareerHeadEvaluations(
   });
 
   if (!period) {
-    throw new Error("El periodo seleccionado no existe");
+    throw new Error("El período seleccionado no existe");
   }
 
   const careers = await prisma.career.findMany({
@@ -147,7 +147,7 @@ export async function parseAndImportCareerHeadEvaluations(
       if (missingFields.length > 0) {
         errors.push({
           row: rowNumber,
-          identifier: row.numero_empleado || row.nombre_docente || "(vacio)",
+        identifier: row.numero_empleado || row.nombre_docente || "(vacío)",
           reason: `Campos faltantes: ${missingFields.join(", ")}`,
         });
         continue;
@@ -184,8 +184,8 @@ export async function parseAndImportCareerHeadEvaluations(
           row: rowNumber,
           identifier: row.numero_empleado || row.nombre_docente,
           reason: row.numero_empleado
-            ? "No se encontro un docente activo que coincida con ese numero de empleado"
-            : "No se encontro un docente activo que coincida con el nombre en esa carrera",
+            ? "No se encontró un docente activo que coincida con ese número de empleado"
+            : "No se encontró un docente activo que coincida con el nombre en esa carrera",
         });
         continue;
       }

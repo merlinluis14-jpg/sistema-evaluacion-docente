@@ -89,7 +89,7 @@ describe("careers module", () => {
     (prisma.career.findUnique as jest.Mock).mockResolvedValue({
       id: "career_1",
       code: "ISC",
-      name: "Ingenieria en Sistemas Computacionales",
+      name: "Ingeniería en Sistemas Computacionales",
       isActive: true,
     });
     (prisma.teacher.count as jest.Mock).mockResolvedValue(1);
@@ -108,7 +108,7 @@ describe("careers module", () => {
     (prisma.career.findUnique as jest.Mock).mockResolvedValue({
       id: "career_1",
       code: "ISC",
-      name: "Ingenieria en Sistemas Computacionales",
+      name: "Ingeniería en Sistemas Computacionales",
       isActive: true,
     });
     (prisma.teacher.count as jest.Mock).mockResolvedValue(0);
@@ -131,7 +131,7 @@ describe("careers module", () => {
     (prisma.career.findUnique as jest.Mock).mockResolvedValue({
       id: "career_1",
       code: "ISC",
-      name: "Ingenieria en Sistemas Computacionales",
+      name: "Ingeniería en Sistemas Computacionales",
       isActive: false,
     });
 
@@ -147,13 +147,13 @@ describe("careers module", () => {
   it("crea una carrera nueva y redirige al listado", async () => {
     const formData = new FormData();
     formData.set("code", "isc");
-    formData.set("name", "Ingenieria en Sistemas Computacionales");
+    formData.set("name", "Ingeniería en Sistemas Computacionales");
 
     (prisma.career.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.career.create as jest.Mock).mockResolvedValue({
       id: "career_1",
       code: "ISC",
-      name: "Ingenieria en Sistemas Computacionales",
+      name: "Ingeniería en Sistemas Computacionales",
     });
 
     await expect(createCareer(formData)).rejects.toThrow(
@@ -162,7 +162,7 @@ describe("careers module", () => {
     expect(prisma.career.create).toHaveBeenCalledWith({
       data: {
         code: "ISC",
-        name: "Ingenieria en Sistemas Computacionales",
+        name: "Ingeniería en Sistemas Computacionales",
         isActive: true,
       },
     });
@@ -171,12 +171,12 @@ describe("careers module", () => {
   it("actualiza el nombre de una carrera y redirige al listado", async () => {
     const formData = new FormData();
     formData.set("id", "career_1");
-    formData.set("name", "Ingenieria en Sistemas y Software");
+    formData.set("name", "Ingeniería en Sistemas y Software");
 
     (prisma.career.findUnique as jest.Mock).mockResolvedValue({
       id: "career_1",
       code: "ISC",
-      name: "Ingenieria en Sistemas Computacionales",
+      name: "Ingeniería en Sistemas Computacionales",
     });
 
     await expect(updateCareer(formData)).rejects.toThrow(
@@ -184,7 +184,7 @@ describe("careers module", () => {
     );
     expect(prisma.career.update).toHaveBeenCalledWith({
       where: { id: "career_1" },
-      data: { name: "Ingenieria en Sistemas y Software" },
+      data: { name: "Ingeniería en Sistemas y Software" },
     });
   });
 });
