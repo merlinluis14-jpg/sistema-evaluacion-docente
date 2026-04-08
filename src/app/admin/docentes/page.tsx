@@ -244,7 +244,11 @@ export default async function DocentesPage({
                                                 <Pencil size={13} />
                                                 Editar
                                             </Link>
-                                            <ResetPasswordButton teacherId={teacher.id} teacherName={`${teacher.name} ${teacher.lastName}`} />
+                                            <ResetPasswordButton
+                                                teacherId={teacher.id}
+                                                teacherName={`${teacher.name} ${teacher.lastName}`}
+                                                teacherEmail={teacher.user.email ?? ""}
+                                            />
                                             <DeleteTeacherButton teacherId={teacher.id} teacherName={`${teacher.name} ${teacher.lastName}`} />
                                         </div>
                                     </td>
