@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, KeyRound, ShieldOff, X } from "lucide-react";
-import { deactivateAdminAccount, resetAdminPassword } from "./actions";
+import { AlertTriangle, KeyRound, ShieldCheck, ShieldOff, X } from "lucide-react";
+import { activateAdminAccount, deactivateAdminAccount, resetAdminPassword } from "./actions";
 
-type Mode = "none" | "reset" | "deactivate";
+type Mode = "none" | "reset" | "deactivate" | "activate";
 
 export default function AdminAccountControls({
   adminId,
@@ -27,6 +27,7 @@ export default function AdminAccountControls({
 
   const canReset = isActive;
   const canDeactivate = isActive && !isCurrent && !isLastActive;
+  const canActivate = !isActive;
 
   function closeModal() {
     if (isPending) return;
@@ -72,6 +73,24 @@ export default function AdminAccountControls({
     });
   }
 
+  function handleActivateSubmit(formData: FormData) {
+    setError("");
+    startTransition(async () => {
+      const result = await activateAdminAccount({
+        targetUserId: adminId,
+        currentPassword: String(formData.get("currentPassword") ?? ""),
+      });
+
+      if (!result.success) {
+        setError(result.error || "No se pudo activar la cuenta administrativa");
+        return;
+      }
+
+      closeModal();
+      router.refresh();
+    });
+  }
+
   return (
     <>
       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -83,14 +102,24 @@ export default function AdminAccountControls({
         >
           Restablecer
         </button>
-        <button
-          type="button"
-          onClick={() => setMode("deactivate")}
-          disabled={!canDeactivate}
-          className="rounded-xl border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600 transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Desactivar
-        </button>
+        {canActivate ? (
+          <button
+            type="button"
+            onClick={() => setMode("activate")}
+            className="rounded-xl border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-700 transition-all hover:bg-emerald-50"
+          >
+            Activar
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setMode("deactivate")}
+            disabled={!canDeactivate}
+            className="rounded-xl border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600 transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Desactivar
+          </button>
+        )}
       </div>
 
       {!canDeactivate && isActive ? (
@@ -103,13 +132,23 @@ export default function AdminAccountControls({
         </p>
       ) : null}
 
+      {canActivate ? (
+        <p className="mt-2 text-right text-[11px] font-medium text-slate-400">
+          Reactiva la cuenta con tu contrasena actual para devolverle acceso.
+        </p>
+      ) : null}
+
       {mode !== "none" ? (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+          <div className="max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-4 py-4 sm:px-6">
               <div>
-                <h3 className="font-bold text-slate-800">
-                  {mode === "reset" ? "Restablecer contrasena admin" : "Desactivar admin"}
+                <h3 className="text-base font-bold text-slate-800 sm:text-lg">
+                  {mode === "reset"
+                    ? "Restablecer contrasena admin"
+                    : mode === "activate"
+                      ? "Activar admin"
+                      : "Desactivar admin"}
                 </h3>
                 <p className="mt-1 text-xs text-slate-400">{adminLabel}</p>
               </div>
@@ -123,7 +162,7 @@ export default function AdminAccountControls({
             </div>
 
             {mode === "reset" ? (
-              <form action={handleResetSubmit} className="space-y-4 px-6 py-5">
+              <form action={handleResetSubmit} className="space-y-4 px-4 py-5 sm:px-6">
                 <p className="text-sm text-slate-600">
                   Define una nueva contrasena para esta cuenta administrativa. Debes autorizar la accion con tu contrasena actual.
                 </p>
@@ -167,26 +206,26 @@ export default function AdminAccountControls({
                   </div>
                 ) : null}
 
-                <div className="flex justify-end gap-3 pt-2">
+                <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
+                    className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <KeyRound className="h-4 w-4" />
                     {isPending ? "Guardando..." : "Restablecer"}
                   </button>
                 </div>
               </form>
-            ) : (
-              <form action={handleDeactivateSubmit} className="space-y-4 px-6 py-5">
+            ) : mode === "deactivate" ? (
+              <form action={handleDeactivateSubmit} className="space-y-4 px-4 py-5 sm:px-6">
                 <p className="text-sm text-slate-600">
                   Esta cuenta perdera acceso al panel administrativo. Debes confirmar la accion con tu contrasena actual.
                 </p>
@@ -215,21 +254,69 @@ export default function AdminAccountControls({
                   </div>
                 ) : null}
 
-                <div className="flex justify-end gap-3 pt-2">
+                <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
+                    className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <ShieldOff className="h-4 w-4" />
                     {isPending ? "Desactivando..." : "Desactivar cuenta"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form action={handleActivateSubmit} className="space-y-4 px-4 py-5 sm:px-6">
+                <p className="text-sm text-slate-600">
+                  Esta cuenta volvera a tener acceso al panel administrativo. Autoriza la reactivacion con tu contrasena actual.
+                </p>
+
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Validacion requerida</p>
+                  <p className="mt-1 text-sm text-emerald-700">
+                    La reactivacion solo puede realizarla un administrador activo que confirme su propia contrasena.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-bold text-slate-700">Tu contrasena actual</label>
+                  <input
+                    name="currentPassword"
+                    type="password"
+                    required
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                {error ? (
+                  <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
+                    <p className="text-sm font-medium text-red-600">{error}</p>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {isPending ? "Activando..." : "Activar cuenta"}
                   </button>
                 </div>
               </form>

@@ -238,3 +238,49 @@ export async function deactivateAdminAccount(input: {
 
   return { success: true };
 }
+
+export async function activateAdminAccount(input: {
+  targetUserId: string;
+  currentPassword: string;
+}) {
+  const authResult = await validateAdminReauthentication(input.currentPassword.trim());
+  if ("error" in authResult) {
+    return { success: false, error: authResult.error };
+  }
+
+  const currentAdmin = authResult.currentAdmin;
+  if (!input.targetUserId) {
+    return { success: false, error: "No se encontro la cuenta administrativa a activar" };
+  }
+
+  const targetAdmin = await prisma.user.findUnique({
+    where: { id: input.targetUserId },
+    select: { id: true, email: true, role: true, isActive: true },
+  });
+
+  if (!targetAdmin || targetAdmin.role !== "ADMIN") {
+    return { success: false, error: "La cuenta seleccionada no corresponde a un administrador" };
+  }
+
+  if (targetAdmin.isActive) {
+    return { success: false, error: "La cuenta administrativa ya se encuentra activa" };
+  }
+
+  await prisma.user.update({
+    where: { id: targetAdmin.id },
+    data: { isActive: true },
+  });
+
+  await logAdminAction({
+    action: "ACTIVATE",
+    entity: "ADMIN",
+    entityId: targetAdmin.id,
+    detail: `Cuenta administrativa reactivada: ${targetAdmin.email ?? targetAdmin.id} por ${currentAdmin.email ?? currentAdmin.id}`,
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/administradores");
+  revalidatePath("/admin/logs");
+
+  return { success: true };
+}

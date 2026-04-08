@@ -2,8 +2,22 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, KeyRound, ShieldCheck, UserPlus } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clipboard,
+  KeyRound,
+  Mail,
+  ShieldCheck,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { createAdminAccount } from "./actions";
+
+type CreatedAdminAccount = {
+  email: string;
+  password: string;
+};
 
 export default function CreateAdminForm() {
   const router = useRouter();
@@ -11,11 +25,33 @@ export default function CreateAdminForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [createdAccount, setCreatedAccount] = useState<CreatedAdminAccount | null>(null);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+
+  function resetCopyStatus() {
+    window.setTimeout(() => setCopyStatus("idle"), 2200);
+  }
+
+  async function copyToClipboard(value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("error");
+    } finally {
+      resetCopyStatus();
+    }
+  }
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError("");
     setSuccess("");
+    setCopyStatus("idle");
+    setCreatedAccount(null);
+
+    const nextEmail = String(formData.get("email") ?? "").trim().toLowerCase();
+    const nextPassword = String(formData.get("password") ?? "");
 
     try {
       const result = await createAdminAccount(formData);
@@ -25,7 +61,12 @@ export default function CreateAdminForm() {
       }
 
       formRef.current?.reset();
-      setSuccess(`Cuenta administrativa creada para ${result.email}`);
+      const createdEmail = result.email ?? nextEmail;
+      setSuccess(`Cuenta administrativa creada para ${createdEmail}`);
+      setCreatedAccount({
+        email: createdEmail,
+        password: nextPassword,
+      });
       router.refresh();
     } catch (submitError) {
       console.error(submitError);
@@ -62,6 +103,101 @@ export default function CreateAdminForm() {
           <div className="flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
             <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
             <p className="text-sm font-medium text-emerald-700">{success}</p>
+          </div>
+        ) : null}
+
+        {createdAccount ? (
+          <div className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg shadow-slate-200/50">
+            <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 px-4 py-4 text-white sm:px-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-100 sm:text-xs sm:tracking-[0.24em]">
+                    <ShieldCheck className="h-4 w-4" />
+                    Cuenta administrativa creada
+                  </p>
+                  <h3 className="break-words text-base font-black leading-tight sm:text-lg">{createdAccount.email}</h3>
+                  <p className="text-sm text-blue-50">
+                    Comparte estas credenciales solo con personal autorizado.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreatedAccount(null);
+                    setCopyStatus("idle");
+                  }}
+                  className="rounded-full bg-white/15 p-2 text-white transition hover:bg-white/25"
+                  title="Cerrar tarjeta"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-xs sm:tracking-[0.2em]">
+                    Correo admin
+                  </p>
+                  <p className="mt-2 break-all text-sm font-bold text-slate-900">
+                    {createdAccount.email}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-xs sm:tracking-[0.2em]">
+                    Contrasena inicial
+                  </p>
+                  <p className="mt-2 break-all font-mono text-sm font-bold text-slate-900">
+                    {createdAccount.password}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() =>
+                    copyToClipboard(
+                      `Correo: ${createdAccount.email}\nContrasena inicial: ${createdAccount.password}`,
+                    )
+                  }
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                >
+                  <Clipboard className="h-4 w-4" />
+                  Copiar credenciales
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    copyToClipboard(
+                      [
+                        "Acceso al Panel Administrativo UPTX",
+                        `Usuario: ${createdAccount.email}`,
+                        `Contrasena inicial: ${createdAccount.password}`,
+                        "Comparte esta informacion por un canal seguro.",
+                      ].join("\n"),
+                    )
+                  }
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-100"
+                >
+                  <Mail className="h-4 w-4" />
+                  Copiar mensaje
+                </button>
+              </div>
+
+              {copyStatus === "copied" ? (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                  Los datos se copiaron al portapapeles.
+                </div>
+              ) : null}
+
+              {copyStatus === "error" ? (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                  No se pudo copiar automaticamente. Copia los datos manualmente desde la tarjeta.
+                </div>
+              ) : null}
+            </div>
           </div>
         ) : null}
 
