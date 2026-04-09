@@ -1,10 +1,38 @@
 import type { Metadata } from "next";
-import "./globals.css";
+
 import { NextAuthProvider } from "@/providers/NextAuthProvider";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sistema de Evaluación Docente UPTEX",
-  description: "Plataforma de evaluación docente institucional UPTEX",
+  metadataBase: new URL("https://evaluacion-docenteuptex.org"),
+  title: "Sistema de Evaluacion Docente UPTex",
+  description: "Plataforma institucional para la evaluacion docente de UPTex",
+  icons: {
+    icon: "/uptexlogo.png",
+    shortcut: "/uptexlogo.png",
+    apple: "/uptexlogo.png",
+  },
+  openGraph: {
+    title: "Sistema de Evaluacion Docente UPTex",
+    description: "Plataforma institucional para la evaluacion docente de UPTex",
+    siteName: "UPTex Evaluacion Docente",
+    type: "website",
+    locale: "es_MX",
+    images: [
+      {
+        url: "/uptexlogo.png",
+        width: 512,
+        height: 512,
+        alt: "UPTex",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Sistema de Evaluacion Docente UPTex",
+    description: "Plataforma institucional para la evaluacion docente de UPTex",
+    images: ["/uptexlogo.png"],
+  },
 };
 
 export default function RootLayout({

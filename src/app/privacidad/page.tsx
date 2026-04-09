@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Database, Lock, ShieldCheck, UserCheck } from "lucide-react";
 
 export const metadata = {
-  title: "Políticas de Privacidad | UPTEX Eval",
+  title: "Políticas de Privacidad | UPTex Eval",
 };
 
 export default function PrivacidadPage() {
@@ -28,7 +28,7 @@ export default function PrivacidadPage() {
           </div>
           <p className="max-w-2xl text-lg leading-relaxed text-slate-400">
             Aviso de Privacidad Integral del Sistema de Evaluación Docente Institucional
-            de la Universidad Politécnica de Texcoco (UPTX).
+            de la Universidad Politécnica de Texcoco (UPTex).
           </p>
         </div>
       </div>
@@ -40,7 +40,7 @@ export default function PrivacidadPage() {
               1. Identidad y domicilio del responsable
             </h2>
             <p className="text-sm leading-relaxed text-slate-600">
-              La <strong>Universidad Politécnica de Texcoco (UPTX)</strong> es la entidad
+              La <strong>Universidad Politécnica de Texcoco (UPTex)</strong> es la entidad
               responsable del tratamiento y resguardo de los datos recabados a través del
               <span className="font-bold text-indigo-600">
                 {" "}Sistema Web de Evaluación Docente Institucional
@@ -145,7 +145,7 @@ export default function PrivacidadPage() {
       </main>
 
       <footer className="mx-auto max-w-4xl px-8 py-10 text-center text-sm font-bold uppercase tracking-widest text-slate-400">
-        Sistema Web de Evaluación Docente · UPTX
+        Sistema Web de Evaluación Docente · UPTex
       </footer>
     </div>
   );
