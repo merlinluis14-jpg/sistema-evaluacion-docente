@@ -60,7 +60,7 @@ export async function createTeacher(formData: FormData) {
             },
         });
 
-        await prisma.teacher.create({
+        const teacher = await prisma.teacher.create({
             data: {
                 userId: user.id,
                 name,
@@ -82,7 +82,14 @@ export async function createTeacher(formData: FormData) {
         revalidatePath("/admin/docentes");
         revalidatePath("/admin/logs");
 
-        return { success: true, temporaryPassword, email };
+        return {
+            success: true,
+            temporaryPassword,
+            email,
+            teacherId: teacher.id,
+            careerId: teacher.careerId,
+            teacherName: `${teacher.name} ${teacher.lastName}`,
+        };
     } catch (error) {
         console.error("Error al crear docente:", error);
         return {

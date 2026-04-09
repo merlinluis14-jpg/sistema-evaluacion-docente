@@ -210,7 +210,7 @@ export default async function EditarDocentePage({
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-bold text-slate-700">
-                Carrera <span className="text-red-500">*</span>
+                Carrera principal / adscripción <span className="text-red-500">*</span>
               </label>
               <select
                 name="careerId"
@@ -224,6 +224,9 @@ export default async function EditarDocentePage({
                   </option>
                 ))}
               </select>
+              <p className="mt-1 text-xs text-slate-400">
+                Este dato identifica la adscripción del docente y no limita las carreras de sus materias.
+              </p>
             </div>
           </div>
 

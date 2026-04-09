@@ -1,28 +1,43 @@
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+
 import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
+import {
+  replaceGroupsForSubject,
+  resolveManualGroupIdsForCareer,
+  resyncGroupsForSubject,
+} from "@/lib/groupAssignments";
+import { prisma } from "@/lib/prisma";
 import { isPrismaKnownRequestError } from "@/lib/prismaErrors";
 import { getSessionRole } from "@/lib/sessionUser";
 import { formatAcademicText } from "@/lib/text/academicText";
+import { SubjectRelationsFields } from "../SubjectRelationsFields";
 
 export const dynamic = "force-dynamic";
 
 export default async function NuevaMateriaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; teacherId?: string; careerId?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, teacherId: presetTeacherId, careerId: presetCareerId } = await searchParams;
 
-  const [carreras, docentes] = await Promise.all([
-    prisma.career.findMany({ where: { isActive: true }, orderBy: { code: "asc" } }),
+  const [careers, teachers, groups] = await Promise.all([
+    prisma.career.findMany({
+      where: { isActive: true },
+      orderBy: { code: "asc" },
+    }),
     prisma.teacher.findMany({
       where: { isActive: true },
       orderBy: { lastName: "asc" },
+      include: { career: true },
+    }),
+    prisma.group.findMany({
+      where: { isActive: true },
+      orderBy: [{ career: { code: "asc" } }, { period: "asc" }, { name: "asc" }],
       include: { career: true },
     }),
   ]);
@@ -35,21 +50,54 @@ export default async function NuevaMateriaPage({
       redirect("/login");
     }
 
-    const nombre = formatAcademicText(formData.get("name") as string);
-    const codigo = (formData.get("code") as string)?.trim().toUpperCase();
-    const cuatrimestre = parseInt(formData.get("cuatrimestre") as string, 10);
-    const careerId = formData.get("careerId") as string;
-    const teacherId = formData.get("teacherId") as string;
+    const name = formatAcademicText(String(formData.get("name") ?? ""));
+    const code = String(formData.get("code") ?? "").trim().toUpperCase();
+    const cuatrimestre = parseInt(String(formData.get("cuatrimestre") ?? ""), 10);
+    const careerId = String(formData.get("careerId") ?? "").trim();
+    const teacherId = String(formData.get("teacherId") ?? "").trim();
+    const assignmentMode = String(formData.get("assignmentMode") ?? "auto");
+    const requestedGroupIds = formData
+      .getAll("groupIds")
+      .map((value) => String(value).trim())
+      .filter(Boolean);
 
-    if (!nombre || !codigo || !careerId || !teacherId || Number.isNaN(cuatrimestre)) {
+    if (!name || !code || !careerId || !teacherId || Number.isNaN(cuatrimestre)) {
       redirect("/admin/materias/nueva?error=campos");
+    }
+
+    if (assignmentMode !== "auto" && assignmentMode !== "manual") {
+      redirect("/admin/materias/nueva?error=asignacion");
+    }
+
+    const teacher = await prisma.teacher.findFirst({
+      where: {
+        id: teacherId,
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    if (!teacher) {
+      redirect("/admin/materias/nueva?error=docente");
+    }
+
+    if (assignmentMode === "manual" && requestedGroupIds.length === 0) {
+      redirect("/admin/materias/nueva?error=grupos");
+    }
+
+    const manualGroupIds = assignmentMode === "manual"
+      ? await resolveManualGroupIdsForCareer(careerId, requestedGroupIds, cuatrimestre)
+      : [];
+
+    if (assignmentMode === "manual" && !manualGroupIds) {
+      redirect("/admin/materias/nueva?error=grupos_carrera");
     }
 
     try {
       const subject = await prisma.subject.create({
         data: {
-          name: nombre,
-          code: codigo,
+          name,
+          code,
           cuatrimestre,
           careerId,
           teacherId,
@@ -57,16 +105,23 @@ export default async function NuevaMateriaPage({
         },
       });
 
+      const linkedGroups = assignmentMode === "manual"
+        ? await replaceGroupsForSubject(subject.id, manualGroupIds ?? [])
+        : await resyncGroupsForSubject(subject.id, careerId, cuatrimestre);
+
       await logAdminAction({
         action: "CREATE",
         entity: "MATERIA",
         entityId: subject.id,
-        detail: `Materia creada: ${subject.name} (${subject.code})`,
+        detail: assignmentMode === "manual"
+          ? `Materia creada: ${subject.name} (${subject.code}). Grupos asignados manualmente: ${linkedGroups}.`
+          : `Materia creada: ${subject.name} (${subject.code}). Grupos enlazados automaticamente: ${linkedGroups}.`,
       });
-    } catch (error) {
-      if (isPrismaKnownRequestError(error) && error.code === "P2002") {
+    } catch (createError) {
+      if (isPrismaKnownRequestError(createError) && createError.code === "P2002") {
         redirect("/admin/materias/nueva?error=duplicado");
       }
+
       redirect("/admin/materias/nueva?error=servidor");
     }
 
@@ -75,7 +130,11 @@ export default async function NuevaMateriaPage({
 
   const mensajesError: Record<string, string> = {
     campos: "Completa todos los campos obligatorios.",
-    duplicado: "Ya existe una materia con ese código en la carrera seleccionada.",
+    duplicado: "Ya existe una materia con ese codigo en la carrera seleccionada.",
+    docente: "Selecciona un docente activo para la materia.",
+    grupos: "Si eliges asignacion manual, debes seleccionar al menos un grupo.",
+    grupos_carrera: "Todos los grupos manuales deben pertenecer a la misma carrera y cuatrimestre de la materia.",
+    asignacion: "Selecciona un modo de asignacion valido para los grupos.",
     servidor: "Error interno del servidor. Intenta de nuevo.",
   };
 
@@ -93,7 +152,7 @@ export default async function NuevaMateriaPage({
           Nueva <span className="text-blue-600">Materia</span>
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Registra una nueva asignatura en el catálogo del sistema
+          Registra una nueva asignatura y define si su relacion con grupos sera automatica o manual.
         </p>
       </div>
 
@@ -108,7 +167,7 @@ export default async function NuevaMateriaPage({
         <div className="bg-slate-900 px-6 py-4">
           <p className="font-black text-white">Datos de la materia</p>
           <p className="mt-0.5 text-xs text-slate-400">
-            El código debe ser único dentro de la carrera seleccionada
+            El codigo debe ser unico dentro de la carrera seleccionada
           </p>
         </div>
 
@@ -127,7 +186,7 @@ export default async function NuevaMateriaPage({
 
           <div>
             <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Código <span className="text-red-500">*</span>
+              Codigo <span className="text-red-500">*</span>
             </label>
             <input
               name="code"
@@ -136,64 +195,33 @@ export default async function NuevaMateriaPage({
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
             <p className="mt-1 text-xs text-slate-400">
-              Se guardará en mayúsculas. Debe ser único dentro de la carrera.
+              Se guardara en mayusculas. Debe ser unico dentro de la carrera.
             </p>
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Cuatrimestre <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="cuatrimestre"
-              required
-              defaultValue=""
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="" disabled>Selecciona el cuatrimestre</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((numero) => (
-                <option key={numero} value={numero}>{numero}° Cuatrimestre</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Carrera <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="careerId"
-              required
-              defaultValue=""
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="" disabled>Selecciona una carrera</option>
-              {carreras.map((carrera) => (
-                <option key={carrera.id} value={carrera.id}>
-                  {carrera.code} - {carrera.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-bold text-slate-700">
-              Docente asignado <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="teacherId"
-              required
-              defaultValue=""
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            >
-              <option value="" disabled>Selecciona un docente</option>
-              {docentes.map((docente) => (
-                <option key={docente.id} value={docente.id}>
-                  {docente.name} {docente.lastName} - {docente.career.code}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SubjectRelationsFields
+            careers={careers.map((career) => ({
+              id: career.id,
+              code: career.code,
+              name: formatAcademicText(career.name),
+            }))}
+            teachers={teachers.map((teacher) => ({
+              id: teacher.id,
+              name: teacher.name,
+              lastName: teacher.lastName,
+              careerId: teacher.careerId,
+              careerCode: teacher.career.code,
+            }))}
+            groups={groups.map((group) => ({
+              id: group.id,
+              name: group.name,
+              period: group.period,
+              careerId: group.careerId,
+              careerCode: group.career.code,
+            }))}
+            initialCareerId={presetCareerId}
+            initialTeacherId={presetTeacherId}
+          />
 
           <div className="flex gap-3 pt-2">
             <button

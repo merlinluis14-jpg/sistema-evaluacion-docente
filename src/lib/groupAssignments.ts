@@ -114,3 +114,58 @@ export async function resyncGroupsForSubject(
 
   return groupsToCreate.length;
 }
+
+export async function resolveManualGroupIdsForCareer(
+  careerId: string,
+  groupIds: string[],
+  cuatrimestre?: number,
+) {
+  const normalizedIds = [...new Set(groupIds.map((groupId) => groupId.trim()).filter(Boolean))];
+
+  if (normalizedIds.length === 0) {
+    return [];
+  }
+
+  const validGroups = await prisma.group.findMany({
+    where: {
+      id: { in: normalizedIds },
+      careerId,
+      isActive: true,
+    },
+    select: { id: true, name: true },
+  });
+
+  if (validGroups.length !== normalizedIds.length) {
+    return null;
+  }
+
+  if (
+    cuatrimestre !== undefined &&
+    validGroups.some((group) => extractCuatrimestreFromGroupName(group.name) !== cuatrimestre)
+  ) {
+    return null;
+  }
+
+  const validIdSet = new Set(validGroups.map((group) => group.id));
+  return normalizedIds.filter((groupId) => validIdSet.has(groupId));
+}
+
+export async function replaceGroupsForSubject(subjectId: string, groupIds: string[]) {
+  await prisma.groupSubject.deleteMany({
+    where: { subjectId },
+  });
+
+  if (groupIds.length === 0) {
+    return 0;
+  }
+
+  const result = await prisma.groupSubject.createMany({
+    data: groupIds.map((groupId) => ({
+      groupId,
+      subjectId,
+    })),
+    skipDuplicates: true,
+  });
+
+  return result.count;
+}
