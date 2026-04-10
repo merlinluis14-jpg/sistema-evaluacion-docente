@@ -14,6 +14,7 @@ import {
 import CareerHeadEvaluationForm from "./CareerHeadEvaluationForm";
 import ExportTeacherPdf from "./ExportTeacherPdf";
 import GraficasDetalle from "./GraficasDetalle";
+import { getRestrictedCareerIds, requireAdminScope } from "@/lib/adminScope";
 import { prisma } from "@/lib/prisma";
 import {
   buildStudentReport,
@@ -71,6 +72,8 @@ export default async function ReporteDocenteDetallePage({
 }) {
   const { teacherId } = await params;
   const { periodoId: periodoIdParam, careerId: careerIdParam } = await searchParams;
+  const scope = await requireAdminScope();
+  const restrictedCareerIds = getRestrictedCareerIds(scope);
 
   const teacher = await prisma.teacher.findUnique({
     where: { id: teacherId },
@@ -122,11 +125,17 @@ export default async function ReporteDocenteDetallePage({
     });
   }
 
-  const availableCareers = Array.from(availableCareersMap.values()).sort((a, b) => {
+  const availableCareers = Array.from(availableCareersMap.values())
+    .filter((career) => !restrictedCareerIds || restrictedCareerIds.includes(career.id))
+    .sort((a, b) => {
     if (a.id === teacher.career.id) return -1;
     if (b.id === teacher.career.id) return 1;
     return a.code.localeCompare(b.code, "es");
   });
+
+  if (availableCareers.length === 0) {
+    notFound();
+  }
 
   const selectedCareerId = availableCareers.some((career) => career.id === careerIdParam)
     ? careerIdParam!

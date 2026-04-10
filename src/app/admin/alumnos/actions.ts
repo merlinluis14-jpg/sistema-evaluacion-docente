@@ -6,10 +6,12 @@ import { revalidatePath } from "next/cache";
 
 import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
+import { requireGlobalAdminScope } from "@/lib/adminScope";
 import { prisma } from "@/lib/prisma";
 import { getSessionRole } from "@/lib/sessionUser";
 
 export async function resetStudentPassword(id: string) {
+  await requireGlobalAdminScope();
   const session = await getServerSession(authOptions);
   if (!session || getSessionRole(session) !== "ADMIN") {
     return { success: false, error: "No autorizado" };

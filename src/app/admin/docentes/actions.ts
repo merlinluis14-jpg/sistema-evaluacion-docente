@@ -7,9 +7,11 @@ import { revalidatePath } from "next/cache";
 
 import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
+import { requireGlobalAdminScope } from "@/lib/adminScope";
 import { prisma } from "@/lib/prisma";
 
 async function requireAdminSession() {
+    await requireGlobalAdminScope();
     const session = await getServerSession(authOptions);
     const role = (session?.user as { role?: string } | undefined)?.role;
     if (!session || role !== "ADMIN") {

@@ -51,12 +51,14 @@ async function main() {
             password: adminPassword,
             role: "ADMIN",
             isActive: true,
+            adminHasGlobalScope: true,
         },
         create: {
             email: "admin@uptx.edu.mx",
             password: adminPassword,
             role: "ADMIN",
             isActive: true,
+            adminHasGlobalScope: true,
         },
     });
 

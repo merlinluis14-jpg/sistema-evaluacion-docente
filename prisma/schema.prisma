@@ -38,10 +38,12 @@ model User {
   role      Role     @default(ALUMNO)
   isActive  Boolean  @default(true)
   canChangeInitialPassword Boolean @default(false) // ALUMNO con contrasena temporal vigente
+  adminHasGlobalScope Boolean @default(false)
   createdAt DateTime @default(now())
 
   teacher   Teacher?
   student   Student?
+  adminCareerAccesses AdminCareerAccess[]
 }
 
 // ==========================================
@@ -61,6 +63,19 @@ model Career {
   groups    Group[]
   subjects  Subject[]
   careerHeadEvaluations CareerHeadEvaluation[]
+  adminCareerAccesses AdminCareerAccess[]
+}
+
+model AdminCareerAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerId  String
+  career    Career   @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, careerId])
+  @@index([careerId, userId])
 }
 
 // TEACHER: Perfil de docente

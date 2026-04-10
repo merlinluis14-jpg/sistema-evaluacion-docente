@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
 
-const NAV_ITEMS = [
+const GLOBAL_NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/docentes", label: "Docentes", icon: Users },
   { href: "/admin/alumnos", label: "Alumnos", icon: GraduationCap },
@@ -33,15 +33,24 @@ const NAV_ITEMS = [
   { href: "/admin/logs", label: "Logs", icon: ClipboardList },
 ];
 
+const SCOPED_NAV_ITEMS = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/reportes", label: "Reportes", icon: BarChart3 },
+];
+
 function SidebarContent({
   isActive,
   onClose,
   userEmail,
+  isGlobalAdmin,
 }: {
   isActive: (href: string) => boolean;
   onClose: () => void;
   userEmail: string;
+  isGlobalAdmin: boolean;
 }) {
+  const navItems = isGlobalAdmin ? GLOBAL_NAV_ITEMS : SCOPED_NAV_ITEMS;
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
@@ -51,7 +60,9 @@ function SidebarContent({
           </div>
           <div>
             <p className="text-sm font-bold leading-none text-white">UPTEX Eval</p>
-            <p className="mt-0.5 text-[10px] text-blue-300">Panel Administrador</p>
+            <p className="mt-0.5 text-[10px] text-blue-300">
+              {isGlobalAdmin ? "Panel Administrador" : "Panel de Jefatura"}
+            </p>
           </div>
         </div>
         <button
@@ -64,11 +75,13 @@ function SidebarContent({
 
       <div className="border-b border-white/10 px-5 py-3">
         <p className="truncate text-xs font-bold text-white">{userEmail}</p>
-        <p className="mt-0.5 text-[10px] text-blue-300">Administrador</p>
+        <p className="mt-0.5 text-[10px] text-blue-300">
+          {isGlobalAdmin ? "Administrador global" : "Administrador por carrera"}
+        </p>
       </div>
 
       <nav className="scrollbar-hide flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
           return (
@@ -100,7 +113,13 @@ function SidebarContent({
   );
 }
 
-export default function AdminSidebar({ userEmail }: { userEmail: string }) {
+export default function AdminSidebar({
+  userEmail,
+  isGlobalAdmin,
+}: {
+  userEmail: string;
+  isGlobalAdmin: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -129,14 +148,24 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
         }`}
         style={{ background: "#1E3A5F" }}
       >
-        <SidebarContent isActive={isActive} onClose={() => setOpen(false)} userEmail={userEmail} />
+        <SidebarContent
+          isActive={isActive}
+          onClose={() => setOpen(false)}
+          userEmail={userEmail}
+          isGlobalAdmin={isGlobalAdmin}
+        />
       </div>
 
       <div
-        className="hidden h-full flex-shrink-0 flex-col md:flex md:w-56 lg:w-64"
+        className="hidden flex-shrink-0 flex-col md:sticky md:top-0 md:flex md:h-screen md:w-56 lg:w-64"
         style={{ background: "#1E3A5F" }}
       >
-        <SidebarContent isActive={isActive} onClose={() => setOpen(false)} userEmail={userEmail} />
+        <SidebarContent
+          isActive={isActive}
+          onClose={() => setOpen(false)}
+          userEmail={userEmail}
+          isGlobalAdmin={isGlobalAdmin}
+        />
       </div>
     </>
   );

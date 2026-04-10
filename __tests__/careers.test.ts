@@ -1,7 +1,7 @@
-import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 
 import { logAdminAction } from "@/lib/adminLog";
+import { requireGlobalAdminScope } from "@/lib/adminScope";
 import { getCareerByCodeForImport, normalizeCareerCode } from "@/lib/careers";
 import {
   activateCareer,
@@ -10,11 +10,6 @@ import {
   updateCareer,
 } from "@/app/admin/carreras/actions";
 import { prisma } from "@/lib/prisma";
-import { getSessionRole } from "@/lib/sessionUser";
-
-jest.mock("next-auth", () => ({
-  getServerSession: jest.fn(),
-}));
 
 jest.mock("next/cache", () => ({
   revalidatePath: jest.fn(),
@@ -30,8 +25,8 @@ jest.mock("@/lib/adminLog", () => ({
   logAdminAction: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock("@/lib/sessionUser", () => ({
-  getSessionRole: jest.fn(),
+jest.mock("@/lib/adminScope", () => ({
+  requireGlobalAdminScope: jest.fn(),
 }));
 
 jest.mock("@/lib/prisma", () => ({
@@ -51,10 +46,13 @@ jest.mock("@/lib/prisma", () => ({
 describe("careers module", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (getServerSession as jest.Mock).mockResolvedValue({
-      user: { id: "admin_1", role: "ADMIN" },
+    (requireGlobalAdminScope as jest.Mock).mockResolvedValue({
+      userId: "admin_1",
+      email: "admin@uptx.edu.mx",
+      isGlobal: true,
+      careerIds: [],
+      careers: [],
     });
-    (getSessionRole as jest.Mock).mockReturnValue("ADMIN");
   });
 
   it("normaliza el codigo de carrera a mayusculas", () => {

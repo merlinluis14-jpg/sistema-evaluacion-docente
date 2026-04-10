@@ -1,25 +1,16 @@
 "use server";
 
-import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
+import { requireGlobalAdminScope } from "@/lib/adminScope";
 import { resyncGroupsForSubject } from "@/lib/groupAssignments";
 import { prisma } from "@/lib/prisma";
-import { getSessionRole } from "@/lib/sessionUser";
 import { formatAcademicText } from "@/lib/text/academicText";
 
-async function requireAdmin() {
-    const session = await getServerSession(authOptions);
-    if (!session || getSessionRole(session) !== "ADMIN") {
-        throw new Error("No autorizado");
-    }
-}
-
 export async function createSubject(formData: FormData) {
-    await requireAdmin();
+    await requireGlobalAdminScope();
 
     const name = formatAcademicText(String(formData.get("name") ?? ""));
     const code = String(formData.get("code") ?? "").trim().toUpperCase();
@@ -68,7 +59,7 @@ export async function createSubject(formData: FormData) {
 }
 
 export async function deleteSubject(id: string) {
-    await requireAdmin();
+    await requireGlobalAdminScope();
 
     try {
         const subject = await prisma.subject.findUnique({

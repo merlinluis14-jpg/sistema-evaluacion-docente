@@ -7,8 +7,7 @@ export const dynamic = "force-dynamic";
 
 const errorMessages: Record<string, string> = {
   campos: "Completa todos los campos obligatorios.",
-  codigo:
-    "El código debe usar solo letras, números o guiones y medir entre 2 y 12 caracteres.",
+  codigo: "El código debe usar solo letras, números o guiones y medir entre 2 y 12 caracteres.",
   duplicado: "Ya existe una carrera con ese código.",
 };
 
@@ -51,16 +50,19 @@ export default async function NuevaCarreraPage({
           Compatibilidad con CSV
         </p>
         <p className="mt-2 text-sm text-blue-600">
-          El código de carrera se usa en tus importaciones CSV. Por eso se define al crearla y luego se conserva estable.
+          El código de carrera se usa en tus importaciones CSV. Por eso se define al crearla y luego se conserva
+          estable.
+        </p>
+        <p className="mt-2 text-sm text-blue-600">
+          Flujo recomendado: primero registra aquí la carrera y valida su código; después utiliza ese mismo código en
+          los CSV de docentes, alumnos, grupos y materias.
         </p>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
         <div className="bg-slate-900 px-6 py-4">
           <p className="font-black text-white">Datos de la carrera</p>
-          <p className="mt-0.5 text-xs text-slate-400">
-            Usa un código corto institucional, por ejemplo ISC, IRO o LAGE.
-          </p>
+          <p className="mt-0.5 text-xs text-slate-400">Usa un código corto institucional, por ejemplo ISC, IRO o LAGE.</p>
         </div>
 
         <form action={createCareer} className="space-y-5 p-6">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Inbox, Plus } from "lucide-react";
+import { BookOpen, Inbox, Plus, ShieldCheck } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { formatAcademicText } from "@/lib/text/academicText";
@@ -8,8 +8,8 @@ import { CareerStatusButton } from "./CareerStatusButton";
 export const dynamic = "force-dynamic";
 
 const successMessages: Record<string, string> = {
-  creada: "La carrera se creo correctamente.",
-  actualizada: "La carrera se actualizo correctamente.",
+  creada: "La carrera se creó correctamente.",
+  actualizada: "La carrera se actualizó correctamente.",
 };
 
 const errorMessages: Record<string, string> = {
@@ -69,6 +69,30 @@ export default async function CarrerasPage({
           {errorMessages[error]}
         </div>
       ) : null}
+
+      <div className="mb-8 overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm">
+        <div className="flex items-center gap-2 border-b border-blue-100 bg-blue-50 px-5 py-4">
+          <ShieldCheck className="h-4 w-4 text-blue-700" />
+          <p className="text-sm font-black text-blue-800">Control previo para importaciones CSV seguras</p>
+        </div>
+        <div className="grid gap-5 px-5 py-5 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <p className="text-sm font-bold text-slate-700">Orden recomendado de operación</p>
+            <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+              <li>1. Registra o ajusta primero el catálogo oficial de carreras y sus códigos institucionales.</li>
+              <li>2. Verifica que los códigos usados en los archivos CSV coincidan exactamente con este catálogo.</li>
+              <li>3. Después importa docentes, alumnos, grupos y materias usando esos mismos códigos.</li>
+            </ol>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+            <p className="text-sm font-bold text-slate-700">Criterio de consistencia</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Si una carrera nueva aún no existe en este módulo, primero debe darse de alta aquí. Así se evita que una
+              importación CSV falle o mezcle información con códigos no controlados por el catálogo institucional.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {careers.map((career) => (

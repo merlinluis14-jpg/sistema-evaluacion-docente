@@ -12,14 +12,29 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
+
 import { createAdminAccount } from "./actions";
 
 type CreatedAdminAccount = {
   email: string;
   password: string;
+  isGlobalScope: boolean;
+  careerCodes: string[];
 };
 
-export default function CreateAdminForm() {
+type CareerOption = {
+  id: string;
+  code: string;
+  name: string;
+  occupiedByAdminId: string | null;
+  occupiedByLabel: string | null;
+};
+
+export default function CreateAdminForm({
+  availableCareers,
+}: {
+  availableCareers: CareerOption[];
+}) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
@@ -27,6 +42,8 @@ export default function CreateAdminForm() {
   const [success, setSuccess] = useState("");
   const [createdAccount, setCreatedAccount] = useState<CreatedAdminAccount | null>(null);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [scopeMode, setScopeMode] = useState<"global" | "assigned">("assigned");
+  const [selectedCareerIds, setSelectedCareerIds] = useState<string[]>([]);
 
   function resetCopyStatus() {
     window.setTimeout(() => setCopyStatus("idle"), 2200);
@@ -41,6 +58,14 @@ export default function CreateAdminForm() {
     } finally {
       resetCopyStatus();
     }
+  }
+
+  function toggleCareer(careerId: string) {
+    setSelectedCareerIds((current) =>
+      current.includes(careerId)
+        ? current.filter((item) => item !== careerId)
+        : [...current, careerId],
+    );
   }
 
   async function handleSubmit(formData: FormData) {
@@ -61,46 +86,52 @@ export default function CreateAdminForm() {
       }
 
       formRef.current?.reset();
+      setScopeMode("assigned");
+      setSelectedCareerIds([]);
       const createdEmail = result.email ?? nextEmail;
       setSuccess(`Cuenta administrativa creada para ${createdEmail}`);
       setCreatedAccount({
         email: createdEmail,
         password: nextPassword,
+        isGlobalScope: Boolean(result.isGlobalScope),
+        careerCodes: result.careerCodes ?? [],
       });
       router.refresh();
     } catch (submitError) {
       console.error(submitError);
-      setError("Ocurrio un error al crear la cuenta administrativa");
+      setError("Ocurrió un error al crear la cuenta administrativa");
     } finally {
       setLoading(false);
     }
   }
 
-  const inputClass = "w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100";
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100";
   const labelClass = "mb-1.5 block text-sm font-bold text-slate-700";
+  const isAssignedScope = scopeMode === "assigned";
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-6 py-4">
+      <div className="border-b border-slate-100 px-5 py-3.5 sm:px-6">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-blue-600" />
           <h2 className="font-bold text-slate-800">Registrar Administrador</h2>
         </div>
         <p className="mt-1 text-xs text-slate-400">
-          La autorización exige la contraseña actual del admin que realiza el alta.
+          La autorización exige la contraseña actual del admin principal que realiza el alta.
         </p>
       </div>
 
-      <form ref={formRef} action={handleSubmit} className="space-y-5 p-6">
+      <form ref={formRef} action={handleSubmit} className="space-y-3.5 p-4 sm:p-5">
         {error ? (
-          <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+          <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
             <p className="text-sm font-medium text-red-600">{error}</p>
           </div>
         ) : null}
 
         {success ? (
-          <div className="flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+          <div className="flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2.5">
             <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
             <p className="text-sm font-medium text-emerald-700">{success}</p>
           </div>
@@ -115,7 +146,9 @@ export default function CreateAdminForm() {
                     <ShieldCheck className="h-4 w-4" />
                     Cuenta administrativa creada
                   </p>
-                  <h3 className="break-words text-base font-black leading-tight sm:text-lg">{createdAccount.email}</h3>
+                  <h3 className="break-words text-base font-black leading-tight sm:text-lg">
+                    {createdAccount.email}
+                  </h3>
                   <p className="text-sm text-blue-50">
                     Comparte estas credenciales solo con personal autorizado.
                   </p>
@@ -134,7 +167,7 @@ export default function CreateAdminForm() {
               </div>
             </div>
 
-            <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+            <div className="space-y-3.5 px-4 py-4 sm:px-5 sm:py-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-xs sm:tracking-[0.2em]">
@@ -154,12 +187,31 @@ export default function CreateAdminForm() {
                 </div>
               </div>
 
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:text-xs sm:tracking-[0.2em]">
+                  Alcance asignado
+                </p>
+                <p className="mt-2 text-sm font-bold text-slate-900">
+                  {createdAccount.isGlobalScope
+                    ? "Acceso global a todas las carreras"
+                    : createdAccount.careerCodes.length > 0
+                      ? `Carreras: ${createdAccount.careerCodes.join(", ")}`
+                      : "Sin carreras asignadas"}
+                </p>
+              </div>
+
               <div className="flex flex-col gap-2 sm:flex-row">
                 <button
                   type="button"
                   onClick={() =>
                     copyToClipboard(
-                      `Correo: ${createdAccount.email}\nContraseña inicial: ${createdAccount.password}`,
+                      [
+                        `Correo: ${createdAccount.email}`,
+                        `Contraseña inicial: ${createdAccount.password}`,
+                        createdAccount.isGlobalScope
+                          ? "Alcance: acceso global"
+                          : `Carreras asignadas: ${createdAccount.careerCodes.join(", ")}`,
+                      ].join("\n"),
                     )
                   }
                   className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
@@ -172,9 +224,12 @@ export default function CreateAdminForm() {
                   onClick={() =>
                     copyToClipboard(
                       [
-                        "Acceso al Panel Administrativo UPTX",
+                        "Acceso al Panel Administrativo UPTex",
                         `Usuario: ${createdAccount.email}`,
                         `Contraseña inicial: ${createdAccount.password}`,
+                        createdAccount.isGlobalScope
+                          ? "Alcance: acceso global"
+                          : `Carreras asignadas: ${createdAccount.careerCodes.join(", ")}`,
                         "Comparte esta información por un canal seguro.",
                       ].join("\n"),
                     )
@@ -201,15 +256,17 @@ export default function CreateAdminForm() {
           </div>
         ) : null}
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div>
-            <label htmlFor="email" className={labelClass}>Correo del nuevo admin</label>
+            <label htmlFor="email" className={labelClass}>
+              Correo del nuevo admin
+            </label>
             <input
               id="email"
               name="email"
               type="email"
               required
-              placeholder="coordinacion@uptx.edu.mx"
+              placeholder="coordinacion@uptex.edu.mx"
               className={inputClass}
             />
             <p className="mt-1 text-xs text-slate-400">
@@ -218,7 +275,9 @@ export default function CreateAdminForm() {
           </div>
 
           <div>
-            <label htmlFor="currentPassword" className={labelClass}>Tu contraseña actual</label>
+            <label htmlFor="currentPassword" className={labelClass}>
+              Tu contraseña actual
+            </label>
             <div className="relative">
               <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
@@ -233,22 +292,26 @@ export default function CreateAdminForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div>
-            <label htmlFor="password" className={labelClass}>Contraseña inicial</label>
+            <label htmlFor="password" className={labelClass}>
+              Contraseña inicial
+            </label>
             <input
               id="password"
               name="password"
               type="password"
               required
               minLength={8}
-              placeholder="Minimo 8 caracteres"
+              placeholder="Mínimo 8 caracteres"
               className={inputClass}
             />
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className={labelClass}>Confirmar contraseña</label>
+            <label htmlFor="confirmPassword" className={labelClass}>
+              Confirmar contraseña
+            </label>
             <input
               id="confirmPassword"
               name="confirmPassword"
@@ -261,17 +324,114 @@ export default function CreateAdminForm() {
           </div>
         </div>
 
+        <div className="space-y-2.5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div>
+            <p className="text-sm font-bold text-slate-700">Alcance administrativo</p>
+            <p className="mt-1 text-xs text-slate-500">
+              Define si esta cuenta será global o si solo operará como jefatura/coordinación de carreras específicas.
+            </p>
+          </div>
+
+          <div className="grid gap-3 xl:grid-cols-2">
+            <label className={`rounded-2xl border px-4 py-2.5 transition ${scopeMode === "assigned" ? "border-blue-200 bg-blue-50" : "border-slate-200 bg-white"}`}>
+              <input
+                type="radio"
+                name="scopeMode"
+                value="assigned"
+                checked={scopeMode === "assigned"}
+                onChange={() => setScopeMode("assigned")}
+                className="sr-only"
+              />
+              <p className="text-sm font-bold text-slate-800">Jefatura por carreras</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Solo verá y capturará información de las carreras seleccionadas.
+              </p>
+            </label>
+
+            <label className={`rounded-2xl border px-4 py-2.5 transition ${scopeMode === "global" ? "border-violet-200 bg-violet-50" : "border-slate-200 bg-white"}`}>
+              <input
+                type="radio"
+                name="scopeMode"
+                value="global"
+                checked={scopeMode === "global"}
+                onChange={() => setScopeMode("global")}
+                className="sr-only"
+              />
+              <p className="text-sm font-bold text-slate-800">Administrador global</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Tendrá acceso completo a todas las carreras y a la gestión total del panel.
+              </p>
+            </label>
+          </div>
+
+          <div className={`rounded-2xl border p-4 ${isAssignedScope ? "border-blue-100 bg-white" : "border-slate-200 bg-slate-100/80"}`}>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold text-slate-700">Carreras asignadas</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Selecciona una o varias carreras para este jefe o coordinador.
+                </p>
+                <p className="mt-1 text-xs font-medium text-slate-500">
+                  Las carreras ya asignadas a otra jefatura activa aparecen bloqueadas para evitar traslapes.
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
+                {selectedCareerIds.length} seleccionadas
+              </span>
+            </div>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {availableCareers.map((career) => {
+                const checked = selectedCareerIds.includes(career.id);
+                const isOccupied = Boolean(career.occupiedByAdminId);
+                const isDisabled = !isAssignedScope || isOccupied;
+
+                return (
+                  <label
+                    key={career.id}
+                    className={`rounded-xl border px-3 py-2 transition ${
+                      checked
+                        ? "border-blue-200 bg-blue-50"
+                        : isOccupied
+                          ? "border-amber-200 bg-amber-50"
+                          : "border-slate-200 bg-white"
+                    } ${isDisabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      name="careerIds"
+                      value={career.id}
+                      checked={checked}
+                      disabled={isDisabled}
+                      onChange={() => toggleCareer(career.id)}
+                      className="sr-only"
+                    />
+                    <p className="text-sm font-bold text-slate-800">{career.code}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-slate-500">{career.name}</p>
+                    {career.occupiedByLabel ? (
+                      <p className="mt-2 text-[11px] font-medium text-amber-700">
+                        Asignada a: {career.occupiedByLabel}
+                      </p>
+                    ) : null}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
           <div className="flex items-center gap-2 text-blue-700">
             <UserPlus className="h-4 w-4" />
             <p className="text-sm font-bold">Control recomendado</p>
           </div>
           <p className="mt-1 text-xs leading-relaxed text-blue-700/90">
-            Comparte esta cuenta solo con responsables autorizados. La creación se registra automáticamente en logs como entidad ADMIN.
+            Comparte esta cuenta solo con responsables autorizados. La creación se registra automáticamente
+            en logs como entidad ADMIN y su alcance se puede actualizar después.
           </p>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-0.5">
           <button
             type="submit"
             disabled={loading}

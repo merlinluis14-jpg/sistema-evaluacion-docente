@@ -1,19 +1,10 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminAction } from "@/lib/adminLog";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { getSessionRole } from "@/lib/sessionUser";
-
-async function requireAdmin() {
-    const session = await getServerSession(authOptions);
-    if (!session || getSessionRole(session) !== "ADMIN") {
-        throw new Error("No autorizado");
-    }
-}
+import { requireGlobalAdminScope } from "@/lib/adminScope";
+import { prisma } from "@/lib/prisma";
 
 export async function createPeriod(formData: FormData) {
     const name = formData.get("name") as string;
@@ -21,7 +12,7 @@ export async function createPeriod(formData: FormData) {
     const endDate = formData.get("endDate") as string;
 
     if (!name || !startDate || !endDate) return;
-    await requireAdmin();
+    await requireGlobalAdminScope();
 
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -47,7 +38,7 @@ export async function createPeriod(formData: FormData) {
 }
 
 export async function activatePeriod(id: string) {
-    await requireAdmin();
+    await requireGlobalAdminScope();
     await prisma.$transaction([
         prisma.period.updateMany({ data: { isActive: false } }),
         prisma.period.update({ where: { id }, data: { isActive: true } }),
@@ -61,7 +52,7 @@ export async function activatePeriod(id: string) {
 }
 
 export async function deactivatePeriod(id: string) {
-    await requireAdmin();
+    await requireGlobalAdminScope();
     await prisma.period.update({ where: { id }, data: { isActive: false } });
     const period = await prisma.period.findUnique({ where: { id }, select: { name: true } });
     await logAdminAction({
@@ -72,7 +63,7 @@ export async function deactivatePeriod(id: string) {
 }
 
 export async function deletePeriod(id: string) {
-    await requireAdmin();
+    await requireGlobalAdminScope();
     const count = await prisma.evaluation.count({ where: { periodId: id } });
   if (count > 0) throw new Error("No se puede eliminar un período con evaluaciones registradas.");
     const period = await prisma.period.findUnique({ where: { id }, select: { name: true } });

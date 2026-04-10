@@ -14,6 +14,7 @@ import {
   OFFICIAL_DEMO_CAREER_CODE,
   isAllCareersValue,
 } from "@/lib/officialScope";
+import { getRestrictedCareerIds, requireAdminScope } from "@/lib/adminScope";
 import { formatAcademicText } from "@/lib/text/academicText";
 import ExportButtons from "./ExportButtons";
 
@@ -179,42 +180,88 @@ export default async function ReportesPage({
     calificacion,
     orden,
   } = await searchParams;
+  const scope = await requireAdminScope();
+  const restrictedCareerIds = getRestrictedCareerIds(scope);
 
   const [periodos, carreras] = await Promise.all([
     prisma.period.findMany({ orderBy: { createdAt: "desc" } }),
-    prisma.career.findMany({ where: { isActive: true }, orderBy: { code: "asc" } }),
-  ]);
-
-  const officialCareer = carreras.find((career) => career.code === OFFICIAL_DEMO_CAREER_CODE) ?? null;
-  const showAllCareers = isAllCareersValue(requestedCareerId);
-  const carreraId = showAllCareers
-    ? undefined
-    : requestedCareerId || officialCareer?.id;
-  const selectedCareerValue = showAllCareers ? ALL_CAREERS_VALUE : carreraId ?? "";
-
-  const [materias, grupos] = await Promise.all([
-    prisma.subject.findMany({
+    prisma.career.findMany({
       where: {
         isActive: true,
-        ...(carreraId ? { careerId: carreraId } : {}),
+        ...(restrictedCareerIds ? { id: { in: restrictedCareerIds } } : {}),
       },
-      orderBy: { name: "asc" },
-      include: { teacher: true },
-    }),
-    prisma.group.findMany({
-      where: carreraId ? { careerId: carreraId } : undefined,
-      orderBy: { name: "asc" },
-      include: { career: true },
+      orderBy: { code: "asc" },
     }),
   ]);
 
   const periodoActivo = periodos.find((periodo) => periodo.isActive);
   const periodoId = periodoIdParam ?? periodoActivo?.id;
 
+  const firstCareerWithEvaluationsId =
+    !scope.isGlobal && !requestedCareerId && periodoId && carreras.length > 1
+      ? (
+          await Promise.all(
+            carreras.map(async (career) => ({
+              id: career.id,
+              count: await prisma.evaluation.count({
+                where: {
+                  periodId: periodoId,
+                  subject: {
+                    careerId: career.id,
+                  },
+                },
+              }),
+            })),
+          )
+        ).find((career) => career.count > 0)?.id
+      : undefined;
+
+  const allowAllCareers = scope.isGlobal && carreras.length > 1;
+  const officialCareer = scope.isGlobal
+    ? carreras.find((career) => career.code === OFFICIAL_DEMO_CAREER_CODE) ?? carreras[0] ?? null
+    : carreras.find((career) => career.id === firstCareerWithEvaluationsId) ?? carreras[0] ?? null;
+  const requestedCareerIsAccessible = carreras.some((career) => career.id === requestedCareerId);
+  const showAllCareers = allowAllCareers && isAllCareersValue(requestedCareerId);
+  const carreraId = showAllCareers
+    ? undefined
+    : (requestedCareerIsAccessible ? requestedCareerId : undefined) || officialCareer?.id;
+  const selectedCareerValue = showAllCareers ? ALL_CAREERS_VALUE : carreraId ?? "";
+  const evaluationCareerFilter = carreraId
+    ? { careerId: carreraId }
+    : restrictedCareerIds
+      ? { careerId: { in: restrictedCareerIds } }
+      : undefined;
+  const subjectListWhere = carreraId
+    ? { careerId: carreraId }
+    : restrictedCareerIds
+      ? { careerId: { in: restrictedCareerIds } }
+      : {};
+  const groupListWhere = carreraId
+    ? { careerId: carreraId }
+    : restrictedCareerIds
+      ? { careerId: { in: restrictedCareerIds } }
+      : undefined;
+
+  const [materias, grupos] = await Promise.all([
+    prisma.subject.findMany({
+      where: {
+        isActive: true,
+        ...subjectListWhere,
+      },
+      orderBy: { name: "asc" },
+      include: { teacher: true },
+    }),
+    prisma.group.findMany({
+      where: groupListWhere,
+      orderBy: { name: "asc" },
+      include: { career: true },
+    }),
+  ]);
+
   const evaluaciones = await prisma.evaluation.findMany({
     where: {
       ...(periodoId ? { periodId: periodoId } : {}),
-      ...(carreraId ? { subject: { careerId: carreraId } } : {}),
+      ...(evaluationCareerFilter ? { subject: evaluationCareerFilter } : {}),
       ...(materiaId ? { subjectId: materiaId } : {}),
       ...(grupoId
         ? {
@@ -592,12 +639,14 @@ export default async function ReportesPage({
         </div>
 
         <div className="flex w-full flex-wrap gap-2 justify-stretch sm:w-auto sm:justify-end">
-          <Link
+          {scope.isGlobal ? (
+            <Link
             href="/admin/reportes/importar-jefatura"
             className="inline-flex w-full items-center justify-center rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200 sm:w-auto"
           >
             Importar Eval. Coordinación
-          </Link>
+            </Link>
+          ) : null}
           <ExportButtons
             data={reporteDocentes}
             periodo={periodoNombre}
@@ -636,7 +685,7 @@ export default async function ReportesPage({
                   {getCompactCareerLabel(officialCareer.code, officialCareer.name)}
                 </option>
               )}
-              <option value={ALL_CAREERS_VALUE}>Todas las carreras</option>
+              {allowAllCareers ? <option value={ALL_CAREERS_VALUE}>Todas las carreras</option> : null}
               {carreras
                 .filter((career) => career.id !== officialCareer?.id)
                 .map((career) => (
@@ -1013,7 +1062,10 @@ export default async function ReportesPage({
 
               <tbody className="divide-y divide-slate-50">
                 {reporteDocentes.map((docente, index) => (
-                  <tr key={docente.teacher.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr
+                    key={`${docente.teacher.id}:${docente.contextCareer.id}`}
+                    className="hover:bg-slate-50/50 transition-colors"
+                  >
                     <td className="px-6 py-4">
                       <span
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${

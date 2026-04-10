@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+
+import { getRestrictedCareerIds, getCurrentAdminScope } from "@/lib/adminScope";
 import { prisma } from "@/lib/prisma";
 
 function escapeCsv(value: string | null | undefined) {
@@ -9,17 +9,39 @@ function escapeCsv(value: string | null | undefined) {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session || (session.user as { role?: string }).role !== "ADMIN") {
+  const scope = await getCurrentAdminScope();
+  if (!scope) {
     return NextResponse.json({ message: "No autorizado" }, { status: 403 });
   }
 
+  const restrictedCareerIds = getRestrictedCareerIds(scope);
+
   const teachers = await prisma.teacher.findMany({
-    where: { isActive: true },
+    where: {
+      isActive: true,
+      ...(restrictedCareerIds
+        ? {
+            OR: [
+              { careerId: { in: restrictedCareerIds } },
+              {
+                subjects: {
+                  some: {
+                    isActive: true,
+                    careerId: { in: restrictedCareerIds },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    },
     include: {
       career: true,
       subjects: {
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          ...(restrictedCareerIds ? { careerId: { in: restrictedCareerIds } } : {}),
+        },
         include: {
           career: true,
         },
@@ -27,6 +49,8 @@ export async function GET() {
     },
     orderBy: [{ lastName: "asc" }, { name: "asc" }],
   });
+
+  const allowedCareerIdSet = restrictedCareerIds ? new Set(restrictedCareerIds) : null;
 
   const headers = [
     "numero_empleado",
@@ -47,25 +71,31 @@ export async function GET() {
     "comments",
   ];
 
-  const contexts = teachers.flatMap((teacher) => {
-    const contextMap = new Map<string, { code: string }>();
-    contextMap.set(teacher.career.id, { code: teacher.career.code });
-    for (const subject of teacher.subjects) {
-      contextMap.set(subject.career.id, { code: subject.career.code });
-    }
+  const contexts = teachers
+    .flatMap((teacher) => {
+      const contextMap = new Map<string, { code: string }>();
 
-    return Array.from(contextMap.entries()).map(([careerId, career]) => ({
-      teacher,
-      careerId,
-      careerCode: career.code,
-    }));
-  }).sort((a, b) => {
-    const careerDiff = a.careerCode.localeCompare(b.careerCode, "es");
-    if (careerDiff !== 0) return careerDiff;
-    const lastNameDiff = a.teacher.lastName.localeCompare(b.teacher.lastName, "es");
-    if (lastNameDiff !== 0) return lastNameDiff;
-    return a.teacher.name.localeCompare(b.teacher.name, "es");
-  });
+      if (!allowedCareerIdSet || allowedCareerIdSet.has(teacher.career.id)) {
+        contextMap.set(teacher.career.id, { code: teacher.career.code });
+      }
+
+      for (const subject of teacher.subjects) {
+        contextMap.set(subject.career.id, { code: subject.career.code });
+      }
+
+      return Array.from(contextMap.entries()).map(([careerId, career]) => ({
+        teacher,
+        careerId,
+        careerCode: career.code,
+      }));
+    })
+    .sort((a, b) => {
+      const careerDiff = a.careerCode.localeCompare(b.careerCode, "es");
+      if (careerDiff !== 0) return careerDiff;
+      const lastNameDiff = a.teacher.lastName.localeCompare(b.teacher.lastName, "es");
+      if (lastNameDiff !== 0) return lastNameDiff;
+      return a.teacher.name.localeCompare(b.teacher.name, "es");
+    });
 
   const rows = contexts.map(({ teacher, careerCode }) => [
     teacher.employeeId,

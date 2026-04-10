@@ -1,22 +1,13 @@
 "use server";
 
-import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { authOptions } from "@/lib/auth";
 import { logAdminAction } from "@/lib/adminLog";
+import { requireGlobalAdminScope } from "@/lib/adminScope";
 import { normalizeCareerCode } from "@/lib/careers";
 import { prisma } from "@/lib/prisma";
-import { getSessionRole } from "@/lib/sessionUser";
 import { formatAcademicText } from "@/lib/text/academicText";
-
-async function requireAdmin() {
-  const session = await getServerSession(authOptions);
-  if (!session || getSessionRole(session) !== "ADMIN") {
-    throw new Error("No autorizado");
-  }
-}
 
 function normalizeCareerName(value: string) {
   return formatAcademicText(value);
@@ -41,7 +32,7 @@ function revalidateCareerViews() {
 }
 
 export async function createCareer(formData: FormData) {
-  await requireAdmin();
+  await requireGlobalAdminScope();
 
   const code = normalizeCareerCode(String(formData.get("code") ?? ""));
   const name = normalizeCareerName(String(formData.get("name") ?? ""));
@@ -83,7 +74,7 @@ export async function createCareer(formData: FormData) {
 }
 
 export async function updateCareer(formData: FormData) {
-  await requireAdmin();
+  await requireGlobalAdminScope();
 
   const id = String(formData.get("id") ?? "").trim();
   const name = normalizeCareerName(String(formData.get("name") ?? ""));
@@ -118,7 +109,7 @@ export async function updateCareer(formData: FormData) {
 }
 
 export async function deactivateCareer(id: string) {
-  await requireAdmin();
+  await requireGlobalAdminScope();
 
   const career = await prisma.career.findUnique({
     where: { id },
@@ -165,7 +156,7 @@ export async function deactivateCareer(id: string) {
 }
 
 export async function activateCareer(id: string) {
-  await requireAdmin();
+  await requireGlobalAdminScope();
 
   const career = await prisma.career.findUnique({
     where: { id },

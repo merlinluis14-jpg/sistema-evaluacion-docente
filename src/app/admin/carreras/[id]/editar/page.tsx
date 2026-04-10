@@ -72,6 +72,10 @@ export default async function EditarCarreraPage({
         <p className="mt-2 text-sm text-amber-700">
           El código <strong>{career.code}</strong> se mantiene estable porque es la referencia que usan tus CSV.
         </p>
+        <p className="mt-2 text-sm text-amber-700">
+          Si necesitas una carrera nueva con otro código, regístrala como una carrera distinta antes de importar
+          archivos CSV. No reutilices este registro para representar otro programa académico.
+        </p>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">

@@ -1,4 +1,3 @@
-import { getServerSession } from "next-auth";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -10,7 +9,6 @@ import {
   ClipboardList,
   Database,
   GraduationCap,
-  Lightbulb,
   ScrollText,
   ShieldCheck,
   UserCog,
@@ -18,7 +16,7 @@ import {
 } from "lucide-react";
 
 import ImportDropdown from "@/app/admin/components/ImportDropdown";
-import { authOptions } from "@/lib/auth";
+import { getRestrictedCareerIds, requireAdminScope } from "@/lib/adminScope";
 import { prisma } from "@/lib/prisma";
 
 const ACTION_STYLES: Record<string, { bg: string; text: string; label: string }> = {
@@ -42,7 +40,34 @@ const ENTITY_STYLES: Record<string, { bg: string; text: string }> = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  await getServerSession(authOptions);
+  const scope = await requireAdminScope();
+  const restrictedCareerIds = getRestrictedCareerIds(scope);
+
+  const teacherWhere = restrictedCareerIds
+    ? {
+        isActive: true,
+        OR: [
+          { careerId: { in: restrictedCareerIds } },
+          {
+            subjects: {
+              some: {
+                isActive: true,
+                careerId: { in: restrictedCareerIds },
+              },
+            },
+          },
+        ],
+      }
+    : { isActive: true };
+  const studentWhere = restrictedCareerIds
+    ? { isActive: true, careerId: { in: restrictedCareerIds } }
+    : { isActive: true };
+  const subjectWhere = restrictedCareerIds
+    ? { isActive: true, careerId: { in: restrictedCareerIds } }
+    : { isActive: true };
+  const evaluationWhere = restrictedCareerIds
+    ? { subject: { careerId: { in: restrictedCareerIds } } }
+    : undefined;
 
   const [
     totalAdmins,
@@ -53,37 +78,45 @@ export default async function AdminPage() {
     periodoActivo,
     recentLogs,
   ] = await Promise.all([
-    prisma.user.count({ where: { role: "ADMIN", isActive: true } }),
-    prisma.teacher.count({ where: { isActive: true } }),
-    prisma.student.count({ where: { isActive: true } }),
-    prisma.subject.count({ where: { isActive: true } }),
-    prisma.evaluation.count(),
+    scope.isGlobal ? prisma.user.count({ where: { role: "ADMIN", isActive: true } }) : Promise.resolve(0),
+    prisma.teacher.count({ where: teacherWhere }),
+    prisma.student.count({ where: studentWhere }),
+    prisma.subject.count({ where: subjectWhere }),
+    prisma.evaluation.count({ where: evaluationWhere }),
     prisma.period.findFirst({ where: { isActive: true } }),
-    prisma.adminLog.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
+    scope.isGlobal
+      ? prisma.adminLog.findMany({
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        })
+      : Promise.resolve([]),
   ]);
 
-  const userIds = [...new Set(recentLogs.map((log) => log.userId))] as string[];
-  const users =
-    userIds.length > 0
-      ? await prisma.user.findMany({
-          where: { id: { in: userIds } },
-          select: { id: true, email: true, username: true },
-        })
-      : [];
-
+  const userIds = [...new Set(recentLogs.map((log) => log.userId))];
+  const users = userIds.length > 0
+    ? await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, email: true, username: true },
+      })
+    : [];
   const userMap = new Map(users.map((user) => [user.id, user.email ?? user.username ?? "Admin"]));
 
   const stats = [
-    {
-      label: "Admins",
-      value: totalAdmins,
-      Icon: ShieldCheck,
-      panel: "from-slate-50 to-white",
-      icon: "bg-slate-100 text-slate-700",
-    },
+    ...(scope.isGlobal
+      ? [{
+          label: "Admins",
+          value: totalAdmins,
+          Icon: ShieldCheck,
+          panel: "from-slate-50 to-white",
+          icon: "bg-slate-100 text-slate-700",
+        }]
+      : [{
+          label: "Carreras",
+          value: scope.careerIds.length,
+          Icon: BookOpen,
+          panel: "from-slate-50 to-white",
+          icon: "bg-slate-100 text-slate-700",
+        }]),
     {
       label: "Docentes",
       value: totalDocentes,
@@ -114,12 +147,16 @@ export default async function AdminPage() {
     },
   ];
 
-  const quickLinks = [
-    { href: "/admin/docentes/nuevo", label: "Nuevo Docente", Icon: UserPlus },
-    { href: "/admin/administradores", label: "Administradores", Icon: ShieldCheck },
-    { href: "/admin/periodos", label: "Gestionar Períodos", Icon: Calendar },
-    { href: "/admin/reportes", label: "Ver Reportes", Icon: BarChart2 },
-  ];
+  const quickLinks = scope.isGlobal
+    ? [
+        { href: "/admin/docentes/nuevo", label: "Nuevo Docente", Icon: UserPlus },
+        { href: "/admin/administradores", label: "Administradores", Icon: ShieldCheck },
+        { href: "/admin/periodos", label: "Gestionar Períodos", Icon: Calendar },
+        { href: "/admin/reportes", label: "Ver Reportes", Icon: BarChart2 },
+      ]
+    : [
+        { href: "/admin/reportes", label: "Ver Reportes", Icon: BarChart2 },
+      ];
 
   const recommendations = [
     {
@@ -128,55 +165,58 @@ export default async function AdminPage() {
         ? `El período ${periodoActivo.name} ya está disponible para operar.`
         : "Sin un período activo, los alumnos no podrán capturar evaluaciones.",
       tone: periodoActivo ? "emerald" : "amber",
-      Icon: Calendar,
     },
-    {
-      title: "Carga masiva recomendada",
-      description:
-        "Importa primero docentes, luego materias y finalmente alumnos para enlazar mejor los grupos.",
-      tone: totalDocentes > 0 && totalMaterias > 0 && totalAlumnos > 0 ? "blue" : "slate",
-      Icon: Database,
-    },
+    scope.isGlobal
+      ? {
+          title: "Carga masiva recomendada",
+          description: "Importa primero docentes, luego materias y finalmente alumnos para enlazar mejor los grupos.",
+          tone: totalDocentes > 0 && totalMaterias > 0 && totalAlumnos > 0 ? "blue" : "slate",
+        }
+      : {
+          title: "Cobertura por carreras asignadas",
+          description: "Este panel solo muestra docentes, materias, alumnos y evaluaciones de las carreras que tienes asignadas.",
+          tone: "blue",
+        },
     {
       title: totalEvaluaciones > 0 ? "Reportes listos para seguimiento" : "Realiza una prueba de evaluación",
       description: totalEvaluaciones > 0
-        ? "Ya puedes revisar resultados por docente, materia, grupo y carrera en reportes."
+        ? "Ya puedes revisar resultados por docente, materia, grupo y carrera dentro de tu alcance."
         : "Captura al menos una evaluación de prueba para validar reportes y exportaciones.",
       tone: totalEvaluaciones > 0 ? "blue" : "amber",
-      Icon: BarChart2,
     },
-    {
-      title: totalAdmins > 1 ? "Control administrativo respaldado" : "Agrega una segunda cuenta admin",
-      description: totalAdmins > 1
-        ? "Ya cuentas con respaldo administrativo y trazabilidad en logs."
-        : "Conviene tener otra cuenta autorizada para continuidad operativa y control.",
-      tone: totalAdmins > 1 ? "emerald" : "slate",
-      Icon: ShieldCheck,
-    },
+    scope.isGlobal
+      ? {
+          title: totalAdmins > 1 ? "Control administrativo respaldado" : "Agrega una segunda cuenta admin",
+          description: totalAdmins > 1
+            ? "Ya cuentas con respaldo administrativo y trazabilidad en logs."
+            : "Conviene tener otra cuenta autorizada para continuidad operativa y control.",
+          tone: totalAdmins > 1 ? "emerald" : "slate",
+        }
+      : {
+          title: "Captura institucional concentrada",
+          description: "Desde reportes puedes registrar o importar la evaluación de jefatura solo para tus carreras asignadas.",
+          tone: totalEvaluaciones > 0 ? "emerald" : "slate",
+        },
   ];
 
-  const tipStyles: Record<string, { card: string; icon: string; title: string; text: string }> = {
+  const tipStyles: Record<string, { card: string; title: string; text: string }> = {
     emerald: {
       card: "border-emerald-100 bg-emerald-50",
-      icon: "bg-emerald-100 text-emerald-700",
       title: "text-emerald-800",
       text: "text-emerald-700",
     },
     amber: {
       card: "border-amber-100 bg-amber-50",
-      icon: "bg-amber-100 text-amber-700",
       title: "text-amber-800",
       text: "text-amber-700",
     },
     blue: {
       card: "border-blue-100 bg-blue-50",
-      icon: "bg-blue-100 text-blue-700",
       title: "text-blue-800",
       text: "text-blue-700",
     },
     slate: {
       card: "border-slate-100 bg-slate-50",
-      icon: "bg-white text-slate-600",
       title: "text-slate-800",
       text: "text-slate-600",
     },
@@ -193,15 +233,38 @@ export default async function AdminPage() {
         <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
-              Centro de Operación
+              {scope.isGlobal ? "Centro de Operación" : "Panel de Jefatura"}
             </div>
 
             <h1 className="mt-4 text-3xl font-black text-slate-800">
-              Panel de <span className="text-blue-600">Administración</span>
+              {scope.isGlobal ? (
+                <>
+                  Panel de <span className="text-blue-600">Administración</span>
+                </>
+              ) : (
+                <>
+                  Panel de <span className="text-blue-600">Carreras Asignadas</span>
+                </>
+              )}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Supervisa catálogos, captura, reportes y trazabilidad del sistema en una sola vista.
+              {scope.isGlobal
+                ? "Supervisa catálogos, captura, reportes y trazabilidad del sistema en una sola vista."
+                : "Consulta y captura información institucional solo para las carreras que tienes asignadas."}
             </p>
+
+            {!scope.isGlobal && scope.careers.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {scope.careers.map((career) => (
+                  <span
+                    key={career.id}
+                    className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700"
+                  >
+                    {career.code}
+                  </span>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:min-w-[340px]">
@@ -221,13 +284,23 @@ export default async function AdminPage() {
             <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 shadow-sm">
               <div className="flex items-center gap-2 text-slate-400">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                <span className="text-[11px] font-black uppercase tracking-wide">Estado del Sistema</span>
+                <span className="text-[11px] font-black uppercase tracking-wide">
+                  {scope.isGlobal ? "Estado del Sistema" : "Alcance Operativo"}
+                </span>
               </div>
               <p className="mt-2 text-lg font-black text-slate-800">
-                {totalAdmins > 0 && totalDocentes > 0 && totalAlumnos > 0 ? "Operando" : "En configuración"}
+                {scope.isGlobal
+                  ? totalAdmins > 0 && totalDocentes > 0 && totalAlumnos > 0
+                    ? "Operando"
+                    : "En configuración"
+                  : scope.careerIds.length > 0
+                    ? "Activo"
+                    : "Sin carreras"}
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                Operación general lista para carga, seguimiento y reportes.
+                {scope.isGlobal
+                  ? "Operación general lista para carga, seguimiento y reportes."
+                  : "Tu acceso está limitado a las carreras asignadas por el admin principal."}
               </p>
             </div>
           </div>
@@ -255,10 +328,7 @@ export default async function AdminPage() {
           <div>
             <p className="font-bold text-amber-800">No hay período de evaluación activo</p>
             <p className="mt-0.5 text-sm text-amber-700">
-              Los alumnos no podrán evaluar hasta que actives un período.{" "}
-              <Link href="/admin/periodos" className="font-semibold underline hover:text-amber-800">
-                Ir a Períodos
-              </Link>
+              Los alumnos no podrán evaluar hasta que actives un período.
             </p>
           </div>
         </div>
@@ -269,17 +339,19 @@ export default async function AdminPage() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
               <ArrowRight className="h-3.5 w-3.5 text-blue-600" />
-              Acciones Operativas
+              Accesos rápidos
             </div>
-            <h2 className="mt-3 text-xl font-black text-slate-800">Accesos rápidos del panel</h2>
+            <h2 className="mt-3 text-xl font-black text-slate-800">Operación del panel</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Atajos para las tareas administrativas más frecuentes dentro del sistema.
+              {scope.isGlobal
+                ? "Atajos para las tareas administrativas más frecuentes dentro del sistema."
+                : "Atajos para revisar reportes y capturar evaluación de jefatura en tus carreras."}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <ImportDropdown />
+          {scope.isGlobal ? <ImportDropdown /> : null}
           {quickLinks.map(({ href, label, Icon }) => (
             <Link
               key={href}
@@ -302,7 +374,7 @@ export default async function AdminPage() {
       <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)]">
         <div className="border-b border-slate-100 px-6 py-5">
           <div className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-amber-500" />
+            <Database className="h-5 w-5 text-blue-600" />
             <h2 className="font-bold text-slate-700">Recomendaciones de uso</h2>
           </div>
           <p className="mt-1 text-xs text-slate-400">
@@ -311,156 +383,112 @@ export default async function AdminPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
-          {recommendations.map(({ title, description, tone, Icon }) => {
-            const style = tipStyles[tone];
+          {recommendations.map((item) => {
+            const style = tipStyles[item.tone];
             return (
-              <div key={title} className={`rounded-2xl border p-5 ${style.card}`}>
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${style.icon}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <p className={`mt-4 text-sm font-black ${style.title}`}>{title}</p>
-                <p className={`mt-1 text-sm leading-relaxed ${style.text}`}>{description}</p>
+              <div key={item.title} className={`rounded-2xl border p-5 ${style.card}`}>
+                <p className={`text-sm font-black ${style.title}`}>{item.title}</p>
+                <p className={`mt-1 text-sm leading-relaxed ${style.text}`}>{item.description}</p>
               </div>
             );
           })}
         </div>
-
-        <div className="border-t border-slate-100 bg-slate-50/70 px-6 py-5">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
-            <h3 className="text-sm font-bold text-slate-700">Flujo sugerido para administración diaria</h3>
-          </div>
-          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
-              <p className="text-xs font-black uppercase tracking-wide text-slate-500">1. Configuracion</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Verifica período activo, cuentas admin y catálogos base antes de abrir captura.
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
-              <p className="text-xs font-black uppercase tracking-wide text-slate-500">2. Operacion</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Importa datos en el orden recomendado y valida con una evaluación de prueba.
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-100 bg-white px-4 py-3">
-              <p className="text-xs font-black uppercase tracking-wide text-slate-500">3. Cierre</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Revisa reportes por docente, materia, grupo y carrera antes de exportar PDFs.
-              </p>
-            </div>
-          </div>
-        </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <ScrollText className="h-5 w-5 text-blue-600" />
-              <h2 className="font-bold text-slate-700">Actividad reciente</h2>
+      {scope.isGlobal ? (
+        <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <ScrollText className="h-5 w-5 text-blue-600" />
+                <h2 className="font-bold text-slate-700">Actividad reciente</h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-400">
+                Últimos movimientos administrativos registrados por el sistema.
+              </p>
             </div>
-            <p className="mt-1 text-xs text-slate-400">
-              Últimos movimientos administrativos registrados por el sistema.
-            </p>
+            <Link
+              href="/admin/logs"
+              className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 transition-colors hover:text-blue-800"
+            >
+              Ver todos los logs
+              <ArrowRight size={12} />
+            </Link>
           </div>
-          <Link
-            href="/admin/logs"
-            className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 transition-colors hover:text-blue-800"
-          >
-            Ver todos los logs
-            <ArrowRight size={12} />
-          </Link>
-        </div>
 
-        {recentLogs.length === 0 ? (
-          <div className="py-14 text-center">
-            <ClipboardList className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-            <p className="text-sm font-bold text-slate-400">Sin actividad registrada</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px]">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/80">
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Fecha
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Acción
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Entidad
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Detalle
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Usuario
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {recentLogs.map((log) => {
-                  const actionStyle = ACTION_STYLES[log.action] ?? {
-                    bg: "bg-slate-100",
-                    text: "text-slate-600",
-                    label: log.action,
-                  };
-                  const entityStyle = ENTITY_STYLES[log.entity] ?? {
-                    bg: "bg-slate-100",
-                    text: "text-slate-600",
-                  };
+          {recentLogs.length === 0 ? (
+            <div className="py-14 text-center">
+              <ClipboardList className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+              <p className="text-sm font-bold text-slate-400">Sin actividad registrada</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[860px]">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/80">
+                    <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Fecha</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Acción</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Entidad</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Detalle</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">Usuario</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {recentLogs.map((log) => {
+                    const actionStyle = ACTION_STYLES[log.action] ?? {
+                      bg: "bg-slate-100",
+                      text: "text-slate-600",
+                      label: log.action,
+                    };
+                    const entityStyle = ENTITY_STYLES[log.entity] ?? {
+                      bg: "bg-slate-100",
+                      text: "text-slate-600",
+                    };
 
-                  return (
-                    <tr key={log.id} className="transition-colors hover:bg-slate-50/60">
-                      <td className="px-6 py-3">
-                        <div className="text-sm font-medium text-slate-700">
-                          {new Date(log.createdAt).toLocaleDateString("es-MX", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          {new Date(log.createdAt).toLocaleTimeString("es-MX", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-lg px-2.5 py-1 text-xs font-bold ${actionStyle.bg} ${actionStyle.text}`}
-                        >
-                          {actionStyle.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-lg px-2.5 py-1 text-xs font-bold ${entityStyle.bg} ${entityStyle.text}`}
-                        >
-                          {log.entity}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="max-w-sm truncate text-sm text-slate-600">
-                          {log.detail ?? "-"}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm font-medium text-slate-500">
-                          {userMap.get(log.userId) ?? "Sistema"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+                    return (
+                      <tr key={log.id} className="transition-colors hover:bg-slate-50/60">
+                        <td className="px-6 py-3">
+                          <div className="text-sm font-medium text-slate-700">
+                            {new Date(log.createdAt).toLocaleDateString("es-MX", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            {new Date(log.createdAt).toLocaleTimeString("es-MX", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`rounded-lg px-2.5 py-1 text-xs font-bold ${actionStyle.bg} ${actionStyle.text}`}>
+                            {actionStyle.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`rounded-lg px-2.5 py-1 text-xs font-bold ${entityStyle.bg} ${entityStyle.text}`}>
+                            {log.entity}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="max-w-sm truncate text-sm text-slate-600">{log.detail ?? "-"}</p>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm font-medium text-slate-500">
+                            {userMap.get(log.userId) ?? "Sistema"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }

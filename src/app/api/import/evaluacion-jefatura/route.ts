@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+
+import { getCurrentAdminScope, getRestrictedCareerIds } from "@/lib/adminScope";
 import { logAdminAction } from "@/lib/adminLog";
 import { parseAndImportCareerHeadEvaluations } from "@/lib/csv/parseCareerHeadEvaluations";
 import { createImportStreamResponse } from "@/lib/import/server";
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || (session.user as { role?: string }).role !== "ADMIN") {
+  const scope = await getCurrentAdminScope();
+  if (!scope) {
     return NextResponse.json({ message: "No autorizado" }, { status: 403 });
   }
+
+  const allowedCareerIds = getRestrictedCareerIds(scope);
 
   try {
     const { csv, periodId, stream } = await req.json();
@@ -27,6 +29,7 @@ export async function POST(req: NextRequest) {
         run: (emitProgress) =>
           parseAndImportCareerHeadEvaluations(csv, periodId, {
             onProgress: emitProgress,
+            allowedCareerIds,
           }),
         afterComplete: async (result) => {
           await logAdminAction({
@@ -38,7 +41,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const result = await parseAndImportCareerHeadEvaluations(csv, periodId);
+    const result = await parseAndImportCareerHeadEvaluations(csv, periodId, {
+      allowedCareerIds,
+    });
 
     try {
       await logAdminAction({

@@ -71,7 +71,9 @@ function buildAuditComment(row: CsvRow) {
 export async function parseAndImportCareerHeadEvaluations(
   csvText: string,
   periodId: string,
-  options?: ImportProgressOptions,
+  options?: ImportProgressOptions & {
+    allowedCareerIds?: string[] | null;
+  },
 ): Promise<ImportResult> {
   const parsed = Papa.parse<CsvRow>(csvText.trim(), {
     header: true,
@@ -94,10 +96,14 @@ export async function parseAndImportCareerHeadEvaluations(
   }
 
   const careers = await prisma.career.findMany({
-    where: { isActive: true },
+    where: {
+      isActive: true,
+      ...(options?.allowedCareerIds ? { id: { in: options.allowedCareerIds } } : {}),
+    },
     select: { id: true, code: true },
   });
   const careerMap = new Map(careers.map((career) => [career.code.toUpperCase(), career.id]));
+  const allowedCareerIdSet = options?.allowedCareerIds ? new Set(options.allowedCareerIds) : null;
 
   const teachers = await prisma.teacher.findMany({
     where: { isActive: true },
@@ -168,7 +174,9 @@ export async function parseAndImportCareerHeadEvaluations(
         errors.push({
           row: rowNumber,
           identifier: row.numero_empleado || row.nombre_docente,
-          reason: `Carrera "${careerCode}" no existe`,
+          reason: allowedCareerIdSet
+            ? `No tienes acceso autorizado a la carrera "${careerCode}"`
+            : `Carrera "${careerCode}" no existe`,
         });
         continue;
       }
@@ -195,6 +203,15 @@ export async function parseAndImportCareerHeadEvaluations(
         ...teacher.subjects.map((subject) => subject.careerId),
       ]);
       const selectedCareerId = careerMap.get(careerCode!);
+      if (allowedCareerIdSet && selectedCareerId && !allowedCareerIdSet.has(selectedCareerId)) {
+        errors.push({
+          row: rowNumber,
+          identifier: row.numero_empleado || row.nombre_docente,
+          reason: `No autorizado para importar evaluaciones de la carrera ${careerCode}`,
+        });
+        continue;
+      }
+
       if (selectedCareerId && !teacherCareerIds.has(selectedCareerId)) {
         errors.push({
           row: rowNumber,

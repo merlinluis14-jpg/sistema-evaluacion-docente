@@ -1,9 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+
+import { assertCareerAccess, requireAdminScope } from "@/lib/adminScope";
+import { prisma } from "@/lib/prisma";
 import { getApplicableCareerHeadFactors, type CareerHeadFactorKey, type TeacherPosition } from "@/lib/reportes";
 
 function toNullableScore(value: FormDataEntryValue | null) {
@@ -25,10 +25,7 @@ function toNullableScore(value: FormDataEntryValue | null) {
 }
 
 export async function saveCareerHeadEvaluation(formData: FormData) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "ADMIN") {
-    throw new Error("No autorizado.");
-  }
+  const scope = await requireAdminScope();
 
   const teacherId = String(formData.get("teacherId") || "").trim();
   const careerId = String(formData.get("careerId") || "").trim();
@@ -38,6 +35,8 @@ export async function saveCareerHeadEvaluation(formData: FormData) {
   if (!teacherId || !careerId || !periodId || !position) {
     throw new Error("Faltan datos para guardar la evaluación de coordinación.");
   }
+
+  assertCareerAccess(scope, careerId);
 
   const applicableFactorKeys = new Set(
     getApplicableCareerHeadFactors(position).map((factor) => factor.key),
