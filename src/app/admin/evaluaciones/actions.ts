@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { getStudentPlatformFeedbackState } from "@/lib/platformFeedbackState";
 
 const FACILITATOR_KEYS = [
     "fac_item01",
@@ -194,6 +195,13 @@ export async function createEvaluation(formData: FormData) {
         redirect("/alumno?error=general");
     }
 
+    const feedbackState = await getStudentPlatformFeedbackState(student.id, periodId);
+
     revalidatePath("/alumno");
+
+    if (feedbackState.isEligible) {
+        redirect("/alumno/encuesta-final");
+    }
+
     redirect("/alumno?success=true");
 }

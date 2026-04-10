@@ -17,6 +17,7 @@ import {
   LogOut,
   ClipboardList,
   ShieldCheck,
+  MessageSquare,
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
 
@@ -29,6 +30,7 @@ const GLOBAL_NAV_ITEMS = [
   { href: "/admin/materias", label: "Materias", icon: BookOpen },
   { href: "/admin/periodos", label: "Períodos", icon: Calendar },
   { href: "/admin/reportes", label: "Reportes", icon: BarChart3 },
+  { href: "/admin/retroalimentacion-sistema", label: "Retroalimentacion", icon: MessageSquare },
   { href: "/admin/administradores", label: "Administradores", icon: ShieldCheck },
   { href: "/admin/logs", label: "Logs", icon: ClipboardList },
 ];

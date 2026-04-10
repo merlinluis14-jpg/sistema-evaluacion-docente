@@ -117,6 +117,7 @@ model Student {
 
   groups      GroupEnrollment[]
   evaluations Evaluation[]
+  platformFeedbackResponses PlatformFeedbackResponse[]
 }
 
 // GROUP: Grupo académico y su periodo (e.g. 3A, 5B)
@@ -197,6 +198,7 @@ model Period {
 
   evaluations           Evaluation[]
   careerHeadEvaluations CareerHeadEvaluation[]
+  platformFeedbackResponses PlatformFeedbackResponse[]
 }
 
 model CareerHeadEvaluation {
@@ -329,6 +331,24 @@ model Evaluation {
 // ==========================================
 
 // IMPORT LOG: Registro para auditorías de importaciones masivas (CSV)
+model PlatformFeedbackResponse {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  periodId  String
+  period    Period   @relation(fields: [periodId], references: [id])
+  q1        Int
+  q2        Int
+  q3        Int
+  q4        Int
+  q5        Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, periodId])
+  @@index([periodId, createdAt])
+}
+
 model ImportLog {
   id          String   @id @default(cuid())
   type        String   // "ALUMNOS", "DOCENTES", "MATERIAS"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { formatMexicoDate } from "@/lib/timeZone";
 
 type DocenteData = {
   teacher: {
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
   try {
     const { data, periodo }: { data: DocenteData[]; periodo: string } = await req.json();
 
-    const fecha = new Date().toLocaleDateString("es-MX", {
+    const fecha = formatMexicoDate(new Date(), {
       year: "numeric",
       month: "long",
       day: "numeric",

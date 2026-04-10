@@ -11,6 +11,7 @@ import {
   getTeacherPositionLabel,
 } from "@/lib/reportes";
 import { formatAcademicText } from "@/lib/text/academicText";
+import { formatMexicoDate } from "@/lib/timeZone";
 
 type DocenteReporte = {
   teacher: {
@@ -612,7 +613,7 @@ export default function ExportButtons({ data, periodo, canExportInstitutional }:
 
       const csvContent = [
         `Reporte de Evaluación Docente FDA-24.5 - ${periodo}`,
-        `Generado el: ${new Date().toLocaleDateString("es-MX")}`,
+        `Generado el: ${formatMexicoDate(new Date())}`,
         "",
         headers.join(","),
         ...rows.map((row) => row.map((value) => `"${value}"`).join(",")),

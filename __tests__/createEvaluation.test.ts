@@ -21,6 +21,7 @@ jest.mock("@/lib/prisma", () => ({
     period: { findFirst: jest.fn() },
     subject: { findFirst: jest.fn() },
     groupEnrollment: { findFirst: jest.fn() },
+    platformFeedbackResponse: { findUnique: jest.fn() },
     evaluation: { findUnique: jest.fn(), create: jest.fn() },
   },
 }));
@@ -87,6 +88,7 @@ describe("createEvaluation", () => {
       careerId: "career_1",
     });
     (prisma.groupEnrollment.findFirst as jest.Mock).mockResolvedValue({ id: "enrollment_1" });
+    (prisma.platformFeedbackResponse.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.evaluation.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.evaluation.create as jest.Mock).mockResolvedValue({ id: "eval_1" });
   });

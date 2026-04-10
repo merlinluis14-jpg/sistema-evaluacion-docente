@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import { formatAcademicText } from "@/lib/text/academicText";
+import { formatMexicoDate } from "@/lib/timeZone";
 
 export const dynamic = "force-dynamic";
 
@@ -180,7 +181,7 @@ export default async function DocentePage() {
                                             </Link>
                                         </div>
                                         <span className="flex-shrink-0 text-xs text-slate-400">
-                                            {new Date(evaluation.createdAt).toLocaleDateString("es-MX")}
+                                            {formatMexicoDate(evaluation.createdAt)}
                                         </span>
                                     </div>
 
@@ -234,7 +235,7 @@ export default async function DocentePage() {
                                                 <span className="text-xs text-slate-400">/5</span>
                                             </td>
                                             <td className="py-3 pl-3 pr-6 text-xs text-slate-400">
-                                                {new Date(evaluation.createdAt).toLocaleDateString("es-MX")}
+                                                {formatMexicoDate(evaluation.createdAt)}
                                             </td>
                                         </tr>
                                     ))}

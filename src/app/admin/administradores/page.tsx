@@ -1,6 +1,7 @@
 import { Calendar, Mail, ShieldCheck, UserCog } from "lucide-react";
 import { requireGlobalAdminScope } from "@/lib/adminScope";
 import { prisma } from "@/lib/prisma";
+import { formatMexicoDate, formatMexicoDateTime } from "@/lib/timeZone";
 import CreateAdminForm from "./CreateAdminForm";
 import AdminAccountControls from "./AdminAccountControls";
 
@@ -196,11 +197,7 @@ export default async function AdministradoresPage() {
                         </span>
                         <span className="inline-flex items-center gap-1">
                           <Calendar className="h-3.5 w-3.5" />
-                          {new Date(admin.createdAt).toLocaleDateString("es-MX", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {formatMexicoDate(admin.createdAt)}
                         </span>
                       </div>
                       {!admin.adminHasGlobalScope && admin.adminCareerAccesses.length > 0 ? (
@@ -275,13 +272,7 @@ export default async function AdministradoresPage() {
                 {recentAdminLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {new Date(log.createdAt).toLocaleString("es-MX", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatMexicoDateTime(log.createdAt)}
                     </td>
                     <td className="px-4 py-4">
                       <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">

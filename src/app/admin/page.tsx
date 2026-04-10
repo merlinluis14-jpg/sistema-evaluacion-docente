@@ -18,6 +18,7 @@ import {
 import ImportDropdown from "@/app/admin/components/ImportDropdown";
 import { getRestrictedCareerIds, requireAdminScope } from "@/lib/adminScope";
 import { prisma } from "@/lib/prisma";
+import { formatMexicoDate, formatMexicoTime } from "@/lib/timeZone";
 
 const ACTION_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   CREATE: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Creación" },
@@ -449,17 +450,10 @@ export default async function AdminPage() {
                       <tr key={log.id} className="transition-colors hover:bg-slate-50/60">
                         <td className="px-6 py-3">
                           <div className="text-sm font-medium text-slate-700">
-                            {new Date(log.createdAt).toLocaleDateString("es-MX", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
+                            {formatMexicoDate(log.createdAt)}
                           </div>
                           <div className="text-xs text-slate-400">
-                            {new Date(log.createdAt).toLocaleTimeString("es-MX", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {formatMexicoTime(log.createdAt)}
                           </div>
                         </td>
                         <td className="px-4 py-3">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ClipboardList, Filter, Shield, UserCog } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
+import { formatMexicoDate, formatMexicoTime } from "@/lib/timeZone";
 import { fixMojibake } from "@/lib/text/fixMojibake";
 
 export const dynamic = "force-dynamic";
@@ -198,17 +199,10 @@ export default async function LogsPage({
                                         <tr key={log.id} className="transition-colors hover:bg-slate-50/50">
                                             <td className="px-6 py-4">
                                                 <div className="text-sm font-medium text-slate-700">
-                                                    {new Date(log.createdAt).toLocaleDateString("es-MX", {
-                                                        day: "2-digit",
-                                                        month: "short",
-                                                        year: "numeric",
-                                                    })}
+                                                    {formatMexicoDate(log.createdAt)}
                                                 </div>
                                                 <div className="text-xs text-slate-400">
-                                                    {new Date(log.createdAt).toLocaleTimeString("es-MX", {
-                                                        hour: "2-digit",
-                                                        minute: "2-digit",
-                                                    })}
+                                                    {formatMexicoTime(log.createdAt)}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4">

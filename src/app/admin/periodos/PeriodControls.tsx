@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { activatePeriod, deactivatePeriod, deletePeriod } from "./actions";
 import { Trash2 } from "lucide-react";
+import { formatMexicoDate } from "@/lib/timeZone";
 
 type Period = {
   id: string;
@@ -52,12 +53,7 @@ export function PeriodControls({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const formatDate = (value: Date) =>
-    new Date(value).toLocaleDateString("es-MX", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+  const formatDate = (value: Date) => formatMexicoDate(value);
 
   const handleActivate = () => {
     startTransition(async () => {

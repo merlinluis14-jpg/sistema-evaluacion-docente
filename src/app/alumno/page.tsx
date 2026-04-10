@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   BookOpen,
   CheckCircle2,
+  ClipboardList,
   Clock3,
   GraduationCap,
   LockKeyhole,
@@ -68,6 +69,19 @@ export default async function AlumnoPage({
         })
       : [];
 
+  const feedbackResponse =
+    student && activePeriod
+      ? await prisma.platformFeedbackResponse.findUnique({
+          where: {
+            studentId_periodId: {
+              studentId: student.id,
+              periodId: activePeriod.id,
+            },
+          },
+          select: { id: true },
+        })
+      : null;
+
   const completedSubjects = new Set(completedEvaluations.map((evaluation) => evaluation.subjectId));
 
   const subjectMap = new Map<
@@ -102,6 +116,10 @@ export default async function AlumnoPage({
   const pendingCount = subjects.filter((subject) => !completedSubjects.has(subject.id)).length;
   const completedCount = subjects.length - pendingCount;
   const progressPercentage = subjects.length > 0 ? (completedCount / subjects.length) * 100 : 0;
+  const hasCompletedAllEvaluations = subjects.length > 0 && completedCount === subjects.length;
+  const finalSurveyPending = Boolean(
+    activePeriod && hasCompletedAllEvaluations && !feedbackResponse,
+  );
   const groupNames = Array.from(new Set((student?.groups ?? []).map((enrollment) => enrollment.group.name)));
   const sortedSubjects = [...subjects].sort((a, b) => {
     const aDone = completedSubjects.has(a.id);
@@ -121,7 +139,18 @@ export default async function AlumnoPage({
             "Tu nueva contraseña se guardó correctamente. Si la olvidas después, solo un administrador podrá restablecerla.",
         }
       : null,
+    params.success === "encuesta-final"
+      ? {
+          key: "encuesta-final",
+          icon: CheckCircle2,
+          wrapper: "border-emerald-200 bg-emerald-50 text-emerald-800",
+          title: "Encuesta final enviada",
+          description:
+            "Gracias por compartir tu experiencia con el sistema. Tu retroalimentación quedó registrada para la tesina.",
+        }
+      : null,
     params.success && params.success !== "password-actualizada"
+      && params.success !== "encuesta-final"
       ? {
           key: "evaluacion-enviada",
           icon: CheckCircle2,
@@ -263,7 +292,7 @@ export default async function AlumnoPage({
         {subjects.length > 0 && activePeriod && (
           <div className="relative z-10 mt-6 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 shadow-sm">
             <div className="mb-2 flex flex-col gap-1 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-              <span>Progreso de evaluación</span>
+              <span>{finalSurveyPending ? "Evaluaciones completas, cierre pendiente" : "Progreso de evaluación"}</span>
               <span>
                 {completedCount}/{subjects.length} completadas
               </span>
@@ -277,6 +306,32 @@ export default async function AlumnoPage({
           </div>
         )}
       </section>
+
+      {finalSurveyPending && (
+        <section className="rounded-3xl border border-amber-200 bg-amber-50/90 p-5 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-amber-700 shadow-sm">
+                <ClipboardList className="h-3.5 w-3.5" />
+                Cierre pendiente
+              </div>
+              <p className="mt-3 text-sm font-black text-amber-900">
+                Ya completaste todas tus evaluaciones docentes
+              </p>
+              <p className="mt-1 text-sm text-amber-800">
+                Solo falta responder la encuesta final del sistema para concluir tu participación en el período activo.
+              </p>
+            </div>
+
+            <Link
+              href="/alumno/encuesta-final"
+              className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-amber-700"
+            >
+              Responder encuesta final
+            </Link>
+          </div>
+        </section>
+      )}
 
       {notifications.length > 0 && (
         <section className="space-y-3">
