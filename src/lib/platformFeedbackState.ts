@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
   buildPlatformFeedbackEligibility,
-  getUniqueAssignedSubjectIds,
+  getUniqueAssignedGroupSubjectIds,
 } from "@/lib/platformFeedback";
 
 export async function getStudentPlatformFeedbackState(studentId: string, periodId: string) {
@@ -15,7 +15,7 @@ export async function getStudentPlatformFeedbackState(studentId: string, periodI
               select: {
                 subjects: {
                   select: {
-                    subjectId: true,
+                    id: true,
                   },
                 },
               },
@@ -25,7 +25,7 @@ export async function getStudentPlatformFeedbackState(studentId: string, periodI
         evaluations: {
           where: { periodId },
           select: {
-            subjectId: true,
+            groupSubjectId: true,
           },
         },
       },
@@ -42,24 +42,26 @@ export async function getStudentPlatformFeedbackState(studentId: string, periodI
   ]);
 
   if (!student) {
-    return {
-      assignedSubjectIds: [],
-      ...buildPlatformFeedbackEligibility({
-        assignedSubjectIds: [],
-        evaluatedSubjectIds: [],
-        hasResponse: false,
-      }),
-    };
+      return {
+        assignedAssignmentIds: [],
+        ...buildPlatformFeedbackEligibility({
+          assignedAssignmentIds: [],
+          evaluatedAssignmentIds: [],
+          hasResponse: false,
+        }),
+      };
   }
 
-  const assignedSubjectIds = getUniqueAssignedSubjectIds(student.groups ?? []);
-  const evaluatedSubjectIds = (student.evaluations ?? []).map((evaluation) => evaluation.subjectId);
+  const assignedAssignmentIds = getUniqueAssignedGroupSubjectIds(student.groups ?? []);
+  const evaluatedAssignmentIds = (student.evaluations ?? [])
+    .map((evaluation) => evaluation.groupSubjectId)
+    .filter((value): value is string => Boolean(value));
 
   return {
-    assignedSubjectIds,
+    assignedAssignmentIds,
     ...buildPlatformFeedbackEligibility({
-      assignedSubjectIds,
-      evaluatedSubjectIds,
+      assignedAssignmentIds,
+      evaluatedAssignmentIds,
       hasResponse: Boolean(existingResponse),
     }),
   };

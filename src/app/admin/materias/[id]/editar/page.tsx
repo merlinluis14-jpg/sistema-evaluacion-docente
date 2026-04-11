@@ -260,7 +260,7 @@ export default async function EditarMateriaPage({
             }))}
             initialCuatrimestre={subject.cuatrimestre}
             initialCareerId={subject.careerId}
-            initialTeacherId={subject.teacherId}
+            initialTeacherId={subject.teacherId ?? undefined}
             initialAssignmentMode={initialAssignmentMode}
             initialGroupIds={currentGroupIds}
           />

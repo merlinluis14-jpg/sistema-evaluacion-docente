@@ -2,31 +2,31 @@ import {
   buildPlatformFeedbackEligibility,
   buildPlatformFeedbackQuestionSummaries,
   getPlatformFeedbackScoreLabel,
-  getUniqueAssignedSubjectIds,
+  getUniqueAssignedGroupSubjectIds,
 } from "@/lib/platformFeedback";
 
 describe("platform feedback helpers", () => {
   it("construye materias unicas a partir de grupos enlazados", () => {
-    const subjectIds = getUniqueAssignedSubjectIds([
+    const subjectIds = getUniqueAssignedGroupSubjectIds([
       {
         group: {
-          subjects: [{ subjectId: "subject_1" }, { subjectId: "subject_2" }],
+          subjects: [{ id: "assignment_1" }, { id: "assignment_2" }],
         },
       },
       {
         group: {
-          subjects: [{ subjectId: "subject_2" }, { subjectId: "subject_3" }],
+          subjects: [{ id: "assignment_2" }, { id: "assignment_3" }],
         },
       },
     ]);
 
-    expect(subjectIds).toEqual(["subject_1", "subject_2", "subject_3"]);
+    expect(subjectIds).toEqual(["assignment_1", "assignment_2", "assignment_3"]);
   });
 
   it("marca elegible solo cuando completo todas sus evaluaciones y aun no responde", () => {
     const state = buildPlatformFeedbackEligibility({
-      assignedSubjectIds: ["subject_1", "subject_2"],
-      evaluatedSubjectIds: ["subject_1", "subject_2"],
+      assignedAssignmentIds: ["assignment_1", "assignment_2"],
+      evaluatedAssignmentIds: ["assignment_1", "assignment_2"],
       hasResponse: false,
     });
 
@@ -41,8 +41,8 @@ describe("platform feedback helpers", () => {
 
   it("bloquea la elegibilidad cuando ya existe una respuesta previa", () => {
     const state = buildPlatformFeedbackEligibility({
-      assignedSubjectIds: ["subject_1"],
-      evaluatedSubjectIds: ["subject_1"],
+      assignedAssignmentIds: ["assignment_1"],
+      evaluatedAssignmentIds: ["assignment_1"],
       hasResponse: true,
     });
 

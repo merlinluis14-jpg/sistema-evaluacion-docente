@@ -222,11 +222,11 @@ function SectionHeader({
 }
 
 export function EvaluationForm({
-  subjectId,
+  groupSubjectId,
   periodId,
   action,
 }: {
-  subjectId: string;
+  groupSubjectId: string;
   periodId: string;
   action: (formData: FormData) => void | Promise<void>;
 }) {
@@ -320,7 +320,7 @@ export function EvaluationForm({
       }}
       className="w-full animate-in space-y-6 fade-in duration-500"
     >
-      <input type="hidden" name="subjectId" value={subjectId} />
+      <input type="hidden" name="groupSubjectId" value={groupSubjectId} />
       <input type="hidden" name="periodId" value={periodId} />
 
       <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 sm:items-center sm:px-5">

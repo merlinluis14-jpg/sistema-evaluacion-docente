@@ -164,9 +164,9 @@ function SectionHeader({ stepNum, title, subtitle, badge, accentBg, accentText, 
 }
 
 export function EvaluationForm({
-    subjectId, teacherId, periodId, action,
+    groupSubjectId, periodId, action,
 }: {
-    subjectId: string; teacherId: string; periodId: string;
+    groupSubjectId: string; periodId: string;
     action: (formData: FormData) => void;
 }) {
     const [step, setStep] = useState(1);
@@ -184,8 +184,7 @@ export function EvaluationForm({
 
     return (
         <form action={action} className="w-full space-y-6 animate-in fade-in duration-500">
-            <input type="hidden" name="subjectId" value={subjectId} />
-            <input type="hidden" name="teacherId" value={teacherId} />
+            <input type="hidden" name="groupSubjectId" value={groupSubjectId} />
             <input type="hidden" name="periodId" value={periodId} />
 
             {/* Aviso de anonimato — RF7 */}

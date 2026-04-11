@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export default async function EvaluarPage({ params }: { params: Promise<{ subjectId: string }> }) {
-  const { subjectId } = await params;
+  const { subjectId: assignmentId } = await params;
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
 
@@ -24,30 +24,31 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
     redirect("/login");
   }
 
-  const [subject, activePeriod, enrollment] = await Promise.all([
-    prisma.subject.findUnique({
-      where: { id: subjectId },
-      include: { teacher: true, career: true },
-    }),
-    prisma.period.findFirst({ where: { isActive: true } }),
-    prisma.groupEnrollment.findFirst({
-      where: {
-        studentId: student.id,
+  const [groupSubject, activePeriod] = await Promise.all([
+    prisma.groupSubject.findUnique({
+      where: { id: assignmentId },
+      include: {
+        subject: {
+          include: { career: true },
+        },
+        teacher: true,
         group: {
-          subjects: {
-            some: { subjectId },
+          select: {
+            id: true,
+            name: true,
+            careerId: true,
           },
         },
       },
-      select: { id: true },
     }),
+    prisma.period.findFirst({ where: { isActive: true } }),
   ]);
 
-  if (!subject) {
+  if (!groupSubject) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-800">Materia no encontrada</h2>
+          <h2 className="text-2xl font-bold text-slate-800">Asignacion no encontrada</h2>
           <Link
             href="/alumno"
             className="mt-4 inline-block font-semibold text-blue-600 hover:underline"
@@ -59,7 +60,21 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
     );
   }
 
-  if (!subject.isActive || subject.careerId !== student.careerId || !enrollment) {
+  const enrollment = await prisma.groupEnrollment.findFirst({
+    where: {
+      studentId: student.id,
+      groupId: groupSubject.groupId,
+    },
+    select: { id: true },
+  });
+
+  if (
+    !groupSubject.subject.isActive ||
+    !groupSubject.group.id ||
+    groupSubject.group.careerId !== student.careerId ||
+    !groupSubject.teacherId ||
+    !enrollment
+  ) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="max-w-md rounded-3xl border border-rose-100 bg-white p-6 text-center shadow-xl sm:p-10">
@@ -112,21 +127,21 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
       <div className="flex flex-col gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-widest text-blue-500">Materia</p>
-          <h2 className="break-words text-lg font-bold text-slate-900 sm:text-xl">{subject.name}</h2>
+          <h2 className="break-words text-lg font-bold text-slate-900 sm:text-xl">{groupSubject.subject.name}</h2>
           <p className="mt-0.5 break-words text-xs text-slate-400">
-            {subject.career.name} - {subject.code}
+            {groupSubject.subject.career.name} - {groupSubject.subject.code} - Grupo {groupSubject.group.name}
           </p>
         </div>
         <div className="min-w-0 sm:text-right">
           <p className="text-xs font-bold uppercase tracking-widest text-blue-500">Docente</p>
           <h3 className="break-words text-base font-bold text-slate-800 sm:text-lg">
-            {subject.teacher.name} {subject.teacher.lastName}
+            {groupSubject.teacher?.name} {groupSubject.teacher?.lastName}
           </h3>
         </div>
       </div>
 
       <EvaluationForm
-        subjectId={subject.id}
+        groupSubjectId={groupSubject.id}
         periodId={activePeriod.id}
         action={createEvaluation}
       />
