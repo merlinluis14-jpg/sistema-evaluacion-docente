@@ -249,7 +249,7 @@ export async function createAdminAccount(formData: FormData) {
       success: true,
       email: adminUser.email,
       isGlobalScope: scopeMode === "global",
-      careerCodes: assignedCareers.map((career) => career.code),
+      careerNames: assignedCareers.map((career) => career.name),
     };
   } catch (error) {
     console.error("Error al crear cuenta administrativa:", error);

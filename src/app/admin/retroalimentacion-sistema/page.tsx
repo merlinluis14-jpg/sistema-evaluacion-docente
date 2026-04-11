@@ -14,7 +14,7 @@ import {
   buildPlatformFeedbackQuestionSummaries,
   getPercent,
   getPlatformFeedbackScoreLabel,
-  getUniqueAssignedSubjectIds,
+  getUniqueAssignedGroupSubjectIds,
 } from "@/lib/platformFeedback";
 import { formatMexicoDateTime } from "@/lib/timeZone";
 
@@ -77,7 +77,7 @@ export default async function RetroalimentacionSistemaPage({
                   select: {
                     subjects: {
                       select: {
-                        subjectId: true,
+                        id: true,
                       },
                     },
                   },
@@ -87,7 +87,7 @@ export default async function RetroalimentacionSistemaPage({
             evaluations: {
               where: { periodId: selectedPeriod.id },
               select: {
-                subjectId: true,
+                groupSubjectId: true,
               },
             },
           },
@@ -97,8 +97,10 @@ export default async function RetroalimentacionSistemaPage({
 
   const eligibleStudentsCount = students.filter((student) =>
     buildPlatformFeedbackEligibility({
-      assignedSubjectIds: getUniqueAssignedSubjectIds(student.groups),
-      evaluatedSubjectIds: student.evaluations.map((evaluation) => evaluation.subjectId),
+      assignedAssignmentIds: getUniqueAssignedGroupSubjectIds(student.groups),
+      evaluatedAssignmentIds: student.evaluations
+        .map((evaluation) => evaluation.groupSubjectId)
+        .filter((value): value is string => Boolean(value)),
       hasResponse: false,
     }).hasCompletedAllEvaluations,
   ).length;

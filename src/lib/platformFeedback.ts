@@ -32,34 +32,36 @@ export type PlatformFeedbackQuestionKey = (typeof PLATFORM_FEEDBACK_QUESTIONS)[n
 type EnrollmentWithSubjects = {
   group: {
     subjects: Array<{
-      subjectId: string;
+      id: string;
     }>;
   };
 };
 
 type ResponseWithScores = Record<PlatformFeedbackQuestionKey, number>;
 
-export function getUniqueAssignedSubjectIds(enrollments: EnrollmentWithSubjects[]) {
+export function getUniqueAssignedGroupSubjectIds(
+  enrollments: EnrollmentWithSubjects[],
+) {
   return Array.from(
     new Set(
       enrollments.flatMap((enrollment) =>
-        enrollment.group.subjects.map((groupSubject) => groupSubject.subjectId),
+        enrollment.group.subjects.map((groupSubject) => groupSubject.id),
       ),
     ),
   );
 }
 
 export function buildPlatformFeedbackEligibility({
-  assignedSubjectIds,
-  evaluatedSubjectIds,
+  assignedAssignmentIds,
+  evaluatedAssignmentIds,
   hasResponse,
 }: {
-  assignedSubjectIds: string[];
-  evaluatedSubjectIds: string[];
+  assignedAssignmentIds: string[];
+  evaluatedAssignmentIds: string[];
   hasResponse: boolean;
 }) {
-  const assignedIds = Array.from(new Set(assignedSubjectIds));
-  const evaluatedIds = new Set(evaluatedSubjectIds);
+  const assignedIds = Array.from(new Set(assignedAssignmentIds));
+  const evaluatedIds = new Set(evaluatedAssignmentIds);
   const completedSubjectCount = assignedIds.filter((subjectId) => evaluatedIds.has(subjectId)).length;
   const hasCompletedAllEvaluations =
     assignedIds.length > 0 && completedSubjectCount >= assignedIds.length;

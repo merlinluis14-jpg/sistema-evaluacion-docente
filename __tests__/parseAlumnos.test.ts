@@ -3,7 +3,6 @@ import {
   replaceStudentEnrollmentForGroup,
   syncStudentRosterByPeriod,
 } from "@/lib/catalogSync";
-import { syncSubjectsForGroup } from "@/lib/groupAssignments";
 import { prisma } from "@/lib/prisma";
 
 jest.mock("@/lib/prisma", () => ({
@@ -22,10 +21,6 @@ jest.mock("@/lib/prisma", () => ({
 jest.mock("@/lib/catalogSync", () => ({
   replaceStudentEnrollmentForGroup: jest.fn().mockResolvedValue(undefined),
   syncStudentRosterByPeriod: jest.fn().mockResolvedValue(0),
-}));
-
-jest.mock("@/lib/groupAssignments", () => ({
-  syncSubjectsForGroup: jest.fn().mockResolvedValue(0),
 }));
 
 jest.mock("bcryptjs", () => ({
@@ -62,7 +57,7 @@ describe("parseAndImportAlumnos", () => {
     expect(result.errors[0].reason).toContain("no existe en el catalogo");
   });
 
-  it("importa al alumno, lo inscribe en grupo y sincroniza materias del grupo", async () => {
+  it("importa al alumno y lo inscribe en un grupo ya sincronizado", async () => {
     (prisma.career.findUnique as jest.Mock).mockResolvedValue({ id: "career_1", isActive: true });
     (prisma.group.findFirst as jest.Mock).mockResolvedValue({ id: "group_1" });
     (prisma.student.findUnique as jest.Mock).mockResolvedValue(null);
@@ -77,7 +72,6 @@ describe("parseAndImportAlumnos", () => {
     expect(result.errors).toHaveLength(0);
     expect(result.success).toBe(1);
     expect(replaceStudentEnrollmentForGroup).toHaveBeenCalledWith("student_1", "group_1");
-    expect(syncSubjectsForGroup).toHaveBeenCalledWith("group_1", "career_1", "3A");
     expect(syncStudentRosterByPeriod).not.toHaveBeenCalled();
   });
 });

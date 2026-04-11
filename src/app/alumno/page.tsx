@@ -37,14 +37,25 @@ export default async function AlumnoPage({
       },
       career: true,
       groups: {
+        where: {
+          group: {
+            isActive: true,
+          },
+        },
         include: {
           group: {
             include: {
               subjects: {
+                where: {
+                  subject: {
+                    isActive: true,
+                  },
+                },
                 include: {
                   subject: {
-                    include: { teacher: true, career: true },
+                    include: { career: true },
                   },
+                  teacher: true,
                 },
               },
             },
@@ -65,7 +76,7 @@ export default async function AlumnoPage({
             studentId: student.id,
             periodId: activePeriod.id,
           },
-          select: { subjectId: true },
+          select: { groupSubjectId: true, subjectId: true },
         })
       : [];
 
@@ -82,38 +93,53 @@ export default async function AlumnoPage({
         })
       : null;
 
-  const completedSubjects = new Set(completedEvaluations.map((evaluation) => evaluation.subjectId));
+  const completedAssignments = new Set(
+    completedEvaluations
+      .map((evaluation) => evaluation.groupSubjectId)
+      .filter((value): value is string => Boolean(value)),
+  );
+  const completedSubjects = new Set(
+    completedEvaluations.map((evaluation) => evaluation.subjectId),
+  );
 
   const subjectMap = new Map<
     string,
     {
-      id: string;
+      assignmentId: string;
+      subjectId: string;
       name: string;
       code: string;
       cuatrimestre: number;
-      teacher: { name: string; lastName: string };
+      teacher: { name: string; lastName: string } | null;
       career: { code: string };
+      groupName: string;
     }
   >();
 
   for (const enrollment of student?.groups ?? []) {
     for (const groupSubject of enrollment.group.subjects) {
       const subject = groupSubject.subject;
-      if (!subjectMap.has(subject.id)) {
-        subjectMap.set(subject.id, {
-          id: subject.id,
+      if (!subjectMap.has(groupSubject.id)) {
+        subjectMap.set(groupSubject.id, {
+          assignmentId: groupSubject.id,
+          subjectId: subject.id,
           name: formatAcademicText(subject.name),
           code: subject.code,
           cuatrimestre: subject.cuatrimestre,
-          teacher: subject.teacher,
+          teacher: groupSubject.teacher,
           career: subject.career,
+          groupName: enrollment.group.name,
         });
       }
     }
   }
 
   const subjects = Array.from(subjectMap.values());
-  const pendingCount = subjects.filter((subject) => !completedSubjects.has(subject.id)).length;
+  const pendingCount = subjects.filter(
+    (subject) =>
+      !completedAssignments.has(subject.assignmentId) &&
+      !completedSubjects.has(subject.subjectId),
+  ).length;
   const completedCount = subjects.length - pendingCount;
   const progressPercentage = subjects.length > 0 ? (completedCount / subjects.length) * 100 : 0;
   const hasCompletedAllEvaluations = subjects.length > 0 && completedCount === subjects.length;
@@ -122,8 +148,12 @@ export default async function AlumnoPage({
   );
   const groupNames = Array.from(new Set((student?.groups ?? []).map((enrollment) => enrollment.group.name)));
   const sortedSubjects = [...subjects].sort((a, b) => {
-    const aDone = completedSubjects.has(a.id);
-    const bDone = completedSubjects.has(b.id);
+    const aDone =
+      completedAssignments.has(a.assignmentId) ||
+      completedSubjects.has(a.subjectId);
+    const bDone =
+      completedAssignments.has(b.assignmentId) ||
+      completedSubjects.has(b.subjectId);
     if (aDone !== bDone) return Number(aDone) - Number(bDone);
     return a.name.localeCompare(b.name, "es");
   });
@@ -254,7 +284,7 @@ export default async function AlumnoPage({
                   )}
                   {student && (
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                      {student.career.code}
+                      {formatAcademicText(student.career.name)}
                     </span>
                   )}
                 </div>
@@ -419,11 +449,14 @@ export default async function AlumnoPage({
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             {sortedSubjects.map((subject) => {
-              const alreadyEvaluated = completedSubjects.has(subject.id);
+              const alreadyEvaluated =
+                completedAssignments.has(subject.assignmentId) ||
+                completedSubjects.has(subject.subjectId);
+              const hasAssignedTeacher = Boolean(subject.teacher);
 
               return (
                 <div
-                  key={subject.id}
+                  key={subject.assignmentId}
                   className={`flex h-full flex-col rounded-3xl border p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)] transition-all sm:p-6 ${
                     alreadyEvaluated
                       ? "border-emerald-200 bg-emerald-50/40"
@@ -439,11 +472,20 @@ export default async function AlumnoPage({
                         className={`rounded-full px-2.5 py-1 text-xs font-black uppercase tracking-wide ${
                           alreadyEvaluated
                             ? "bg-emerald-100 text-emerald-700"
-                            : "bg-amber-50 text-amber-700"
+                            : hasAssignedTeacher
+                              ? "bg-amber-50 text-amber-700"
+                              : "bg-slate-100 text-slate-500"
                         }`}
                       >
-                      {alreadyEvaluated ? "Completada" : "Pendiente"}
-                    </span>
+                        {alreadyEvaluated
+                          ? "Completada"
+                          : hasAssignedTeacher
+                            ? "Pendiente"
+                            : "Sin docente"}
+                      </span>
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">
+                        Grupo {subject.groupName}
+                      </span>
                   </div>
                     <span className="break-all text-right font-mono text-xs text-slate-400">
                       {subject.code}
@@ -456,15 +498,17 @@ export default async function AlumnoPage({
 
                   <div className="mb-5 flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
                     <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-                      {subject.teacher.name[0]}
-                      {subject.teacher.lastName[0]}
+                      {subject.teacher?.name?.[0] ?? "?"}
+                      {subject.teacher?.lastName?.[0] ?? ""}
                     </div>
                     <div className="min-w-0">
                       <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">
                         Docente
                       </p>
                       <p className="min-w-0 break-words text-sm font-semibold text-slate-700">
-                        {subject.teacher.name} {subject.teacher.lastName}
+                        {subject.teacher
+                          ? `${subject.teacher.name} ${subject.teacher.lastName}`
+                          : "Pendiente de asignacion en horarios"}
                       </p>
                     </div>
                   </div>
@@ -473,13 +517,17 @@ export default async function AlumnoPage({
                     <div className="mt-auto w-full rounded-2xl border border-emerald-200 bg-emerald-50 py-3 text-center text-sm font-bold text-emerald-700">
                       Ya evaluaste esta materia
                     </div>
-                  ) : activePeriod ? (
+                  ) : activePeriod && hasAssignedTeacher ? (
                     <Link
-                      href={`/alumno/evaluar/${subject.id}`}
+                      href={`/alumno/evaluar/${subject.assignmentId}`}
                       className="mt-auto block w-full rounded-2xl bg-slate-900 py-3 text-center text-sm font-bold text-white transition-all hover:bg-blue-600 active:scale-95"
                     >
                       Evaluar Docente
                     </Link>
+                  ) : activePeriod ? (
+                    <div className="mt-auto w-full cursor-not-allowed rounded-2xl bg-slate-100 py-3 text-center text-sm font-bold text-slate-400">
+                      Sin docente asignado
+                    </div>
                   ) : (
                     <div className="mt-auto w-full cursor-not-allowed rounded-2xl bg-slate-100 py-3 text-center text-sm font-bold text-slate-400">
                       Sin período activo

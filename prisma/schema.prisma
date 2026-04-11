@@ -53,6 +53,7 @@ model User {
 // CAREER: Carreras de la UPTX (e.g. ISC, IIT, IGA)
 model Career {
   id        String   @id @default(cuid())
+  externalId Int?    @unique
   code      String   @unique // "ISC", "IIT", "IGA"...
   name      String           // "Ingeniería en Sistemas Computacionales"
   isActive  Boolean  @default(true)
@@ -83,6 +84,8 @@ model Teacher {
   id         String   @id @default(cuid())
   userId     String   @unique
   user       User     @relation(fields: [userId], references: [id])
+  externalId Int?     @unique
+  externalUsername String?
   name       String
   lastName   String
   employeeId String   @unique  // Número de empleado institucional
@@ -90,10 +93,13 @@ model Teacher {
   career     Career   @relation(fields: [careerId], references: [id])
   position   TeacherPosition @default(PA)
   isActive   Boolean  @default(true)
+  managedByExternal Boolean @default(false)
+  lastExternalSyncAt DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   subjects              Subject[]
+  groupSubjects         GroupSubject[]
   evaluations           Evaluation[]
   careerHeadEvaluations CareerHeadEvaluation[]
 
@@ -125,15 +131,22 @@ model Group {
   id        String   @id @default(cuid())
   name      String           // "3A", "5B", "2C"
   period    String           // "Enero-Abril 2026"
+  externalId Int?
+  externalCode String?
+  shift     String?
+  cuatrimestre Int?
   careerId  String
   career    Career   @relation(fields: [careerId], references: [id])
   isActive  Boolean  @default(true)
+  managedByExternal Boolean @default(false)
+  lastExternalSyncAt DateTime?
   createdAt DateTime @default(now())
 
   enrollments GroupEnrollment[]  // Alumnos en este grupo
   subjects    GroupSubject[]     // Materias asignadas al grupo
 
   @@index([careerId, period])
+  @@index([externalId, period])
 }
 
 // GROUP ENROLLMENT: Tabla pivote Alumno-Grupo
@@ -152,14 +165,17 @@ model GroupEnrollment {
 // SUBJECT: Materias vinculadas a carreras y docentes
 model Subject {
   id           String   @id @default(cuid())
+  externalId   Int?     @unique
   name         String
   code         String           // "MAT-101", "BD-201"
   cuatrimestre Int      @default(1)
   careerId     String
   career       Career   @relation(fields: [careerId], references: [id])
-  teacherId    String
-  teacher      Teacher  @relation(fields: [teacherId], references: [id])
+  teacherId    String?
+  teacher      Teacher? @relation(fields: [teacherId], references: [id])
   isActive     Boolean  @default(true)
+  managedByExternal Boolean @default(false)
+  lastExternalSyncAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -169,6 +185,7 @@ model Subject {
   @@unique([code, careerId]) // Mismo código puede existir en distintas carreras
   @@index([teacherId, isActive])
   @@index([careerId, isActive])
+  @@index([externalId, isActive])
 }
 
 // GROUP SUBJECT: Tabla pivote Grupo-Materia
@@ -178,9 +195,17 @@ model GroupSubject {
   group     Group    @relation(fields: [groupId], references: [id])
   subjectId String
   subject   Subject  @relation(fields: [subjectId], references: [id])
+  teacherId String?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  managedByExternal Boolean @default(false)
+  lastExternalSyncAt DateTime?
   createdAt DateTime @default(now())
 
+  evaluations Evaluation[]
+
   @@unique([groupId, subjectId])
+  @@index([teacherId])
+  @@index([groupId, teacherId])
 }
 
 // ==========================================
@@ -241,6 +266,8 @@ model Evaluation {
   teacher   Teacher @relation(fields: [teacherId], references: [id])
   subjectId String
   subject   Subject @relation(fields: [subjectId], references: [id])
+  groupSubjectId String?
+  groupSubject GroupSubject? @relation(fields: [groupSubjectId], references: [id])
   periodId  String
   period    Period  @relation(fields: [periodId], references: [id])
 
@@ -322,6 +349,7 @@ model Evaluation {
   @@unique([studentId, subjectId, periodId])
   @@index([periodId, teacherId])
   @@index([periodId, subjectId])
+  @@index([periodId, groupSubjectId])
   @@index([teacherId, periodId])
   @@index([studentId, periodId])
 }

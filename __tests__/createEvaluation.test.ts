@@ -2,12 +2,16 @@ import { createEvaluation } from "@/app/admin/evaluaciones/actions";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { revalidatePath } from "next/cache";
+import { getStudentPlatformFeedbackState } from "@/lib/platformFeedbackState";
 
 jest.mock("next-auth/next", () => ({ getServerSession: jest.fn() }));
 jest.mock("next/cache", () => ({ revalidatePath: jest.fn() }));
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
 jest.mock("@/lib/prismaErrors", () => ({
   isPrismaKnownRequestError: jest.fn(() => false),
+}));
+jest.mock("@/lib/platformFeedbackState", () => ({
+  getStudentPlatformFeedbackState: jest.fn(),
 }));
 jest.mock("next/navigation", () => ({
   redirect: jest.fn((url: string) => {
@@ -19,10 +23,10 @@ jest.mock("@/lib/prisma", () => ({
   prisma: {
     student: { findUnique: jest.fn() },
     period: { findFirst: jest.fn() },
-    subject: { findFirst: jest.fn() },
+    groupSubject: { findFirst: jest.fn() },
     groupEnrollment: { findFirst: jest.fn() },
     platformFeedbackResponse: { findUnique: jest.fn() },
-    evaluation: { findUnique: jest.fn(), create: jest.fn() },
+    evaluation: { findFirst: jest.fn(), create: jest.fn() },
   },
 }));
 
@@ -82,20 +86,31 @@ describe("createEvaluation", () => {
       isActive: true,
     });
     (prisma.period.findFirst as jest.Mock).mockResolvedValue({ id: "period_1" });
-    (prisma.subject.findFirst as jest.Mock).mockResolvedValue({
-      id: "subject_1",
+    (prisma.groupSubject.findFirst as jest.Mock).mockResolvedValue({
+      id: "group_subject_1",
+      groupId: "group_1",
       teacherId: "teacher_real",
-      careerId: "career_1",
+      subjectId: "subject_1",
+      subject: {
+        id: "subject_1",
+        isActive: true,
+      },
+      group: {
+        careerId: "career_1",
+        isActive: true,
+      },
     });
     (prisma.groupEnrollment.findFirst as jest.Mock).mockResolvedValue({ id: "enrollment_1" });
-    (prisma.platformFeedbackResponse.findUnique as jest.Mock).mockResolvedValue(null);
-    (prisma.evaluation.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.evaluation.findFirst as jest.Mock).mockResolvedValue(null);
     (prisma.evaluation.create as jest.Mock).mockResolvedValue({ id: "eval_1" });
+    (getStudentPlatformFeedbackState as jest.Mock).mockResolvedValue({
+      isEligible: false,
+    });
   });
 
   function buildFormData(overrides?: Record<string, string>) {
     const formData = new FormData();
-    formData.append("subjectId", "subject_1");
+    formData.append("groupSubjectId", "group_subject_1");
     formData.append("periodId", "period_1");
     formData.append("teoriaPractica", "2");
 
@@ -112,7 +127,7 @@ describe("createEvaluation", () => {
   }
 
   it("redirige cuando el alumno intenta duplicar una evaluacion", async () => {
-    (prisma.evaluation.findUnique as jest.Mock).mockResolvedValue({
+    (prisma.evaluation.findFirst as jest.Mock).mockResolvedValue({
       id: "eval_existing",
     });
 
@@ -149,6 +164,7 @@ describe("createEvaluation", () => {
         data: expect.objectContaining({
           studentId: "student_1",
           subjectId: "subject_1",
+          groupSubjectId: "group_subject_1",
           periodId: "period_1",
           teacherId: "teacher_real",
           fac_item01: 4,

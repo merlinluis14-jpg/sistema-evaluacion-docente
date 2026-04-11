@@ -5,9 +5,24 @@ type TeacherCatalogSyncParams = {
   importedEmployeeIds: string[];
 };
 
+type CareerCatalogSyncParams = {
+  importedCareerExternalIds: number[];
+};
+
 type SubjectCatalogSyncParams = {
   careerIds: string[];
   importedSubjectKeys: string[];
+};
+
+type GroupCatalogSyncParams = {
+  careerIds: string[];
+  period: string;
+  importedGroupKeys: string[];
+};
+
+type GroupAssignmentCatalogSyncParams = {
+  groupIds: string[];
+  importedAssignmentKeys: string[];
 };
 
 type StudentPeriodSyncParams = {
@@ -50,6 +65,36 @@ export async function syncTeacherCatalogByCareer({
   return teachersToDeactivate.length;
 }
 
+export async function syncCareerCatalogByExternalIds({
+  importedCareerExternalIds,
+}: CareerCatalogSyncParams) {
+  if (importedCareerExternalIds.length === 0) {
+    return 0;
+  }
+
+  const careersToDeactivate = await prisma.career.findMany({
+    where: {
+      isActive: true,
+      OR: [
+        { externalId: null },
+        { externalId: { notIn: importedCareerExternalIds } },
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (careersToDeactivate.length === 0) {
+    return 0;
+  }
+
+  await prisma.career.updateMany({
+    where: { id: { in: careersToDeactivate.map((career) => career.id) } },
+    data: { isActive: false },
+  });
+
+  return careersToDeactivate.length;
+}
+
 export async function syncSubjectCatalogByCareer({
   careerIds,
   importedSubjectKeys,
@@ -81,6 +126,80 @@ export async function syncSubjectCatalogByCareer({
   });
 
   return subjectIdsToDeactivate.length;
+}
+
+export async function syncGroupCatalogByCareerAndPeriod({
+  careerIds,
+  period,
+  importedGroupKeys,
+}: GroupCatalogSyncParams) {
+  if (careerIds.length === 0 || !period) {
+    return 0;
+  }
+
+  const groups = await prisma.group.findMany({
+    where: {
+      careerId: { in: careerIds },
+      period,
+      isActive: true,
+      managedByExternal: true,
+    },
+    select: { id: true, careerId: true, externalId: true, name: true },
+  });
+
+  const importedKeys = new Set(importedGroupKeys);
+  const groupIdsToDeactivate = groups
+    .filter((group) => {
+      const localKey = `${group.careerId}:${period}:${group.externalId ?? group.name.toUpperCase()}`;
+      return !importedKeys.has(localKey);
+    })
+    .map((group) => group.id);
+
+  if (groupIdsToDeactivate.length === 0) {
+    return 0;
+  }
+
+  await prisma.group.updateMany({
+    where: { id: { in: groupIdsToDeactivate } },
+    data: { isActive: false },
+  });
+
+  return groupIdsToDeactivate.length;
+}
+
+export async function syncGroupAssignmentsByGroup({
+  groupIds,
+  importedAssignmentKeys,
+}: GroupAssignmentCatalogSyncParams) {
+  if (groupIds.length === 0) {
+    return 0;
+  }
+
+  const assignments = await prisma.groupSubject.findMany({
+    where: {
+      groupId: { in: groupIds },
+      managedByExternal: true,
+    },
+    select: { id: true, groupId: true, subjectId: true },
+  });
+
+  const importedKeys = new Set(importedAssignmentKeys);
+  const assignmentIdsToDelete = assignments
+    .filter(
+      (assignment) =>
+        !importedKeys.has(`${assignment.groupId}:${assignment.subjectId}`),
+    )
+    .map((assignment) => assignment.id);
+
+  if (assignmentIdsToDelete.length === 0) {
+    return 0;
+  }
+
+  await prisma.groupSubject.deleteMany({
+    where: { id: { in: assignmentIdsToDelete } },
+  });
+
+  return assignmentIdsToDelete.length;
 }
 
 export async function replaceStudentEnrollmentForGroup(studentId: string, groupId: string) {

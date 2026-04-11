@@ -21,8 +21,10 @@ function revalidateCareerViews() {
   revalidatePath("/admin/carreras");
   revalidatePath("/admin/docentes");
   revalidatePath("/admin/docentes/nuevo");
+  revalidatePath("/admin/docentes/sincronizar");
   revalidatePath("/admin/materias");
   revalidatePath("/admin/materias/nueva");
+  revalidatePath("/admin/materias/importar");
   revalidatePath("/admin/grupos");
   revalidatePath("/admin/grupos/nuevo");
   revalidatePath("/admin/alumnos");

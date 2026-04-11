@@ -100,52 +100,72 @@ export async function createEvaluation(formData: FormData) {
         throw new Error("No autorizado - sesión de alumno requerida");
     }
 
-    const subjectId = formData.get("subjectId") as string;
+    const groupSubjectId = formData.get("groupSubjectId") as string;
     const periodId = formData.get("periodId") as string;
 
-    if (!subjectId || !periodId) {
+    if (!groupSubjectId || !periodId) {
         redirect("/alumno?error=formulario");
     }
 
     // La validacion final se hace en servidor para impedir evaluaciones fuera del grupo o del periodo activo.
-    const [period, subject, enrollment] = await Promise.all([
+    const [period, groupSubject] = await Promise.all([
         prisma.period.findFirst({
             where: { id: periodId, isActive: true },
             select: { id: true },
         }),
-        prisma.subject.findFirst({
-            where: { id: subjectId, isActive: true },
-            select: { id: true, teacherId: true, careerId: true },
-        }),
-        prisma.groupEnrollment.findFirst({
-            where: {
-                studentId: student.id,
+        prisma.groupSubject.findFirst({
+            where: { id: groupSubjectId },
+            select: {
+                id: true,
+                groupId: true,
+                teacherId: true,
+                subjectId: true,
+                subject: {
+                    select: {
+                        id: true,
+                        isActive: true,
+                    },
+                },
                 group: {
-                    subjects: {
-                        some: { subjectId },
+                    select: {
+                        careerId: true,
+                        isActive: true,
                     },
                 },
             },
-            select: { id: true },
         }),
     ]);
 
+    const validEnrollment = groupSubject
+        ? await prisma.groupEnrollment.findFirst({
+            where: {
+                studentId: student.id,
+                groupId: groupSubject.groupId,
+            },
+            select: { id: true },
+        })
+        : null;
+
     if (
         !period ||
-        !subject ||
-        subject.careerId !== student.careerId ||
-        !enrollment
+        !groupSubject ||
+        !groupSubject.subject.isActive ||
+        !groupSubject.group.isActive ||
+        !groupSubject.teacherId ||
+        groupSubject.group.careerId !== student.careerId ||
+        !validEnrollment
     ) {
         redirect("/alumno?error=acceso");
     }
 
-    const existing = await prisma.evaluation.findUnique({
+    const existing = await prisma.evaluation.findFirst({
         where: {
-            studentId_subjectId_periodId: {
-                studentId: student.id,
-                subjectId,
-                periodId,
-            },
+            studentId: student.id,
+            periodId,
+            OR: [
+                { groupSubjectId },
+                { subjectId: groupSubject.subjectId },
+            ],
         },
     });
 
@@ -181,8 +201,9 @@ export async function createEvaluation(formData: FormData) {
         await prisma.evaluation.create({
             data: {
                 studentId: student.id,
-                teacherId: subject.teacherId,
-                subjectId,
+                teacherId: groupSubject.teacherId,
+                subjectId: groupSubject.subjectId,
+                groupSubjectId,
                 periodId,
                 ...evaluationPayload,
             },

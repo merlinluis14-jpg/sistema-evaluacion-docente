@@ -6,7 +6,6 @@ import {
   syncStudentRosterByPeriod,
 } from "@/lib/catalogSync";
 import { getCareerByCodeForImport } from "@/lib/careers";
-import { syncSubjectsForGroup } from "@/lib/groupAssignments";
 import {
   buildImportProgress,
   type ImportProgressOptions,
@@ -117,21 +116,21 @@ export async function parseAndImportAlumnos(
             careerId,
             name: { equals: normalizedGroup, mode: "insensitive" },
             period: periodo,
+            isActive: true,
           },
         });
 
         if (existingGroup) {
           groupId = existingGroup.id;
         } else {
-          const newGroup = await prisma.group.create({
-            data: {
-              name: normalizedGroup,
-              period: periodo,
-              careerId,
-              isActive: true,
-            },
+          errors.push({
+            row: rowNumber,
+            matricula,
+            reason:
+              `El grupo "${normalizedGroup}" no existe en el periodo ${periodo}. ` +
+              "Primero sincroniza los grupos desde el sistema de horarios.",
           });
-          groupId = newGroup.id;
+          continue;
         }
 
         groupCache.set(groupKey, groupId);
@@ -203,8 +202,6 @@ export async function parseAndImportAlumnos(
       }
 
       await replaceStudentEnrollmentForGroup(studentId, groupId);
-
-      await syncSubjectsForGroup(groupId, careerId, normalizedGroup);
 
       expectedGroupByStudentId.set(studentId, groupId);
       affectedCareerIds.add(careerId);

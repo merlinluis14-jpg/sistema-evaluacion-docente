@@ -95,7 +95,7 @@ describe("administradores actions", () => {
       success: true,
       email: "coordinacion@uptx.edu.mx",
       isGlobalScope: true,
-      careerCodes: [],
+      careerNames: [],
     });
     expect(prisma.user.create).toHaveBeenCalledWith({
       data: {
@@ -152,7 +152,10 @@ describe("administradores actions", () => {
       success: true,
       email: "isc@uptx.edu.mx",
       isGlobalScope: false,
-      careerCodes: ["IRO", "ISC"],
+      careerNames: [
+        "Ingenieria en Robotica",
+        "Ingenieria en Sistemas Computacionales",
+      ],
     });
     expect(prisma.user.create).toHaveBeenCalledWith({
       data: {

@@ -12,7 +12,6 @@ import {
   ScrollText,
   ShieldCheck,
   UserCog,
-  UserPlus,
 } from "lucide-react";
 
 import ImportDropdown from "@/app/admin/components/ImportDropdown";
@@ -78,20 +77,30 @@ export default async function AdminPage() {
     totalEvaluaciones,
     periodoActivo,
     recentLogs,
-  ] = await Promise.all([
-    scope.isGlobal ? prisma.user.count({ where: { role: "ADMIN", isActive: true } }) : Promise.resolve(0),
-    prisma.teacher.count({ where: teacherWhere }),
-    prisma.student.count({ where: studentWhere }),
-    prisma.subject.count({ where: subjectWhere }),
-    prisma.evaluation.count({ where: evaluationWhere }),
-    prisma.period.findFirst({ where: { isActive: true } }),
-    scope.isGlobal
-      ? prisma.adminLog.findMany({
+  ] = scope.isGlobal
+    ? await prisma.$transaction([
+        prisma.user.count({ where: { role: "ADMIN", isActive: true } }),
+        prisma.teacher.count({ where: teacherWhere }),
+        prisma.student.count({ where: studentWhere }),
+        prisma.subject.count({ where: subjectWhere }),
+        prisma.evaluation.count({ where: evaluationWhere }),
+        prisma.period.findFirst({ where: { isActive: true } }),
+        prisma.adminLog.findMany({
           orderBy: { createdAt: "desc" },
           take: 5,
-        })
-      : Promise.resolve([]),
-  ]);
+        }),
+      ])
+    : [
+        0,
+        ...(await prisma.$transaction([
+          prisma.teacher.count({ where: teacherWhere }),
+          prisma.student.count({ where: studentWhere }),
+          prisma.subject.count({ where: subjectWhere }),
+          prisma.evaluation.count({ where: evaluationWhere }),
+          prisma.period.findFirst({ where: { isActive: true } }),
+        ])),
+        [],
+      ];
 
   const userIds = [...new Set(recentLogs.map((log) => log.userId))];
   const users = userIds.length > 0
@@ -150,7 +159,7 @@ export default async function AdminPage() {
 
   const quickLinks = scope.isGlobal
     ? [
-        { href: "/admin/docentes/nuevo", label: "Nuevo Docente", Icon: UserPlus },
+        { href: "/admin/docentes/sincronizar", label: "Sincronizar Academia", Icon: Database },
         { href: "/admin/administradores", label: "Administradores", Icon: ShieldCheck },
         { href: "/admin/periodos", label: "Gestionar Períodos", Icon: Calendar },
         { href: "/admin/reportes", label: "Ver Reportes", Icon: BarChart2 },
@@ -169,8 +178,8 @@ export default async function AdminPage() {
     },
     scope.isGlobal
       ? {
-          title: "Carga masiva recomendada",
-          description: "Importa primero docentes, luego materias y finalmente alumnos para enlazar mejor los grupos.",
+          title: "Flujo academico recomendado",
+          description: "Sincroniza primero el catalogo desde Horarios y despues importa alumnos para enlazarlos a los grupos del periodo activo.",
           tone: totalDocentes > 0 && totalMaterias > 0 && totalAlumnos > 0 ? "blue" : "slate",
         }
       : {
