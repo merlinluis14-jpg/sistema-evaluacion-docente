@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getUptexLogoPublicPath } from "@/lib/pdf/uptexLogo";
 import { formatMexicoDate } from "@/lib/timeZone";
+
+function escapeHtml(value: string | null | undefined) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
 
 type DocenteData = {
   teacher: {
@@ -16,6 +26,10 @@ type DocenteData = {
   autoAvg: string;
   globalAvg: string;
   nivel: string;
+  careerHeadEvaluation?: {
+    evaluatorName?: string | null;
+    comments?: string | null;
+  } | null;
 };
 
 export async function POST(req: NextRequest) {
@@ -38,6 +52,11 @@ export async function POST(req: NextRequest) {
       const calIF = (parseFloat(docente.facAvg) / 4 * 10).toFixed(1);
       const calIIE = (parseFloat(docente.globalAvg) / 5 * 10).toFixed(1);
       const calFinal = ((parseFloat(calIF) * 0.4) + (parseFloat(calIIE) * 0.6)).toFixed(1);
+      const evaluatorName =
+        docente.careerHeadEvaluation?.evaluatorName?.trim() || "Pendiente de captura";
+      const comments =
+        docente.careerHeadEvaluation?.comments?.trim() ||
+        `Reporte generado automáticamente por el Sistema de Evaluación Docente UPTX con base en ${docente.totalEvals} evaluación(es) recibida(s) durante el período ${periodo}. Nivel de desempeño: ${docente.nivel}.`;
 
       const factoresFac = [
         "Orientación inicial sobre unidades de aprendizaje",
@@ -66,6 +85,9 @@ export async function POST(req: NextRequest) {
       ${idx > 0 ? '<div style="page-break-before: always;"></div>' : ""}
 
       <div style="text-align:center; margin-bottom:16px;">
+        <div style="display:flex; justify-content:center; margin-bottom:8px;">
+          <img src="${getUptexLogoPublicPath()}" alt="UPTex" style="width:108px; height:auto; object-fit:contain;" />
+        </div>
         <table style="width:100%; border-collapse:collapse;">
           <tr>
             <td colspan="3" style="background:#1a6b3c; color:white; text-align:center; font-size:14px; font-weight:bold; padding:8px; border:1px solid #ccc;">
@@ -92,19 +114,19 @@ export async function POST(req: NextRequest) {
             <table style="width:100%;">
               <tr>
                 <td style="font-size:10px; font-weight:bold; width:120px; padding:3px 0;">NOMBRE:</td>
-                <td style="font-size:10px; padding:3px 0;">${nombre}</td>
+                <td style="font-size:10px; padding:3px 0;">${escapeHtml(nombre)}</td>
               </tr>
               <tr>
                 <td style="font-size:10px; font-weight:bold; padding:3px 0;">PUESTO:</td>
-                <td style="font-size:10px; padding:3px 0;">Docente · ${docente.contextCareer.code}</td>
+                <td style="font-size:10px; padding:3px 0;">Docente · ${escapeHtml(docente.contextCareer.code)}</td>
               </tr>
               <tr>
                 <td style="font-size:10px; font-weight:bold; padding:3px 0;">EVALUADOR/A:</td>
-                <td style="font-size:10px; padding:3px 0;">Sistema de Evaluación Docente UPTX</td>
+                <td style="font-size:10px; padding:3px 0;">${escapeHtml(evaluatorName)}</td>
               </tr>
               <tr>
                 <td style="font-size:10px; font-weight:bold; padding:3px 0;">PERÍODO A EVALUAR:</td>
-                <td style="font-size:10px; padding:3px 0;">${periodo}</td>
+                <td style="font-size:10px; padding:3px 0;">${escapeHtml(periodo)}</td>
               </tr>
             </table>
           </td>
@@ -184,9 +206,7 @@ export async function POST(req: NextRequest) {
       <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
         <tr>
           <td style="border:1px solid #ccc; padding:6px; font-size:9px; width:60%;">
-            <strong>COMENTARIOS:</strong> Reporte generado automáticamente por el Sistema de Evaluación Docente UPTX
-            con base en ${docente.totalEvals} evaluación(es) recibida(s) durante el período ${periodo}.
-            Nivel de desempeño: <strong>${docente.nivel}</strong>.
+            <strong>COMENTARIOS:</strong> ${escapeHtml(comments)}
           </td>
           <td style="border:1px solid #ccc; padding:6px; font-size:9px; text-align:center; width:15%;">
             <strong>Sub<br>total</strong>
@@ -253,19 +273,19 @@ export async function POST(req: NextRequest) {
         <tr>
           <td style="text-align:center; padding:8px; width:33%;">
             <div style="border-top:1px solid #333; padding-top:6px; font-size:9px;">
-              ${nombre}<br>
+              ${escapeHtml(nombre)}<br>
               <span style="color:#666;">Nombre y Firma del Docente</span>
             </div>
           </td>
           <td style="text-align:center; padding:8px; width:33%;">
             <div style="border-top:1px solid #333; padding-top:6px; font-size:9px;">
-              Coordinador de Carrera<br>
+              ${escapeHtml(evaluatorName)}<br>
               <span style="color:#666;">Nombre y Firma</span>
             </div>
           </td>
           <td style="text-align:center; padding:8px; width:33%;">
             <div style="border-top:1px solid #333; padding-top:6px; font-size:9px;">
-              Director de Area Academica<br>
+              Director de Área Académica<br>
               <span style="color:#666;">Nombre y Firma</span>
             </div>
           </td>

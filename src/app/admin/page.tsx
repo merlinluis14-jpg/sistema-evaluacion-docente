@@ -161,7 +161,7 @@ export default async function AdminPage() {
     ? [
         { href: "/admin/docentes/sincronizar", label: "Sincronizar Academia", Icon: Database },
         { href: "/admin/administradores", label: "Administradores", Icon: ShieldCheck },
-        { href: "/admin/periodos", label: "Gestionar Períodos", Icon: Calendar },
+        { href: "/admin/periodos", label: "Gestionar períodos", Icon: Calendar },
         { href: "/admin/reportes", label: "Ver Reportes", Icon: BarChart2 },
       ]
     : [
@@ -179,7 +179,7 @@ export default async function AdminPage() {
     scope.isGlobal
       ? {
           title: "Flujo academico recomendado",
-          description: "Sincroniza primero el catalogo desde Horarios y despues importa alumnos para enlazarlos a los grupos del periodo activo.",
+          description: "Sincroniza primero el catálogo desde Horarios y después importa alumnos para enlazarlos a los grupos del período activo.",
           tone: totalDocentes > 0 && totalMaterias > 0 && totalAlumnos > 0 ? "blue" : "slate",
         }
       : {
@@ -243,7 +243,7 @@ export default async function AdminPage() {
         <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
-              {scope.isGlobal ? "Centro de Operación" : "Panel de Jefatura"}
+              {scope.isGlobal ? "Centro de operación" : "Panel de jefatura"}
             </div>
 
             <h1 className="mt-4 text-3xl font-black text-slate-800">
@@ -281,7 +281,7 @@ export default async function AdminPage() {
             <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 shadow-sm">
               <div className="flex items-center gap-2 text-slate-400">
                 <Calendar className="h-4 w-4 text-blue-600" />
-                <span className="text-[11px] font-black uppercase tracking-wide">Estado del Período</span>
+                <span className="text-[11px] font-black uppercase tracking-wide">Estado del periodo</span>
               </div>
               <p className="mt-2 text-lg font-black text-slate-800">
                 {periodoActivo ? "Activo" : "Pendiente"}
@@ -314,6 +314,24 @@ export default async function AdminPage() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-blue-100 bg-blue-50/90 p-5 shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-sm font-black text-blue-800">Ruta recomendada de operación</p>
+            <p className="mt-1 text-sm leading-6 text-blue-700">
+              Primero sincroniza la información académica desde Horarios, después importa
+              alumnos al período activo y finalmente revisa avances y resultados en reportes.
+            </p>
+          </div>
+          <Link
+            href="/admin/docentes/sincronizar"
+            className="inline-flex items-center justify-center rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-800"
+          >
+            Revisar sincronización
+          </Link>
         </div>
       </section>
 

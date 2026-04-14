@@ -15,34 +15,85 @@ import { ResetPasswordButton } from "./ResetPasswordButton";
 
 export const dynamic = "force-dynamic";
 
+type TeacherViewMode = "activos" | "inactivos" | "todos";
+
+function buildDocentesHref({
+  careerId,
+  view,
+}: {
+  careerId?: string;
+  view: TeacherViewMode;
+}) {
+  const params = new URLSearchParams();
+
+  if (careerId) {
+    params.set("career", careerId);
+  }
+
+  if (view !== "activos") {
+    params.set("view", view);
+  }
+
+  const query = params.toString();
+  return query ? `/admin/docentes?${query}` : "/admin/docentes";
+}
+
 export default async function DocentesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ career?: string; success?: string }>;
+  searchParams: Promise<{ career?: string; success?: string; view?: string }>;
 }) {
-  const { career: careerId, success } = await searchParams;
+  const { career: careerId, success, view } = await searchParams;
+  const currentView: TeacherViewMode =
+    view === "inactivos" || view === "todos" ? view : "activos";
 
-  const teachers = await prisma.teacher.findMany({
-    where: careerId ? { careerId } : undefined,
-    orderBy: [{ lastName: "asc" }, { name: "asc" }],
-    include: {
-      career: true,
-      user: { select: { email: true } },
-      groupSubjects: {
+  const teacherWhere = {
+    ...(careerId ? { careerId } : {}),
+    ...(currentView === "todos"
+      ? {}
+      : currentView === "activos"
+        ? { isActive: true }
+        : { isActive: false }),
+  };
+
+  const [teachers, activeCareer, activeCount, inactiveCount, totalCount] =
+    await Promise.all([
+      prisma.teacher.findMany({
+        where: teacherWhere,
+        orderBy: [{ lastName: "asc" }, { name: "asc" }],
         include: {
-          group: true,
-          subject: true,
+          career: true,
+          user: { select: { email: true } },
+          groupSubjects: {
+            include: {
+              group: true,
+              subject: true,
+            },
+          },
         },
-      },
-    },
-  });
-
-  const activeCareer = careerId
-    ? await prisma.career.findUnique({
-        where: { id: careerId },
-        select: { name: true, code: true },
-      })
-    : null;
+      }),
+      careerId
+        ? prisma.career.findUnique({
+            where: { id: careerId },
+            select: { name: true, code: true },
+          })
+        : Promise.resolve(null),
+      prisma.teacher.count({
+        where: {
+          ...(careerId ? { careerId } : {}),
+          isActive: true,
+        },
+      }),
+      prisma.teacher.count({
+        where: {
+          ...(careerId ? { careerId } : {}),
+          isActive: false,
+        },
+      }),
+      prisma.teacher.count({
+        where: careerId ? { careerId } : undefined,
+      }),
+    ]);
 
   const teacherRows = teachers.map((teacher) => {
     const groupMap = new Map<string, { id: string; name: string; period: string }>();
@@ -82,10 +133,10 @@ export default async function DocentesPage({
       <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-black text-slate-800">
-            Gestion de <span className="text-blue-600">Docentes</span>
+            Gestión de <span className="text-blue-600">Docentes</span>
           </h1>
           <p className="mt-2 text-gray-500">
-            Catalogo docente sincronizado desde el sistema de horarios.
+            Catálogo docente sincronizado desde el sistema de horarios.
           </p>
         </div>
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
@@ -100,9 +151,71 @@ export default async function DocentesPage({
       </div>
 
       <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm text-blue-800 shadow-sm">
-        Los docentes ya no deben capturarse ni importarse manualmente aqui. Las
-        altas, bajas y cambios academicos se hacen en Horarios y despues se
+        Los docentes ya no deben capturarse ni importarse manualmente aquí. Las
+        altas, bajas y cambios académicos se hacen en Horarios y después se
         reflejan con <strong>Sincronizar academia</strong>.
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <Link
+          href={buildDocentesHref({ careerId, view: "activos" })}
+          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition ${
+            currentView === "activos"
+              ? "bg-blue-700 text-white shadow-lg shadow-blue-700/20"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          Activos
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs ${
+              currentView === "activos"
+                ? "bg-white/15 text-white"
+                : "bg-white text-slate-600"
+            }`}
+          >
+            {activeCount}
+          </span>
+        </Link>
+
+        <Link
+          href={buildDocentesHref({ careerId, view: "inactivos" })}
+          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition ${
+            currentView === "inactivos"
+              ? "bg-slate-700 text-white shadow-lg shadow-slate-700/20"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          Inactivos
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs ${
+              currentView === "inactivos"
+                ? "bg-white/15 text-white"
+                : "bg-white text-slate-600"
+            }`}
+          >
+            {inactiveCount}
+          </span>
+        </Link>
+
+        <Link
+          href={buildDocentesHref({ careerId, view: "todos" })}
+          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition ${
+            currentView === "todos"
+              ? "bg-indigo-700 text-white shadow-lg shadow-indigo-700/20"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          Todos
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs ${
+              currentView === "todos"
+                ? "bg-white/15 text-white"
+                : "bg-white text-slate-600"
+            }`}
+          >
+            {totalCount}
+          </span>
+        </Link>
       </div>
 
       {activeCareer && (
@@ -115,7 +228,7 @@ export default async function DocentesPage({
             </strong>
           </span>
           <Link
-            href="/admin/docentes"
+            href={buildDocentesHref({ view: currentView })}
             className="ml-auto whitespace-nowrap font-bold text-blue-600 underline underline-offset-2 hover:text-blue-800"
           >
             Ver todos
@@ -125,9 +238,24 @@ export default async function DocentesPage({
 
       {success === "actualizado" && (
         <div className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700">
-          El docente se actualizo correctamente.
+          El docente se actualizó correctamente.
         </div>
       )}
+
+      <div className="mb-6 rounded-2xl border border-slate-100 bg-white px-5 py-4 text-sm text-slate-600 shadow-sm">
+        <span className="font-bold text-slate-800">
+          {currentView === "activos"
+            ? "Vista actual: docentes activos."
+            : currentView === "inactivos"
+              ? "Vista actual: docentes inactivos."
+              : "Vista actual: todos los docentes."}
+        </span>{" "}
+        {currentView === "activos"
+          ? "Aquí verás los docentes disponibles para operar en el catálogo actual."
+          : currentView === "inactivos"
+            ? "Esta vista te ayuda a revisar bajas o registros históricos que ya no están operando."
+            : "Puedes revisar en un solo listado todo el catálogo docente sincronizado."}
+      </div>
 
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         <div className="overflow-x-auto">
@@ -162,12 +290,16 @@ export default async function DocentesPage({
                 <tr>
                   <td colSpan={7} className="py-16 text-center font-medium text-gray-400">
                     <UserCog className="mx-auto mb-2 h-10 w-10 text-slate-300" />
-                    No hay docentes sincronizados aun.{" "}
+                    {currentView === "activos"
+                      ? "No hay docentes activos sincronizados aún. "
+                      : currentView === "inactivos"
+                        ? "No hay docentes inactivos para mostrar. "
+                        : "No hay docentes sincronizados aún. "}
                     <Link
                       href="/admin/docentes/sincronizar"
                       className="font-semibold text-blue-600 hover:underline"
                     >
-                      Ejecuta la sincronizacion academica
+                      Ejecuta la sincronización académica
                     </Link>
                   </td>
                 </tr>

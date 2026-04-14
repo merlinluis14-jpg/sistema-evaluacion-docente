@@ -16,10 +16,10 @@ export default async function EditarCarreraPage() {
 
       <div>
         <h1 className="text-3xl font-black text-slate-800">
-          Edicion de <span className="text-blue-600">Carreras</span>
+          Edición de <span className="text-blue-600">Carreras</span>
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          La configuracion de carreras ya no se modifica localmente en este sistema.
+          La configuración de carreras ya no se modifica localmente en este sistema.
         </p>
       </div>
 
@@ -29,8 +29,8 @@ export default async function EditarCarreraPage() {
           <p className="text-sm font-bold">Origen del dato</p>
         </div>
         <p className="mt-3 text-sm leading-6 text-blue-700/90">
-          El nombre, codigo y vigencia de cada carrera deben administrarse en Horarios. Despues de
-          hacer cambios ahi, vuelve a sincronizar la academia para reflejarlos aqui.
+          El nombre, código y vigencia de cada carrera deben administrarse en Horarios. Después de
+          hacer cambios ahí, vuelve a sincronizar la academia para reflejarlos aquí.
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export default async function EditarCarreraPage() {
           href="/admin/carreras"
           className="inline-flex items-center justify-center rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-200"
         >
-          Volver al catalogo
+          Volver al catálogo
         </Link>
       </div>
     </div>

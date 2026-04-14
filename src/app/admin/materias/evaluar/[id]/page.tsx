@@ -45,11 +45,11 @@ export default async function EvaluatePage({
             <CalendarDays size={48} />
           </div>
           <h2 className="mb-2 text-2xl font-bold text-amber-700">
-            Sin periodo activo
+            Sin período activo
           </h2>
           <p className="mb-6 text-gray-500">
-            No hay un periodo de evaluacion activo. Solicita al administrador
-            que active el periodo correspondiente.
+            No hay un período de evaluación activo. Solicita al administrador
+            que active el período correspondiente.
           </p>
           <Link
             href="/admin/materias"
@@ -138,7 +138,7 @@ export default async function EvaluatePage({
         <div className="mx-auto max-w-3xl space-y-6">
           <div className="space-y-1 text-center">
             <h1 className="text-4xl font-extrabold tracking-tight text-blue-900">
-              Evaluacion Docente
+              Evaluación Docente
             </h1>
             <p className="text-gray-500">
               Instrumento FDA-24.5 · {activePeriod.name}
@@ -150,11 +150,11 @@ export default async function EvaluatePage({
               <Users size={42} />
             </div>
             <h2 className="text-2xl font-bold text-slate-800">
-              Esta materia no tiene asignaciones activas para el periodo actual
+              Esta materia no tiene asignaciones activas para el período actual
             </h2>
             <p className="text-sm text-slate-500">
               Primero sincroniza grupos y asignaciones desde el sistema de
-              horarios para evaluar esta materia dentro del periodo activo.
+              horarios para evaluar esta materia dentro del período activo.
             </p>
             <Link
               href="/admin/materias"
@@ -174,7 +174,7 @@ export default async function EvaluatePage({
         <div className="mx-auto max-w-3xl space-y-6">
           <div className="space-y-1 text-center">
             <h1 className="text-4xl font-extrabold tracking-tight text-blue-900">
-              Evaluacion Docente
+              Evaluación Docente
             </h1>
             <p className="text-gray-500">
               Instrumento FDA-24.5 · {activePeriod.name}
@@ -189,8 +189,8 @@ export default async function EvaluatePage({
               <h2 className="text-xl font-bold text-gray-900">{subject.name}</h2>
             </div>
             <p className="text-sm text-slate-600">
-              Esta materia aparece en multiples grupos durante el periodo
-              activo. Elige la asignacion exacta para continuar.
+              Esta materia aparece en múltiples grupos durante el período
+              activo. Elige la asignación exacta para continuar.
             </p>
           </div>
 
@@ -232,7 +232,7 @@ export default async function EvaluatePage({
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="space-y-1 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-blue-900">
-            Evaluacion Docente
+            Evaluación Docente
           </h1>
           <p className="text-gray-500">
             Instrumento FDA-24.5 · {activePeriod.name}

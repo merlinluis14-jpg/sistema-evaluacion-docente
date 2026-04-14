@@ -21,7 +21,7 @@ export default function ImportarMateriasPage() {
             Importar <span className="text-blue-600">Materias</span>
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Esta importacion manual ya no forma parte del flujo operativo.
+            Esta importación manual ya no forma parte del flujo operativo.
           </p>
         </div>
 
@@ -29,18 +29,18 @@ export default function ImportarMateriasPage() {
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
           <div className="space-y-2 text-sm text-amber-900">
             <p className="font-bold">
-              El catalogo de materias ahora se alimenta desde el sistema de horarios.
+              El catálogo de materias ahora se alimenta desde el sistema de horarios.
             </p>
             <p>
-              Para mantener la relacion real entre materia, docente y grupo, las
-              materias deben capturarse en Horarios y reflejarse aqui mediante la
-              sincronizacion academica.
+              Para mantener la relación real entre materia, docente y grupo, las
+              materias deben capturarse en Horarios y reflejarse aquí mediante la
+              sincronización académica.
             </p>
           </div>
         </div>
 
         <div className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-600">
-          Flujo recomendado: primero actualiza el catalogo en Horarios, luego
+          Flujo recomendado: primero actualiza el catálogo en Horarios, luego
           sincroniza academia para traer materias, grupos y asignaciones exactas
           a este sistema.
         </div>
@@ -56,7 +56,7 @@ export default function ImportarMateriasPage() {
             href="/admin/materias"
             className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
           >
-            Volver al catalogo
+            Volver al catálogo
           </Link>
         </div>
       </div>

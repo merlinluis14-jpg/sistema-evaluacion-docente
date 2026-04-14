@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+import { getUptexLogoDataUrl, getUptexLogoDimensions } from "@/lib/pdf/uptexLogo";
 import type { TheoryPracticeSummary } from "@/lib/reportes";
 
 type DetailItem = { label: string; valor: number; max: number };
@@ -16,6 +17,8 @@ type Props = {
   evaluacionesCount: number;
   promedios: { fac: number; hab: number; med: number; auto: number; global: number };
   nivel: string;
+  evaluatorName?: string | null;
+  evaluatorComments?: string | null;
   facilitador: DetailItem[];
   habilidades: DetailItem[];
   medios: DetailItem[];
@@ -29,6 +32,8 @@ export default function ExportTeacherPdf({
   evaluacionesCount,
   promedios,
   nivel,
+  evaluatorName,
+  evaluatorComments,
   facilitador,
   habilidades,
   medios,
@@ -37,13 +42,27 @@ export default function ExportTeacherPdf({
 }: Props) {
   const [loading, setLoading] = useState(false);
 
-  const exportPdf = () => {
+  const exportPdf = async () => {
     setLoading(true);
 
     try {
       const doc = new jsPDF();
       const greenTheme: [number, number, number] = [15, 157, 88];
       const grayTheme: [number, number, number] = [160, 160, 160];
+      const evaluationOwner = evaluatorName?.trim() || "Pendiente de captura";
+      const careerHeadComments =
+        evaluatorComments?.trim() || "Sin comentarios registrados por coordinación.";
+      const logoDataUrl = await getUptexLogoDataUrl();
+      const logoSize = getUptexLogoDimensions(38);
+
+      doc.addImage(
+        logoDataUrl,
+        "PNG",
+        (doc.internal.pageSize.getWidth() - logoSize.width) / 2,
+        10,
+        logoSize.width,
+        logoSize.height,
+      );
 
       autoTable(doc, {
         body: [["Evaluación de Desempeño"]],
@@ -55,7 +74,7 @@ export default function ExportTeacherPdf({
           halign: "center",
           fontSize: 14,
         },
-        margin: { top: 15, left: 15, right: 15 },
+        margin: { top: 38, left: 15, right: 15 },
       });
 
       autoTable(doc, {
@@ -99,7 +118,7 @@ export default function ExportTeacherPdf({
 
         const tableData = data.map((item) => [item.label, `${item.valor} / ${maxScale}`]);
         autoTable(doc, {
-          head: [["FACTOR / DEFINICION", "CALIF."]],
+          head: [["FACTOR / DEFINICIÓN", "CALIF."]],
           body: tableData,
           theme: "grid",
           styles: { fontSize: 8, cellPadding: 2, lineColor: [200, 200, 200], lineWidth: 0.1 },
@@ -138,7 +157,7 @@ export default function ExportTeacherPdf({
           `${item.percentage.toFixed(2)}%`,
         ]),
         foot: [[
-          "Percepcion predominante",
+          "Percepción predominante",
           teoriaPractica.predominant?.label ?? "Sin respuestas",
           `${teoriaPractica.totalResponses} respuestas válidas`,
         ]],
@@ -150,6 +169,35 @@ export default function ExportTeacherPdf({
       });
 
       addSection("Sección V. Autoevaluación del Alumno", autoevaluacion, 5);
+
+      autoTable(doc, {
+        body: [["Observaciones de jefatura / coordinación"]],
+        theme: "grid",
+        styles: {
+          fillColor: [230, 230, 230],
+          textColor: [50, 50, 50],
+          fontStyle: "bold",
+          halign: "center",
+          fontSize: 9,
+          lineColor: [200, 200, 200],
+          lineWidth: 0.1,
+        },
+        margin: { top: 5, left: 15, right: 15 },
+      });
+
+      autoTable(doc, {
+        body: [
+          ["Evaluador(a):", evaluationOwner],
+          ["Comentarios:", careerHeadComments],
+        ],
+        theme: "grid",
+        styles: { fontSize: 8, cellPadding: 2, lineColor: [200, 200, 200], lineWidth: 0.1 },
+        columnStyles: {
+          0: { fontStyle: "bold", fillColor: [245, 245, 245], cellWidth: 40 },
+          1: { cellWidth: 140 },
+        },
+        margin: { top: 0, left: 15, right: 15 },
+      });
 
       const finalY = ((doc as PdfWithAutoTable).lastAutoTable?.finalY ?? 180) + 20;
       doc.setFontSize(8);

@@ -269,7 +269,7 @@ export default async function AlumnoPage({
                 <h1 className="text-2xl font-black text-slate-800 sm:text-3xl">Mis Materias</h1>
                 <p className="mt-1 text-sm text-slate-500">
                   {student
-                    ? `${student.name} ${student.lastName} · ${formatAcademicText(student.career.name)}`
+                    ? `${student.name} ${student.lastName} - ${formatAcademicText(student.career.name)}`
                     : "Perfil de alumno sin datos disponibles"}
                 </p>
 
@@ -403,7 +403,7 @@ export default async function AlumnoPage({
               href="/alumno/cambiar-contrasena"
               className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-amber-700"
             >
-              Cambiar Contraseña
+              Cambiar contraseña
             </Link>
           </div>
         </section>
@@ -423,8 +423,8 @@ export default async function AlumnoPage({
           <p className="font-bold text-slate-500">No tienes materias asignadas</p>
           <p className="mt-1 text-sm text-slate-400">
             {groupNames.length > 0
-              ? `Tu grupo actual (${groupNames.join(", ")}) aún no tiene materias enlazadas.`
-              : "Contacta a tu coordinador para ser asignado a un grupo."}
+              ? `Tu grupo actual (${groupNames.join(", ")}) aún no tiene materias publicadas desde Horarios. Solicita a tu jefatura revisar la sincronización académica.`
+              : "Contacta a tu coordinación para que te asignen un grupo en Horarios."}
           </p>
         </div>
       )}
@@ -435,7 +435,7 @@ export default async function AlumnoPage({
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
                 <BookOpen className="h-3.5 w-3.5 text-blue-600" />
-                Materias Disponibles
+                Materias disponibles
               </div>
               <h2 className="mt-3 text-xl font-black text-slate-800">
                 Evalúa a tus docentes del período actual
@@ -466,7 +466,7 @@ export default async function AlumnoPage({
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
-                        {subject.career.code} · C{subject.cuatrimestre}
+                        {subject.career.code} - C{subject.cuatrimestre}
                       </span>
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-black uppercase tracking-wide ${
@@ -508,7 +508,7 @@ export default async function AlumnoPage({
                       <p className="min-w-0 break-words text-sm font-semibold text-slate-700">
                         {subject.teacher
                           ? `${subject.teacher.name} ${subject.teacher.lastName}`
-                          : "Pendiente de asignacion en horarios"}
+                          : "Pendiente de asignación en Horarios"}
                       </p>
                     </div>
                   </div>

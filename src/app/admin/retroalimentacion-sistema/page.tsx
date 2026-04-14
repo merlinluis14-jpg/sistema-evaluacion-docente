@@ -135,21 +135,21 @@ export default async function RetroalimentacionSistemaPage({
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
               <MessageSquare className="h-3.5 w-3.5 text-blue-600" />
-              Desempeno del sistema
+              Desempeño del sistema
             </div>
             <h1 className="mt-4 text-3xl font-black text-slate-800">
-              Cuestionario de <span className="text-blue-600">Satisfaccion del Sistema</span>
+              Cuestionario de <span className="text-blue-600">Satisfacción del Sistema</span>
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
-              Este modulo concentra la percepcion del alumno sobre la utilidad del sistema para
+              Este módulo concentra la percepción del alumno sobre la utilidad del sistema para
               evaluar a sus docentes. Sus resultados son independientes del FDA-24.5 y permiten
-              medir el desempeno general de la plataforma.
+              medir el desempeño general de la plataforma.
             </p>
           </div>
 
           <form className="rounded-3xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
             <label htmlFor="periodId" className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-              Periodo
+              Período
             </label>
             <div className="mt-3 flex flex-col gap-3 sm:flex-row">
               <select
@@ -178,9 +178,9 @@ export default async function RetroalimentacionSistemaPage({
 
       {!selectedPeriod ? (
         <div className="rounded-3xl border border-amber-200 bg-amber-50 p-8 text-center shadow-sm">
-          <p className="font-black text-amber-800">No hay periodos registrados</p>
+          <p className="font-black text-amber-800">No hay períodos registrados</p>
           <p className="mt-2 text-sm text-amber-700">
-            Crea o activa un periodo para habilitar la encuesta final del sistema.
+            Crea o activa un período para habilitar la encuesta final del sistema.
           </p>
         </div>
       ) : (
@@ -192,7 +192,7 @@ export default async function RetroalimentacionSistemaPage({
                 <span className="text-[11px] font-black uppercase tracking-wide">Respuestas</span>
               </div>
               <p className="mt-3 text-3xl font-black text-slate-800">{totalResponses}</p>
-              <p className="mt-1 text-sm text-slate-500">Encuestas registradas en el periodo.</p>
+              <p className="mt-1 text-sm text-slate-500">Encuestas registradas en el período.</p>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -267,7 +267,7 @@ export default async function RetroalimentacionSistemaPage({
                 </div>
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                   <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">
-                    Periodo analizado
+                    Período analizado
                   </p>
                   <p className="mt-2 text-sm font-semibold text-slate-700">{selectedPeriod.name}</p>
                 </div>
@@ -277,16 +277,16 @@ export default async function RetroalimentacionSistemaPage({
             <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="flex items-center gap-2 text-slate-400">
                 <Calendar className="h-4 w-4 text-blue-600" />
-                <span className="text-[11px] font-black uppercase tracking-wide">Interpretacion</span>
+                <span className="text-[11px] font-black uppercase tracking-wide">Interpretación</span>
               </div>
               <div className="mt-4 space-y-3 text-sm leading-relaxed text-slate-600">
                 <p>
                   Este tablero no altera los reportes institucionales. Su objetivo es concentrar la
-                  percepcion del alumno sobre la usabilidad y el desempeno del sistema.
+                  percepción del alumno sobre la usabilidad y el desempeño del sistema.
                 </p>
                 <p>
                   La cobertura se calcula sobre alumnos que ya terminaron todas sus evaluaciones del
-                  periodo y, por lo tanto, eran elegibles para responder la encuesta final.
+                  período y, por lo tanto, eran elegibles para responder la encuesta final.
                 </p>
               </div>
             </div>
@@ -294,10 +294,10 @@ export default async function RetroalimentacionSistemaPage({
 
           {totalResponses === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-              <p className="text-lg font-black text-slate-700">Aun no hay respuestas registradas</p>
+              <p className="text-lg font-black text-slate-700">Aún no hay respuestas registradas</p>
               <p className="mt-2 text-sm text-slate-500">
                 Cuando los alumnos completen sus evaluaciones docentes y respondan la encuesta final,
-                aqui veras los resultados consolidados para evaluar el desempeno del sistema.
+                aquí verás los resultados consolidados para evaluar el desempeño del sistema.
               </p>
             </div>
           ) : (

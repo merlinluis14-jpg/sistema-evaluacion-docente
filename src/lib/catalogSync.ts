@@ -9,6 +9,11 @@ type CareerCatalogSyncParams = {
   importedCareerExternalIds: number[];
 };
 
+type CareerCatalogCleanupResult = {
+  deactivatedCount: number;
+  removedCount: number;
+};
+
 type SubjectCatalogSyncParams = {
   careerIds: string[];
   importedSubjectKeys: string[];
@@ -67,32 +72,79 @@ export async function syncTeacherCatalogByCareer({
 
 export async function syncCareerCatalogByExternalIds({
   importedCareerExternalIds,
-}: CareerCatalogSyncParams) {
+}: CareerCatalogSyncParams): Promise<CareerCatalogCleanupResult> {
   if (importedCareerExternalIds.length === 0) {
-    return 0;
+    return {
+      deactivatedCount: 0,
+      removedCount: 0,
+    };
   }
 
-  const careersToDeactivate = await prisma.career.findMany({
+  const staleCareers = await prisma.career.findMany({
     where: {
-      isActive: true,
       OR: [
         { externalId: null },
         { externalId: { notIn: importedCareerExternalIds } },
       ],
     },
-    select: { id: true },
+    select: {
+      id: true,
+      isActive: true,
+      _count: {
+        select: {
+          teachers: true,
+          students: true,
+          groups: true,
+          subjects: true,
+          careerHeadEvaluations: true,
+        },
+      },
+    },
   });
 
-  if (careersToDeactivate.length === 0) {
-    return 0;
+  if (staleCareers.length === 0) {
+    return {
+      deactivatedCount: 0,
+      removedCount: 0,
+    };
   }
 
-  await prisma.career.updateMany({
-    where: { id: { in: careersToDeactivate.map((career) => career.id) } },
-    data: { isActive: false },
-  });
+  const removableCareerIds = staleCareers
+    .filter(
+      (career) =>
+        career._count.teachers === 0 &&
+        career._count.students === 0 &&
+        career._count.groups === 0 &&
+        career._count.subjects === 0 &&
+        career._count.careerHeadEvaluations === 0,
+    )
+    .map((career) => career.id);
+  const removableCareerIdSet = new Set(removableCareerIds);
 
-  return careersToDeactivate.length;
+  const careerIdsToDeactivate = staleCareers
+    .filter(
+      (career) =>
+        career.isActive && !removableCareerIdSet.has(career.id),
+    )
+    .map((career) => career.id);
+
+  if (careerIdsToDeactivate.length > 0) {
+    await prisma.career.updateMany({
+      where: { id: { in: careerIdsToDeactivate } },
+      data: { isActive: false },
+    });
+  }
+
+  if (removableCareerIds.length > 0) {
+    await prisma.career.deleteMany({
+      where: { id: { in: removableCareerIds } },
+    });
+  }
+
+  return {
+    deactivatedCount: careerIdsToDeactivate.length,
+    removedCount: removableCareerIds.length,
+  };
 }
 
 export async function syncSubjectCatalogByCareer({

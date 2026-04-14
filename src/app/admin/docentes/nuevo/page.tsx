@@ -32,16 +32,16 @@ export default function NuevoDocentePage() {
               Los docentes deben darse de alta en el sistema de Horarios.
             </p>
             <p>
-              Para evitar duplicados y mantener la relacion real con materias y
-              grupos, las altas, bajas y cambios del catalogo docente se hacen en
-              Horarios y despues se sincronizan aqui.
+              Para evitar duplicados y mantener la relación real con materias y
+              grupos, las altas, bajas y cambios del catálogo docente se hacen en
+              Horarios y después se sincronizan aquí.
             </p>
           </div>
         </div>
 
         <div className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-600">
           Si necesitas que un docente aparezca en este sistema, primero
-          registralo en Horarios y luego ejecuta la sincronizacion academica.
+          regístralo en Horarios y luego ejecuta la sincronización académica.
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -55,7 +55,7 @@ export default function NuevoDocentePage() {
             href="/admin/docentes"
             className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
           >
-            Volver al catalogo
+            Volver al catálogo
           </Link>
         </div>
       </div>

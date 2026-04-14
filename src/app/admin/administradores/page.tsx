@@ -122,6 +122,14 @@ export default async function AdministradoresPage() {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 shadow-sm">
+        <p className="text-sm font-black text-blue-800">Uso recomendado</p>
+        <p className="mt-1 text-sm leading-6 text-blue-700">
+          Crea cuentas administrativas solo para personal autorizado. Si una cuenta operara por
+          carreras, asigna un alcance claro para evitar traslapes entre coordinaciones.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 gap-6 xl:items-start xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1.08fr)_420px]">
         <CreateAdminForm availableCareers={careerOptions} />
 
@@ -147,6 +155,9 @@ export default async function AdministradoresPage() {
             <div className="px-6 py-14 text-center">
               <UserCog className="mx-auto mb-3 h-10 w-10 text-slate-300" />
               <p className="font-bold text-slate-500">No hay cuentas administrativas registradas</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Usa el formulario de esta pagina para registrar la primera cuenta adicional.
+              </p>
             </div>
           ) : (
             <>

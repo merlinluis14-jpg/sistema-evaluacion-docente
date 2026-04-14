@@ -72,10 +72,10 @@ export default async function LogsPage({
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">
-                        Registro de <span className="text-blue-600">Acciones</span>
+                        Bitácora de <span className="text-blue-600">Actividad</span>
                     </h1>
                     <p className="mt-1 text-sm text-slate-400">
-                        Historial de operaciones y accesos administrativos - RF12
+                        Consulta operaciones y accesos administrativos recientes.
                     </p>
                 </div>
                 <div className="flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
@@ -85,7 +85,12 @@ export default async function LogsPage({
             </div>
 
             <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                <form className="flex flex-wrap items-end gap-3">
+                <form className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <p className="text-xs text-slate-400">
+                            Puedes revisar hasta 100 movimientos recientes y filtrar por módulo.
+                        </p>
+                    </div>
                     <div>
                         <label className="mb-1.5 block text-xs font-bold text-slate-500">
                             Filtrar por entidad
@@ -159,6 +164,9 @@ export default async function LogsPage({
                         <p className="font-bold text-slate-500">No hay registros de acciones</p>
                         <p className="mt-1 text-sm text-slate-400">
                             Las acciones y accesos administrativos aparecerán aquí automáticamente
+                        </p>
+                        <p className="mt-1 text-sm text-slate-400">
+                            Cuando el equipo empiece a operar, podrás revisar cambios, accesos y sincronizaciones desde esta bitácora.
                         </p>
                     </div>
                 ) : (

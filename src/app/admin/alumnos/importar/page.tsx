@@ -38,15 +38,15 @@ export default async function ImportarAlumnosPage() {
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
           <div>
             <p className="font-bold text-amber-800">
-              No hay un periodo academico activo
+              No hay un período académico activo
             </p>
             <p className="mt-1 text-sm text-amber-700">
-              Activa un periodo desde{" "}
+              Activa un período desde{" "}
               <Link
                 href="/admin/periodos"
                 className="font-semibold underline hover:text-amber-900"
               >
-                Gestion de Periodos
+                Gestión de Períodos
               </Link>{" "}
               antes de importar alumnos.
             </p>

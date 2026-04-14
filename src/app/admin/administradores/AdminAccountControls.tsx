@@ -59,6 +59,10 @@ export default function AdminAccountControls({
   const canReset = isActive;
   const canDeactivate = isActive && !isCurrent && !isLastActive;
   const canActivate = !isActive;
+  const assignedCareerSummary =
+    assignedCareerIds.length === 1
+      ? "1 carrera asignada."
+      : `${assignedCareerIds.length} carreras asignadas.`;
 
   function closeModal() {
     if (isPending) return;
@@ -194,10 +198,16 @@ export default function AdminAccountControls({
         )}
       </div>
 
+      <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-500">
+        {isGlobalScope
+          ? "Esta cuenta tiene acceso completo a todo el panel administrativo."
+          : `Esta cuenta opera sobre ${assignedCareerSummary}`}
+      </div>
+
       {!canDeactivate && isActive ? (
         <p className="mt-2 text-[11px] font-medium text-slate-400">
           {isCurrent
-            ? "Tu cuenta actual no puede desactivarse aquí"
+            ? "Tu cuenta actual no puede desactivarse aqui"
             : isLastActive
               ? "No se puede desactivar la última cuenta activa"
               : ""}
@@ -217,12 +227,12 @@ export default function AdminAccountControls({
               <div>
                 <h3 className="text-base font-bold text-slate-800 sm:text-lg">
                   {mode === "scope"
-                    ? "Configurar alcance del admin"
+                    ? "Configurar alcance administrativo"
                     : mode === "reset"
-                      ? "Restablecer contraseña admin"
+                      ? "Restablecer contraseña"
                       : mode === "activate"
-                        ? "Activar admin"
-                        : "Desactivar admin"}
+                        ? "Activar cuenta"
+                        : "Desactivar cuenta"}
                 </h3>
                 <p className="mt-1 text-xs text-slate-400">{adminLabel}</p>
               </div>

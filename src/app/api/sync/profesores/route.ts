@@ -229,11 +229,14 @@ export async function POST(req: NextRequest) {
     let groupDeactivatedCount = 0;
     let removedGroupAssignments = 0;
     let careerDeactivatedCount = 0;
+    let careerRemovedCount = 0;
 
     if (syncCatalog) {
-      careerDeactivatedCount = await syncCareerCatalogByExternalIds({
+      const careerCatalogCleanup = await syncCareerCatalogByExternalIds({
         importedCareerExternalIds: careerResult.importedCareerExternalIds,
       });
+      careerDeactivatedCount = careerCatalogCleanup.deactivatedCount;
+      careerRemovedCount = careerCatalogCleanup.removedCount;
 
       const careerIdsForSync = [...new Set([
         ...teacherResult.affectedCareerIds,
@@ -272,7 +275,7 @@ export async function POST(req: NextRequest) {
 
     if (syncCatalog) {
       warnings.push(
-        "La sincronizacion completa desactiva carreras, docentes, materias y grupos locales que ya no vienen del sistema externo. Las asignaciones de grupo obsoletas administradas por el externo se eliminan para reflejar el catalogo maestro.",
+        "La sincronizacion completa desactiva o retira carreras, docentes, materias y grupos locales que ya no vienen del sistema externo. Las asignaciones de grupo obsoletas administradas por el externo se eliminan para reflejar el catalogo maestro.",
       );
     }
 
@@ -284,6 +287,7 @@ export async function POST(req: NextRequest) {
           `Sincronizacion academica con Gestor de Horarios para el periodo ${activePeriod.name}. ` +
           `Carreras: ${careerResult.success}/${careerResult.total}. ` +
           `Carreras desactivadas: ${careerDeactivatedCount}. ` +
+          `Carreras retiradas: ${careerRemovedCount}. ` +
           `Docentes: ${teacherResult.success}/${teacherResult.total}. ` +
           `Materias: ${subjectResult.success}/${subjectResult.total}. ` +
           `Grupos: ${groupResult.success}/${groupResult.total}. ` +
@@ -310,6 +314,7 @@ export async function POST(req: NextRequest) {
       careers: {
         ...toSyncEntityResult(careerResult.total, careerResult.success),
         deactivatedCount: careerDeactivatedCount,
+        removedCount: careerRemovedCount,
       },
       teachers: {
         ...toSyncEntityResult(teacherResult.total, teacherResult.success),

@@ -5,17 +5,17 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://evaluacion-docenteuptex.org"),
-  title: "Sistema de Evaluacion Docente UPTex",
-  description: "Plataforma institucional para la evaluacion docente de UPTex",
+  title: "Sistema de Evaluación Docente UPTex",
+  description: "Plataforma institucional para la evaluación docente de UPTex",
   icons: {
     icon: "/uptexlogo.png",
     shortcut: "/uptexlogo.png",
     apple: "/uptexlogo.png",
   },
   openGraph: {
-    title: "Sistema de Evaluacion Docente UPTex",
-    description: "Plataforma institucional para la evaluacion docente de UPTex",
-    siteName: "UPTex Evaluacion Docente",
+    title: "Sistema de Evaluación Docente UPTex",
+    description: "Plataforma institucional para la evaluación docente de UPTex",
+    siteName: "UPTex Evaluación Docente",
     type: "website",
     locale: "es_MX",
     images: [
@@ -29,8 +29,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Sistema de Evaluacion Docente UPTex",
-    description: "Plataforma institucional para la evaluacion docente de UPTex",
+    title: "Sistema de Evaluación Docente UPTex",
+    description: "Plataforma institucional para la evaluación docente de UPTex",
     images: ["/uptexlogo.png"],
   },
 };

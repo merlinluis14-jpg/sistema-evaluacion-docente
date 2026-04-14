@@ -45,12 +45,12 @@ async function validateAdminReauthentication(currentPassword: string) {
   }
 
   if (!currentPassword) {
-    return { error: "Ingresa tu contrasena actual para autorizar la accion" as const };
+    return { error: "Ingresa tu contraseña actual para autorizar la acción" as const };
   }
 
   const passwordMatches = await bcrypt.compare(currentPassword, currentAdmin.password);
   if (!passwordMatches) {
-    return { error: "La contrasena actual del administrador no es correcta" as const };
+    return { error: "La contraseña actual del administrador no es correcta" as const };
   }
 
   return { currentAdmin };
@@ -88,7 +88,7 @@ async function validateCareerAssignments(careerIds: string[], options?: CareerAs
   });
 
   if (careers.length !== careerIds.length) {
-    throw new Error("Selecciona solo carreras activas y validas para la cuenta administrativa.");
+    throw new Error("Selecciona solo carreras activas y válidas para la cuenta administrativa.");
   }
 
   const occupiedAdmins = await prisma.user.findMany({
@@ -138,7 +138,7 @@ async function validateCareerAssignments(careerIds: string[], options?: CareerAs
       .map(([code, adminLabel]) => `${code} (${adminLabel})`);
 
     throw new Error(
-      `Las siguientes carreras ya estan asignadas a otras jefaturas activas: ${occupiedDetails.join(", ")}.`,
+      `Las siguientes carreras ya están asignadas a otras jefaturas activas: ${occupiedDetails.join(", ")}.`,
     );
   }
 
@@ -177,15 +177,15 @@ export async function createAdminAccount(formData: FormData) {
   }
 
   if (!email.includes("@")) {
-    return { success: false, error: "Ingresa un correo valido para la cuenta administrativa" };
+    return { success: false, error: "Ingresa un correo válido para la cuenta administrativa" };
   }
 
   if (password.length < 8) {
-    return { success: false, error: "La contrasena del nuevo admin debe tener al menos 8 caracteres" };
+    return { success: false, error: "La contraseña del nuevo admin debe tener al menos 8 caracteres" };
   }
 
   if (password !== confirmPassword) {
-    return { success: false, error: "La confirmacion de contrasena no coincide" };
+    return { success: false, error: "La confirmación de contraseña no coincide" };
   }
 
   if (scopeMode === "assigned" && selectedCareerIds.length === 0) {
@@ -297,7 +297,7 @@ export async function updateAdminCareerScope(input: {
   if (targetAdmin.isActive && targetAdmin.adminHasGlobalScope && input.scopeMode !== "global") {
     const remainingGlobalAdmins = await countActiveGlobalAdmins(targetAdmin.id);
     if (remainingGlobalAdmins <= 0) {
-      return { success: false, error: "No se puede quitar el alcance global a la ultima cuenta principal activa" };
+    return { success: false, error: "No se puede quitar el alcance global a la última cuenta principal activa" };
     }
   }
 
@@ -361,15 +361,15 @@ export async function resetAdminPassword(input: {
   const confirmPassword = input.confirmPassword ?? "";
 
   if (!input.targetUserId || !newPassword || !confirmPassword) {
-    return { success: false, error: "Completa todos los campos para restablecer la contrasena" };
+    return { success: false, error: "Completa todos los campos para restablecer la contraseña" };
   }
 
   if (newPassword.length < 8) {
-    return { success: false, error: "La nueva contrasena debe tener al menos 8 caracteres" };
+    return { success: false, error: "La nueva contraseña debe tener al menos 8 caracteres" };
   }
 
   if (newPassword !== confirmPassword) {
-    return { success: false, error: "La confirmacion de la nueva contrasena no coincide" };
+    return { success: false, error: "La confirmación de la nueva contraseña no coincide" };
   }
 
   const targetAdmin = await prisma.user.findUnique({
@@ -382,7 +382,7 @@ export async function resetAdminPassword(input: {
   }
 
   if (!targetAdmin.isActive) {
-    return { success: false, error: "No se puede restablecer la contrasena de una cuenta admin inactiva" };
+    return { success: false, error: "No se puede restablecer la contraseña de una cuenta admin inactiva" };
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -396,7 +396,7 @@ export async function resetAdminPassword(input: {
     action: "UPDATE",
     entity: "ADMIN",
     entityId: targetAdmin.id,
-    detail: `Contrasena restablecida para admin: ${targetAdmin.email ?? targetAdmin.id} por ${currentAdmin.email ?? currentAdmin.id}`,
+    detail: `Contraseña restablecida para admin: ${targetAdmin.email ?? targetAdmin.id} por ${currentAdmin.email ?? currentAdmin.id}`,
   });
 
   revalidatePath("/admin/administradores");
@@ -442,13 +442,13 @@ export async function deactivateAdminAccount(input: {
   });
 
   if (activeAdmins <= 1) {
-    return { success: false, error: "No se puede desactivar la ultima cuenta admin activa" };
+    return { success: false, error: "No se puede desactivar la última cuenta admin activa" };
   }
 
   if (targetAdmin.adminHasGlobalScope) {
     const remainingGlobalAdmins = await countActiveGlobalAdmins(targetAdmin.id);
     if (remainingGlobalAdmins <= 0) {
-      return { success: false, error: "No se puede desactivar la ultima cuenta principal activa" };
+      return { success: false, error: "No se puede desactivar la última cuenta principal activa" };
     }
   }
 

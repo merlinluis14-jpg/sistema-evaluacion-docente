@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, CloudDownload, Pencil } from "lucide-react";
+import { BookOpen, CloudDownload } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 
@@ -51,7 +51,7 @@ export default async function MateriasAdminPage({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-800">
-            Gestion de <span className="text-blue-600">Materias</span>
+            Catálogo de <span className="text-blue-600">Materias</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
             {totalMaterias} materias registradas en el sistema
@@ -68,8 +68,8 @@ export default async function MateriasAdminPage({
       </div>
 
       <div className="rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm text-blue-800 shadow-sm">
-        Las materias ya no deben capturarse ni importarse manualmente aqui. El
-        catalogo academico se alimenta desde Horarios y la relacion exacta
+        Las materias ya no deben capturarse ni importarse manualmente aquí. El
+        catálogo académico se alimenta desde Horarios y la relación exacta
         docente-materia-grupo se sincroniza desde ese sistema maestro.
       </div>
 
@@ -82,7 +82,7 @@ export default async function MateriasAdminPage({
             <input
               name="q"
               defaultValue={q}
-              placeholder="Nombre o codigo de materia..."
+              placeholder="Nombre o código de materia..."
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
           </div>
@@ -134,7 +134,7 @@ export default async function MateriasAdminPage({
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
               <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                Codigo
+                Código
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                 Materia
@@ -151,7 +151,6 @@ export default async function MateriasAdminPage({
               <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
                 Estado
               </th>
-              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
@@ -175,7 +174,7 @@ export default async function MateriasAdminPage({
 
                 <td className="px-4 py-3 text-center">
                   <span className="text-sm font-bold text-slate-600">
-                    {materia.cuatrimestre}°
+                    C{materia.cuatrimestre}
                   </span>
                 </td>
 
@@ -199,7 +198,7 @@ export default async function MateriasAdminPage({
                             {uniqueTeachers.length} docentes asignados
                           </div>
                           <div className="text-xs text-slate-400">
-                            La asignacion exacta depende del grupo.
+                            La asignación exacta depende del grupo.
                           </div>
                         </div>
                       );
@@ -209,7 +208,7 @@ export default async function MateriasAdminPage({
                     if (!teacher) {
                       return (
                         <span className="text-sm text-slate-400">
-                          Sin docente primario
+                          Sin asignación docente
                         </span>
                       );
                     }
@@ -240,14 +239,6 @@ export default async function MateriasAdminPage({
                   </span>
                 </td>
 
-                <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/admin/materias/${materia.id}/editar`}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 transition-colors hover:text-blue-800 hover:underline"
-                  >
-                    <Pencil size={14} /> Editar
-                  </Link>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -259,8 +250,8 @@ export default async function MateriasAdminPage({
             <p className="font-bold text-slate-600">No se encontraron materias</p>
             <p className="mt-1 text-sm">
               {q || carrera
-                ? "Intenta con otros filtros"
-                : "Sincroniza el catalogo academico desde Horarios"}
+                ? "Prueba con otros filtros o limpia la búsqueda actual."
+                : "Sincroniza el catálogo académico desde Horarios para ver materias aquí."}
             </p>
             <Link
               href="/admin/docentes/sincronizar"

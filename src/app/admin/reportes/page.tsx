@@ -217,14 +217,15 @@ export default async function ReportesPage({
       : undefined;
 
   const allowAllCareers = scope.isGlobal && carreras.length > 1;
-  const officialCareer = scope.isGlobal
+  const defaultCareer = scope.isGlobal
     ? carreras.find((career) => career.code === OFFICIAL_DEMO_CAREER_CODE) ?? carreras[0] ?? null
     : carreras.find((career) => career.id === firstCareerWithEvaluationsId) ?? carreras[0] ?? null;
   const requestedCareerIsAccessible = carreras.some((career) => career.id === requestedCareerId);
-  const showAllCareers = allowAllCareers && isAllCareersValue(requestedCareerId);
+  const showAllCareers =
+    allowAllCareers && (!requestedCareerId || isAllCareersValue(requestedCareerId));
   const carreraId = showAllCareers
     ? undefined
-    : (requestedCareerIsAccessible ? requestedCareerId : undefined) || officialCareer?.id;
+    : (requestedCareerIsAccessible ? requestedCareerId : undefined) || defaultCareer?.id;
   const selectedCareerValue = showAllCareers ? ALL_CAREERS_VALUE : carreraId ?? "";
   const evaluationCareerFilter = carreraId
     ? { careerId: carreraId }
@@ -632,7 +633,7 @@ export default async function ReportesPage({
             Reportes de <span className="text-blue-600">Evaluación</span>
           </h1>
           <p className="mt-1 break-words text-sm text-slate-400">
-            Instrumento FDA-24.5 - {periodoNombre}
+            Consulta consolidada de resultados por periodo, carrera, grupo y docente. {periodoNombre}
             {materiaNombre ? ` - ${materiaNombre}` : ""}
             {grupoNombre ? ` - Grupo ${grupoNombre.name} (${grupoNombre.career.code})` : ""}
           </p>
@@ -680,19 +681,14 @@ export default async function ReportesPage({
               defaultValue={selectedCareerValue}
               className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
-              {officialCareer && (
-                <option value={officialCareer.id}>
-                  {getCompactCareerLabel(officialCareer.code, officialCareer.name)}
+              {allowAllCareers ? (
+                <option value={ALL_CAREERS_VALUE}>Todas las carreras</option>
+              ) : null}
+              {carreras.map((career) => (
+                <option key={career.id} value={career.id}>
+                  {getCompactCareerLabel(career.code, career.name)}
                 </option>
-              )}
-              {allowAllCareers ? <option value={ALL_CAREERS_VALUE}>Todas las carreras</option> : null}
-              {carreras
-                .filter((career) => career.id !== officialCareer?.id)
-                .map((career) => (
-                  <option key={career.id} value={career.id}>
-                    {getCompactCareerLabel(career.code, career.name)}
-                  </option>
-                ))}
+              ))}
             </select>
           </div>
 
@@ -772,6 +768,11 @@ export default async function ReportesPage({
             </Link>
           )}
         </form>
+
+        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          Puedes consultar todo el periodo o aplicar filtros por carrera, materia
+          y grupo para revisar resultados mas puntuales.
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -1039,7 +1040,10 @@ export default async function ReportesPage({
         {reporteDocentes.length === 0 ? (
           <div className="text-center py-16">
             <Inbox className="w-12 h-12 mb-3 text-slate-300 mx-auto" />
-            <p className="font-bold text-slate-500">No hay evaluaciones para este filtro</p>
+            <p className="font-bold text-slate-500">No hay resultados para la selección actual</p>
+            <p className="text-sm text-slate-400">
+              También puedes limpiar o ajustar los filtros para revisar otra carrera, materia o grupo.
+            </p>
             <p className="text-sm text-slate-400 mt-1">Selecciona un período con evaluaciones registradas</p>
           </div>
         ) : (

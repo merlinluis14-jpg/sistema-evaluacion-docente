@@ -17,7 +17,7 @@ export default function ImportDropdown() {
           Importar Alumnos
         </p>
         <p className="text-xs text-slate-400 transition-colors group-hover:text-slate-500">
-          Carga el roster del periodo activo
+          Carga el roster del período activo
         </p>
       </div>
       <div className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-400 transition-colors group-hover:bg-blue-50 group-hover:text-blue-600">

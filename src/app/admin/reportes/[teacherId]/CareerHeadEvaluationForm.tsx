@@ -240,7 +240,7 @@ export default function CareerHeadEvaluationForm({
                 id="comments"
                 name="comments"
                 defaultValue={initialEvaluation?.comments ?? ""}
-                placeholder="Observaciones generales de la coordinacion"
+                placeholder="Observaciones generales de la coordinación"
                 rows={3}
                 className="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               />
@@ -271,7 +271,7 @@ export default function CareerHeadEvaluationForm({
                     Factor
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-400">
-                    Definicion
+                    Definición
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-400">
                     Calif.

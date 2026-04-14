@@ -35,24 +35,24 @@ const EXAMPLE_PREVIEW = `matricula,nombre,apellido,email,carrera_code,grupo,pass
 220310003,Pedro,Martinez,,11,1M111,uptx2026`;
 
 const FIELD_ROWS = [
-  ["matricula", true, "Matricula institucional unica; se usa para el login"],
+  ["matricula", true, "Matrícula institucional única; se usa para el login"],
   ["nombre", true, "Nombre(s) del alumno"],
   ["apellido", true, "Apellido(s) del alumno"],
   ["email", false, "Email institucional opcional"],
   [
     "carrera_code",
     true,
-    "Codigo exacto de la carrera sincronizada desde Horarios, por ejemplo 11",
+    "Código exacto de la carrera sincronizada desde Horarios, por ejemplo 11",
   ],
   [
     "grupo",
     true,
-    "Codigo exacto del grupo ya sincronizado para el periodo activo, por ejemplo 1M111",
+    "Código exacto del grupo ya sincronizado para el período activo, por ejemplo 1M111",
   ],
   [
     "password",
     false,
-    "Contrasena temporal inicial; si se omite, se usa la matricula",
+    "Contraseña temporal inicial; si se omite, se usa la matrícula",
   ],
 ] as const;
 
@@ -73,7 +73,7 @@ export default function ImportarAlumnosClient({
   const handleFile = (nextFile: File) => {
     if (loading) return;
     if (!nextFile.name.endsWith(".csv")) {
-      setError("El archivo debe ser formato CSV (.csv)");
+      setError("El archivo debe estar en formato CSV (.csv)");
       return;
     }
     if (nextFile.size > 5 * 1024 * 1024) {
@@ -139,7 +139,7 @@ export default function ImportarAlumnosClient({
       <div className="mb-6 inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2">
         <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
         <span className="text-sm font-medium text-blue-700">
-          Periodo activo: <strong>{periodName}</strong>
+          Período activo: <strong>{periodName}</strong>
         </span>
       </div>
 
@@ -151,20 +151,20 @@ export default function ImportarAlumnosClient({
           <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
             <p className="font-bold text-slate-800">1. Sincroniza academia</p>
             <p className="mt-1">
-              Primero trae carreras, docentes, materias y grupos desde Horarios.
+              Primero actualiza carreras, docentes, materias y grupos desde Horarios.
             </p>
           </div>
           <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
             <p className="font-bold text-slate-800">2. Importa alumnos</p>
             <p className="mt-1">
-              El CSV solo debe apuntar a grupos ya existentes dentro del periodo
-              activo.
+              El archivo CSV debe usar carreras y grupos que ya existan en el
+              período activo.
             </p>
           </div>
           <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
-            <p className="font-bold text-slate-800">3. Habilita evaluacion</p>
+              <p className="font-bold text-slate-800">3. Habilita evaluación</p>
             <p className="mt-1">
-              Con eso los alumnos veran la materia y el docente correctos segun su grupo.
+              Así cada alumno verá la materia y el docente correctos según su grupo.
             </p>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function ImportarAlumnosClient({
                       Requerido
                     </th>
                     <th className="rounded-r-xl px-4 py-2 text-left text-xs font-bold text-slate-500">
-                      Descripcion
+                      Descripción
                     </th>
                   </tr>
                 </thead>
@@ -217,7 +217,7 @@ export default function ImportarAlumnosClient({
                             required ? "text-red-500" : "text-slate-400"
                           }`}
                         >
-                          {required ? "Si" : "No"}
+                          {required ? "Sí" : "No"}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-xs text-slate-500">
@@ -250,9 +250,11 @@ export default function ImportarAlumnosClient({
             </div>
 
             <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-              Usa el codigo exacto de la carrera y del grupo ya sincronizados desde Horarios.
-              Por ejemplo, si el catalogo externo trajo la carrera <strong>11</strong> y el grupo{" "}
-              <strong>1M111</strong>, esos mismos valores deben venir en el CSV de alumnos.
+              Usa exactamente la misma carrera y el mismo grupo que ya aparecen
+              en Evaluación Docente después de sincronizar Horarios. Por
+              ejemplo, si el sistema muestra la carrera <strong>11</strong> y el
+              grupo <strong>1M111</strong>, esos mismos valores deben venir en
+              el CSV.
             </div>
 
             <div
@@ -317,7 +319,7 @@ export default function ImportarAlumnosClient({
                   <FolderOpen className="mx-auto h-10 w-10 text-slate-300" />
                   <p className="font-bold text-slate-600">Arrastra tu CSV aqui</p>
                   <p className="text-sm text-slate-400">o haz clic para seleccionar</p>
-                  <p className="mt-2 text-xs text-slate-300">Maximo 5 MB</p>
+                  <p className="mt-2 text-xs text-slate-300">Máximo 5 MB</p>
                 </div>
               )}
             </div>
@@ -342,9 +344,9 @@ export default function ImportarAlumnosClient({
                 disabled={loading}
               />
               <span className="text-sm text-amber-800">
-                <strong className="block">Sincronizar roster del periodo activo</strong>
-                Si se activa, las asignaciones de grupo del periodo{" "}
-                <strong>{periodName}</strong> se reemplazaran con el contenido del CSV
+                <strong className="block">Actualizar lista del período activo</strong>
+                Si la activas, las asignaciones de grupo del período{" "}
+                <strong>{periodName}</strong> se ajustarán con base en este CSV
                 para las carreras importadas, sin borrar el historial.
               </span>
             </label>
@@ -365,7 +367,7 @@ export default function ImportarAlumnosClient({
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <Upload className="h-4 w-4" /> Iniciar importacion
+                  <Upload className="h-4 w-4" /> Iniciar importación
                 </span>
               )}
             </button>
@@ -374,7 +376,7 @@ export default function ImportarAlumnosClient({
           {result && (
             <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
               <h2 className="flex items-center gap-2 font-bold text-slate-700">
-                <BarChart2 className="h-4 w-4" /> Resultado de la importacion
+                <BarChart2 className="h-4 w-4" /> Resultado de la importación
               </h2>
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-xl bg-slate-50 p-4 text-center">
@@ -411,11 +413,11 @@ export default function ImportarAlumnosClient({
                 <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
                   <p className="flex items-center gap-2 text-sm font-bold text-emerald-700">
                     <CheckCircle2 className="h-4 w-4" />
-                    Todos los alumnos fueron importados correctamente
+                    La importación terminó correctamente
                   </p>
                   <p className="mt-1 text-xs text-emerald-600">
-                    Cada alumno conserva una contrasena temporal y puede reemplazarla
-                    una sola vez desde su panel.
+                    Los alumnos ya pueden ingresar con su matrícula y su
+                    contraseña temporal.
                   </p>
                 </div>
               )}
@@ -423,8 +425,8 @@ export default function ImportarAlumnosClient({
               {(result.removedEnrollments ?? 0) > 0 && (
                 <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
                   <p className="text-sm font-bold text-amber-700">
-                    Sincronizacion aplicada: {result.removedEnrollments} asignacion(es)
-                    de grupo del periodo fueron retiradas por no aparecer en el CSV.
+                    Se actualizaron las listas del período: {result.removedEnrollments} asignación(es)
+                    de grupo fueron retiradas por no aparecer en el CSV.
                   </p>
                 </div>
               )}
@@ -443,7 +445,7 @@ export default function ImportarAlumnosClient({
                             Fila
                           </th>
                           <th className="px-4 py-2 text-left font-bold text-slate-500">
-                            Matricula
+                            Matrícula
                           </th>
                           <th className="px-4 py-2 text-left font-bold text-slate-500">
                             Motivo del error
@@ -483,7 +485,7 @@ export default function ImportarAlumnosClient({
                     setProgress(null);
                   }}
                 >
-                  Nueva importacion
+                  Nueva importación
                 </button>
               </div>
             </div>

@@ -26,14 +26,8 @@ type ImportResult = {
   removedCount?: number;
 };
 
-type CareerSyncResult = {
-  total: number;
-  success: number;
-  warnings: string[];
-};
-
 type SyncResult = {
-  careers: CareerSyncResult;
+  careers: ImportResult;
   teachers: ImportResult;
   subjects: ImportResult;
   groups: ImportResult;
@@ -87,7 +81,7 @@ export default function SincronizarDocentesPage() {
     try {
       const res = await fetch("/api/sync/profesores");
       if (!res.ok) {
-        throw new Error("Error al obtener el catalogo academico externo");
+        throw new Error("Error al obtener el catálogo académico externo");
       }
 
       const data: RespuestaProfesores = await res.json();
@@ -100,7 +94,7 @@ export default function SincronizarDocentesPage() {
       const message =
         err instanceof Error
           ? err.message
-          : "Error al obtener el catalogo academico externo";
+          : "Error al obtener el catálogo académico externo";
       setError(message);
       setStatus("error");
     }
@@ -152,7 +146,7 @@ export default function SincronizarDocentesPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Error en sincronizacion");
+        throw new Error(data.message || "Error en sincronización");
       }
 
       setResult(data as SyncResult);
@@ -160,7 +154,7 @@ export default function SincronizarDocentesPage() {
       setStatus("success");
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Error en sincronizacion";
+        err instanceof Error ? err.message : "Error en sincronización";
       setError(message);
       setStatus("error");
     }
@@ -202,8 +196,8 @@ export default function SincronizarDocentesPage() {
             Sincronizar <span className="text-blue-600">Academia</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Trae carreras, docentes y materias desde el Gestor de Horarios para
-            mantener el catalogo local alineado con el sistema maestro.
+            Actualiza en Evaluación Docente la información académica capturada
+            previamente en Horarios.
           </p>
         </div>
 
@@ -225,10 +219,10 @@ export default function SincronizarDocentesPage() {
           )}
 
           {pingStatus === "checking"
-            ? "Verificando API..."
+            ? "Verificando conexión..."
             : pingStatus === "up"
-              ? "API Academica Conectada"
-              : "API Academica No Disponible"}
+              ? "Horarios disponible"
+              : "Horarios no disponible"}
         </div>
       </div>
 
@@ -236,18 +230,17 @@ export default function SincronizarDocentesPage() {
         <div className="mb-8 rounded-xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
           <h3 className="flex items-center gap-2 text-lg font-bold text-rose-800">
             <AlertTriangle className="h-5 w-5" />
-            No se pudo conectar con el Gestor de Horarios
+            No se pudo conectar con Horarios
           </h3>
           <p className="mt-2 text-sm text-rose-700">
-            Verifica que <strong>GESTOR_API_URL</strong> apunte a la API
-            academica, que <strong>GESTOR_API_KEY</strong> sea correcta y que el
-            servidor externo siga operativo.
+            Revisa la configuración de la integración y confirma que el sistema
+            de Horarios siga en línea.
           </p>
           <button
             onClick={() => window.location.reload()}
             className="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-rose-700 active:scale-95"
           >
-            Reintentar conexion
+            Reintentar conexión
           </button>
         </div>
       )}
@@ -255,10 +248,10 @@ export default function SincronizarDocentesPage() {
       {pingStatus === "up" && (
         <>
           <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm text-blue-800 shadow-sm">
-            La integracion sincroniza carreras, docentes, materias, grupos y
-            asignaciones por grupo desde el sistema externo. Para materializar
-            grupos y relaciones reales dentro de evaluacion docente necesitas
-            tener un periodo activo antes de ejecutar la sincronizacion.
+            Esta pantalla trae desde Horarios las carreras, los docentes, las
+            materias, los grupos y las asignaciones por grupo. Antes de
+            sincronizar, confirma que ya exista un período activo en Evaluación
+            Docente.
           </div>
 
           <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -280,7 +273,7 @@ export default function SincronizarDocentesPage() {
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                Materias unicas
+                Materias únicas
               </p>
               <p className="mt-2 text-3xl font-black text-slate-800">
                 {previewSummary.materias}
@@ -324,7 +317,7 @@ export default function SincronizarDocentesPage() {
                 <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 p-4">
                   <h2 className="flex items-center gap-2 font-bold text-slate-700">
                     <CloudDownload className="h-5 w-5 text-blue-500" />
-                    Docentes detectados en API Academica
+                    Docentes detectados en API Académica
                   </h2>
                   <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
                     {profesores.length} docentes detectados
@@ -334,16 +327,16 @@ export default function SincronizarDocentesPage() {
                 <div className="flex-1 overflow-auto p-0">
                   {profesores.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-                      <div className="mb-4 rounded-full bg-slate-100 p-3">
-                        <CloudDownload className="h-8 w-8 text-slate-400" />
-                      </div>
-                      <p className="font-bold text-slate-600">
-                        No hay docentes sincronizables
-                      </p>
-                      <p className="text-sm text-slate-400">
-                        La API no devolvio asignaciones academicas activas.
-                      </p>
+                    <div className="mb-4 rounded-full bg-slate-100 p-3">
+                      <CloudDownload className="h-8 w-8 text-slate-400" />
                     </div>
+                    <p className="font-bold text-slate-600">
+                      No hay docentes disponibles para sincronizar
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      Horarios no devolvió docentes con materias y grupos activos.
+                    </p>
+                  </div>
                   ) : (
                     <table className="w-full text-sm">
                       <thead className="sticky top-0 bg-white shadow-sm">
@@ -447,13 +440,12 @@ export default function SincronizarDocentesPage() {
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="mb-4 flex items-center gap-2 font-bold text-slate-700">
                   <RefreshCw className="h-5 w-5 text-blue-500" />
-                  Opciones de sincronizacion
+                  Opciones de sincronización
                 </h2>
 
                 <div className="mb-5 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
-                  Esta accion sincroniza los docentes seleccionados junto con
-                  sus materias, grupos y asignaciones relacionadas dentro del
-                  periodo activo del catalogo local.
+                  Esta acción actualiza los docentes seleccionados junto con sus
+                  materias, grupos y relaciones del período activo.
                 </div>
 
                 <label className="mb-3 flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
@@ -465,19 +457,18 @@ export default function SincronizarDocentesPage() {
                     disabled={status === "loading" || !isFullSelection}
                   />
                   <span className="text-sm text-amber-800">
-                    <strong className="block">Sincronizar catalogo local</strong>
-                    Solo disponible cuando seleccionas todo el catalogo externo.
-                    Si se activa, los docentes, materias y grupos faltantes se
-                    desactivaran en el sistema local. Las asignaciones de grupo
-                    administradas por el sistema externo que ya no existan se
-                    retiraran para reflejar el catalogo maestro actual.
+                    <strong className="block">Actualizar catálogo completo</strong>
+                    Solo esta opción aparece cuando seleccionas todo lo que hoy
+                    existe en Horarios. Si la activas, el sistema retirará o
+                    desactivará los registros que ya no formen parte del
+                    catálogo académico vigente.
                   </span>
                 </label>
 
                 {!isFullSelection && profesores.length > 0 && (
                   <p className="mb-6 text-xs font-semibold text-amber-700">
-                    La sincronizacion completa se desactiva automaticamente si
-                    trabajas con una seleccion parcial.
+                    La sincronización completa se desactiva automáticamente si
+                    trabajas con una selección parcial.
                   </p>
                 )}
 
@@ -634,16 +625,16 @@ export default function SincronizarDocentesPage() {
                   </div>
 
                   <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
-                    Se preparo una sincronizacion para{" "}
+                    Se preparó una actualización para{" "}
                     <strong>{result.selectionSummary.careers}</strong> carrera(s),{" "}
                     <strong>{result.selectionSummary.teachers}</strong> docente(s)
                     y <strong>{result.selectionSummary.subjects}</strong>{" "}
                     materia(s), <strong>{result.selectionSummary.groups}</strong>{" "}
                     grupo(s) y <strong>{result.selectionSummary.assignments}</strong>{" "}
-                    asignacion(es).
+                    asignación(es).
                     {result.syncCatalogApplied
-                      ? " La resincronizacion completa estuvo habilitada."
-                      : " La resincronizacion completa no estuvo habilitada."}
+                      ? " Se aplicó la actualización completa del catálogo."
+                      : " Se actualizó solo la selección actual."}
                   </div>
 
                   {result.teachers.deactivatedCount !== undefined &&
@@ -652,6 +643,26 @@ export default function SincronizarDocentesPage() {
                         <p className="text-sm font-bold text-amber-700">
                           {result.teachers.deactivatedCount} docente(s) local(es)
                           fueron desactivados.
+                        </p>
+                      </div>
+                    )}
+
+                  {result.careers.deactivatedCount !== undefined &&
+                    result.careers.deactivatedCount > 0 && (
+                      <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 text-center">
+                        <p className="text-sm font-bold text-amber-700">
+                          {result.careers.deactivatedCount} carrera(s) local(es)
+                          quedaron inactivas porque todavía conservan historial.
+                        </p>
+                      </div>
+                    )}
+
+                  {result.careers.removedCount !== undefined &&
+                    result.careers.removedCount > 0 && (
+                      <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-center">
+                        <p className="text-sm font-bold text-emerald-700">
+                          {result.careers.removedCount} carrera(s) obsoleta(s)
+                          fueron retiradas del catálogo local.
                         </p>
                       </div>
                     )}
@@ -680,7 +691,7 @@ export default function SincronizarDocentesPage() {
                     result.assignments.removedCount > 0 && (
                       <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 text-center">
                         <p className="text-sm font-bold text-amber-700">
-                          {result.assignments.removedCount} asignacion(es) de grupo
+                          {result.assignments.removedCount} asignación(es) de grupo
                           fueron retiradas por no existir ya en el sistema externo.
                         </p>
                       </div>
@@ -759,7 +770,7 @@ export default function SincronizarDocentesPage() {
                       href="/admin/docentes"
                       className="flex w-full justify-center rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
                     >
-                      Ir al catalogo
+                      Ir al catálogo
                     </Link>
                   </div>
                 </div>

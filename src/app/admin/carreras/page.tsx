@@ -40,10 +40,10 @@ export default async function CarrerasPage({
       <div className="mb-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
         <div>
           <h1 className="text-3xl font-black text-slate-800">
-            Catalogo de <span className="text-blue-600">Carreras</span>
+            Catálogo de <span className="text-blue-600">Carreras</span>
           </h1>
           <p className="mt-2 text-lg text-slate-500">
-            Este modulo ahora trabaja en modo de solo lectura y refleja las carreras que llegan
+            Este módulo ahora trabaja en modo de solo lectura y refleja las carreras que llegan
             desde el sistema de Horarios.
           </p>
         </div>
@@ -69,8 +69,8 @@ export default async function CarrerasPage({
             <p className="text-sm font-bold text-slate-700">Flujo recomendado</p>
             <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
               <li>1. La jefa de carrera actualiza carreras, docentes, materias y grupos en Horarios.</li>
-              <li>2. Aqui se ejecuta una sincronizacion completa para traer ese catalogo.</li>
-              <li>3. Despues se importan alumnos usando el grupo y la carrera ya sincronizados.</li>
+              <li>2. Aquí se ejecuta una sincronización completa para traer ese catálogo.</li>
+              <li>3. Después se importan alumnos usando el grupo y la carrera ya sincronizados.</li>
             </ol>
           </div>
 
@@ -78,7 +78,7 @@ export default async function CarrerasPage({
             <p className="text-sm font-bold text-slate-700">Importante</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               Las carreras ya no se capturan manualmente en este sistema. Si una carrera no aparece
-              aqui, primero debe existir en el sistema de Horarios y despues sincronizarse.
+              aquí, primero debe existir en el sistema de Horarios y después sincronizarse.
             </p>
           </div>
         </div>
@@ -126,8 +126,9 @@ export default async function CarrerasPage({
         <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
           <p className="text-sm font-bold text-slate-700">Vista de referencia</p>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Estas carreras llegaron desde Horarios, pero hoy estan inactivas. Se conservan solo
-            como referencia historica y no forman parte del catalogo operativo principal.
+            Estas carreras llegaron desde Horarios, pero hoy están inactivas. Solo se conservan
+            como referencia histórica cuando aún tienen relación con datos locales; si una carrera
+            obsoleta ya no tiene dependencias, la sincronización completa la retira del catálogo.
           </p>
         </div>
       ) : null}
@@ -189,7 +190,7 @@ export default async function CarrerasPage({
                   href={`/admin/docentes?career=${career.id}`}
                   className="text-xs font-bold text-blue-600 transition-colors hover:text-blue-800"
                 >
-                  Ver docentes relacionados →
+                  Ver docentes relacionados {"->"}
                 </Link>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all group-hover:bg-blue-50 group-hover:text-blue-500">
                   <BookOpen size={14} />
@@ -204,13 +205,13 @@ export default async function CarrerasPage({
             <Inbox size={40} className="mx-auto mb-4 text-slate-300" />
             <p className="text-lg font-medium text-slate-500">
               {currentView === "activas"
-                ? "Aun no hay carreras activas sincronizadas en el sistema."
+                ? "Aún no hay carreras activas sincronizadas en el sistema."
                 : "No hay carreras inactivas para mostrar."}
             </p>
             <p className="mt-1 text-sm text-slate-400">
               {currentView === "activas"
-                ? "Ejecuta una sincronizacion academica para traer el catalogo desde Horarios."
-                : "Cuando una carrera deje de venir activa desde Horarios, aparecera aqui como referencia."}
+                ? "Ejecuta una sincronización académica para traer el catálogo desde Horarios."
+                : "Cuando una carrera deje de venir activa desde Horarios y aún tenga historial local, aparecerá aquí como referencia."}
             </p>
           </div>
         ) : null}
@@ -219,11 +220,11 @@ export default async function CarrerasPage({
       <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
         <div className="flex items-center gap-2 text-slate-700">
           <Building2 className="h-4 w-4 text-blue-600" />
-          <p className="text-sm font-bold">Catalogo protegido</p>
+          <p className="text-sm font-bold">Catálogo protegido</p>
         </div>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Si necesitas cambiar el nombre, codigo o vigencia de una carrera, el ajuste debe hacerse
-          en el sistema de Horarios y despues volver a sincronizar aqui.
+          Si necesitas cambiar el nombre, código o vigencia de una carrera, el ajuste debe hacerse
+          en el sistema de Horarios y después volver a sincronizar aquí.
         </p>
       </div>
     </div>

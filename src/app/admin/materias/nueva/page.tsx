@@ -30,16 +30,16 @@ export default function NuevaMateriaPage() {
               Las materias deben registrarse en el sistema de Horarios.
             </p>
             <p>
-              Para mantener la relacion exacta materia-docente-grupo, las
-              materias y sus asignaciones ya no deben capturarse manualmente aqui.
-              Todo ese catalogo se alimenta desde Horarios.
+              Para mantener la relación exacta materia-docente-grupo, las
+              materias y sus asignaciones ya no deben capturarse manualmente aquí.
+              Todo ese catálogo se alimenta desde Horarios.
             </p>
           </div>
         </div>
 
         <div className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-600">
           Si necesitas que una materia aparezca en este sistema, primero
-          registrala en Horarios y luego ejecuta la sincronizacion academica.
+          regístrala en Horarios y luego ejecuta la sincronización académica.
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -53,7 +53,7 @@ export default function NuevaMateriaPage() {
             href="/admin/materias"
             className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200"
           >
-            Volver al catalogo
+            Volver al catálogo
           </Link>
         </div>
       </div>

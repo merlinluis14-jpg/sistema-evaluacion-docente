@@ -10,6 +10,7 @@ import {
   getCareerHeadAverage,
   getTeacherPositionLabel,
 } from "@/lib/reportes";
+import { getUptexLogoDataUrl, getUptexLogoDimensions } from "@/lib/pdf/uptexLogo";
 import { formatAcademicText } from "@/lib/text/academicText";
 import { formatMexicoDate } from "@/lib/timeZone";
 
@@ -73,6 +74,16 @@ function formatScore(value: number, digits = 2) {
   return value.toFixed(digits);
 }
 
+function getCareerHeadSummary(teacherReport: DocenteReporte) {
+  return {
+    evaluatorName:
+      teacherReport.careerHeadEvaluation?.evaluatorName?.trim() || "Pendiente de captura",
+    comments:
+      teacherReport.careerHeadEvaluation?.comments?.trim() ||
+      "Sin comentarios registrados por coordinación.",
+  };
+}
+
 function drawBox(
   doc: jsPDF,
   x: number,
@@ -124,12 +135,13 @@ function drawBox(
   });
 }
 
-function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
+async function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
     format: "letter",
   }) as PdfWithAutoTable;
+  const logoDataUrl = await getUptexLogoDataUrl();
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 12;
@@ -141,9 +153,7 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
     }
 
     const teacherName = `${teacherReport.teacher.name} ${teacherReport.teacher.lastName}`;
-    const evaluatorName = teacherReport.careerHeadEvaluation?.evaluatorName?.trim() || "Pendiente de captura";
-    const comments = teacherReport.careerHeadEvaluation?.comments?.trim()
-      || "Sin comentarios registrados por coordinación.";
+    const { evaluatorName, comments } = getCareerHeadSummary(teacherReport);
     const careerHeadAverage = teacherReport.careerHeadEvaluation
       ? getCareerHeadAverage(teacherReport.careerHeadEvaluation, teacherReport.teacher.position)
       : Number(teacherReport.careerHeadAvg) || 0;
@@ -154,7 +164,18 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
       teacherReport.teacher.position,
     );
 
-    let currentY = 12;
+    const logoSize = getUptexLogoDimensions(38);
+    let currentY = 10;
+
+    doc.addImage(
+      logoDataUrl,
+      "PNG",
+      (pageWidth - logoSize.width) / 2,
+      currentY,
+      logoSize.width,
+      logoSize.height,
+    );
+    currentY += logoSize.height + 4;
 
     drawBox(doc, margin, currentY, contentWidth, 10, {
       fillColor: COLORS.uptxGreen,
@@ -263,29 +284,14 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
 
     autoTable(doc, {
       startY: currentY,
-      head: [["FACTOR", "DEFINICION", "CALIF."]],
-      body: [
-        ...factorRows.map((row) => [
-          row.label,
-          row.description,
-          row.displayValue,
-        ]),
-        [
-          {
-            content: `COMENTARIOS: ${comments}`,
-            colSpan: 2,
-            styles: {
-              halign: "left",
-              fontStyle: "bold",
-            },
-          },
-          {
-            content: formatScore(careerHeadAverage),
-            styles: { halign: "center", fontStyle: "bold" },
-          },
-        ],
-      ],
+      head: [["FACTOR", "DEFINICIÓN", "CALIF."]],
+      body: factorRows.map((row) => [
+        row.label,
+        row.description,
+        row.displayValue,
+      ]),
       margin: { left: margin, right: margin },
+      tableWidth: contentWidth,
       theme: "grid",
       styles: {
         fontSize: 7,
@@ -303,8 +309,8 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
         halign: "center",
       },
       columnStyles: {
-        0: { cellWidth: 38, fontStyle: "bold" },
-        1: { cellWidth: 120 },
+        0: { cellWidth: 40, fontStyle: "bold" },
+        1: { cellWidth: contentWidth - 62 },
         2: { cellWidth: 22, halign: "center", fontStyle: "bold" },
       },
     });
@@ -360,6 +366,33 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
       },
     });
 
+    currentY = (doc.lastAutoTable?.finalY ?? currentY) + 4;
+
+    autoTable(doc, {
+      startY: currentY,
+      body: [
+        [
+          "Comentarios del evaluador:",
+          comments,
+        ],
+      ],
+      margin: { left: margin, right: margin },
+      theme: "grid",
+      styles: {
+        fontSize: 7.5,
+        cellPadding: 2,
+        lineColor: COLORS.lineGray,
+        lineWidth: 0.2,
+        textColor: COLORS.text,
+        overflow: "linebreak",
+        valign: "top",
+      },
+      columnStyles: {
+        0: { cellWidth: 40, fillColor: COLORS.headerGray, fontStyle: "bold" },
+        1: { cellWidth: contentWidth - 40 },
+      },
+    });
+
     currentY = (doc.lastAutoTable?.finalY ?? currentY) + 14;
     const signatureWidth = 80;
     const signatureX = (pageWidth - signatureWidth) / 2;
@@ -373,18 +406,19 @@ function buildInstitutionalPdf(data: DocenteReporte[], periodo: string) {
     doc.text(evaluatorName, pageWidth / 2, currentY + 5, { align: "center" });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
-    doc.text("Nombre y firma de quien elaboro", pageWidth / 2, currentY + 9, { align: "center" });
+    doc.text("Nombre y firma de quien elaboró", pageWidth / 2, currentY + 9, { align: "center" });
   });
 
   doc.save(`reporte_institucional_${periodo.replace(/\s+/g, "_")}.pdf`);
 }
 
-function buildStudentPdf(data: DocenteReporte[], periodo: string) {
+async function buildStudentPdf(data: DocenteReporte[], periodo: string) {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
     format: "letter",
   }) as PdfWithAutoTable;
+  const logoDataUrl = await getUptexLogoDataUrl();
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 12;
@@ -401,8 +435,20 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
     const habAverage = Number(teacherReport.habAvg) || 0;
     const medAverage = Number(teacherReport.medAvg) || 0;
     const autoAverage = Number(teacherReport.autoAvg) || 0;
+    const { evaluatorName, comments } = getCareerHeadSummary(teacherReport);
 
-    let currentY = 12;
+    const logoSize = getUptexLogoDimensions(38);
+    let currentY = 10;
+
+    doc.addImage(
+      logoDataUrl,
+      "PNG",
+      (pageWidth - logoSize.width) / 2,
+      currentY,
+      logoSize.width,
+      logoSize.height,
+    );
+    currentY += logoSize.height + 4;
 
     drawBox(doc, margin, currentY, contentWidth, 10, {
       fillColor: COLORS.uptxGreen,
@@ -566,6 +612,30 @@ function buildStudentPdf(data: DocenteReporte[], periodo: string) {
       },
     });
 
+    currentY = (doc.lastAutoTable?.finalY ?? currentY) + 4;
+
+    autoTable(doc, {
+      startY: currentY,
+      body: [
+        ["Evaluador(a) de jefatura:", evaluatorName],
+        ["Comentarios de jefatura:", comments],
+      ],
+      margin: { left: margin, right: margin },
+      theme: "grid",
+      styles: {
+        fontSize: 7.5,
+        cellPadding: 2,
+        lineColor: COLORS.lineGray,
+        lineWidth: 0.2,
+        textColor: COLORS.text,
+        overflow: "linebreak",
+      },
+      columnStyles: {
+        0: { cellWidth: 48, fillColor: COLORS.headerGray, fontStyle: "bold" },
+        1: { cellWidth: contentWidth - 48 },
+      },
+    });
+
     currentY = (doc.lastAutoTable?.finalY ?? currentY) + 12;
     const signatureWidth = 70;
     const signatureX = margin + 50;
@@ -595,21 +665,28 @@ export default function ExportButtons({ data, periodo, canExportInstitutional }:
         "Docente", "Carrera", "Evaluaciones",
         "Prom. Facilitador (/4)", "Prom. Habilidades (/5)",
         "Prom. Medios (/5)", "Prom. Autoevaluación (/5)",
-        "Promedio Global", "Nivel", "Materias evaluadas",
+        "Promedio Global", "Nivel", "Evaluador(a) de jefatura",
+        "Comentarios de jefatura", "Materias evaluadas",
       ];
 
-      const rows = data.map((teacherReport) => [
-        `${teacherReport.teacher.name} ${teacherReport.teacher.lastName}`,
-        teacherReport.contextCareer.code,
-        teacherReport.totalEvals,
-        teacherReport.facAvg,
-        teacherReport.habAvg,
-        teacherReport.medAvg,
-        teacherReport.autoAvg,
-        teacherReport.globalAvg,
-        teacherReport.nivel,
-        teacherReport.materias.join(" | "),
-      ]);
+      const rows = data.map((teacherReport) => {
+        const { evaluatorName, comments } = getCareerHeadSummary(teacherReport);
+
+        return [
+          `${teacherReport.teacher.name} ${teacherReport.teacher.lastName}`,
+          teacherReport.contextCareer.code,
+          teacherReport.totalEvals,
+          teacherReport.facAvg,
+          teacherReport.habAvg,
+          teacherReport.medAvg,
+          teacherReport.autoAvg,
+          teacherReport.globalAvg,
+          teacherReport.nivel,
+          evaluatorName,
+          comments,
+          teacherReport.materias.join(" | "),
+        ];
+      });
 
       const csvContent = [
         `Reporte de Evaluación Docente FDA-24.5 - ${periodo}`,
@@ -636,7 +713,7 @@ export default function ExportButtons({ data, periodo, canExportInstitutional }:
   const exportStudentPdf = async () => {
     setLoadingStudentPdf(true);
     try {
-      buildStudentPdf(data, periodo);
+      await buildStudentPdf(data, periodo);
     } catch (error) {
       console.error("Error generando el PDF de alumnos:", error);
       alert("No se pudo generar el PDF de alumnos.");
@@ -653,7 +730,7 @@ export default function ExportButtons({ data, periodo, canExportInstitutional }:
 
     setLoadingInstitutionalPdf(true);
     try {
-      buildInstitutionalPdf(data, periodo);
+      await buildInstitutionalPdf(data, periodo);
     } catch (error) {
       console.error("Error generando el PDF institucional:", error);
       alert("No se pudo generar el PDF institucional.");

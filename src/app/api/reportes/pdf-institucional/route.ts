@@ -8,6 +8,7 @@ import {
   getTeacherPositionLabel,
   type TeacherPosition,
 } from "@/lib/reportes";
+import { getUptexLogoPublicPath } from "@/lib/pdf/uptexLogo";
 import { formatAcademicText } from "@/lib/text/academicText";
 
 type CareerHeadEvaluationPayload = {
@@ -82,6 +83,9 @@ export async function POST(req: NextRequest) {
       return `
         ${index > 0 ? '<div class="page-break"></div>' : ""}
         <section class="sheet">
+          <div class="logo-wrap">
+            <img src="${getUptexLogoPublicPath()}" alt="UPTex" class="logo" />
+          </div>
           <table class="main-header">
             <tr>
               <td colspan="3" class="title">Evaluación de Desempeño</td>
@@ -123,7 +127,7 @@ export async function POST(req: NextRequest) {
             <thead>
               <tr>
                 <th>FACTOR</th>
-                <th>DEFINICION</th>
+                <th>DEFINICIÓN</th>
                 <th>CALIF.</th>
               </tr>
             </thead>
@@ -135,12 +139,6 @@ export async function POST(req: NextRequest) {
                   <td class="score-cell">${escapeHtml(row.displayValue)}</td>
                 </tr>
               `).join("")}
-              <tr>
-                <td colspan="2" class="comments-cell">
-                  <strong>COMENTARIOS:</strong> ${escapeHtml(comments)}
-                </td>
-                <td class="score-cell">${formatScore(careerHeadAverage, 2)}</td>
-              </tr>
             </tbody>
           </table>
 
@@ -172,11 +170,18 @@ export async function POST(req: NextRequest) {
             </tr>
           </table>
 
+          <table class="footer-table comments-table">
+            <tr>
+              <td>Comentarios del evaluador:</td>
+              <td>${escapeHtml(comments)}</td>
+            </tr>
+          </table>
+
           <div class="signature-section">
             <div class="signature-box">
               <div class="signature-line"></div>
               <p class="signature-name">${escapeHtml(evaluatorName)}</p>
-              <p class="signature-role">Nombre y firma de quien elaboro</p>
+              <p class="signature-role">Nombre y firma de quien elaboró</p>
             </div>
           </div>
         </section>
@@ -218,6 +223,16 @@ export async function POST(req: NextRequest) {
               width: 100%;
               padding: 18px 20px;
               background: #ffffff;
+            }
+            .logo-wrap {
+              display: flex;
+              justify-content: center;
+              margin-bottom: 8px;
+            }
+            .logo {
+              width: 108px;
+              height: auto;
+              object-fit: contain;
             }
             table {
               width: 100%;
@@ -316,6 +331,15 @@ export async function POST(req: NextRequest) {
               width: 25%;
               font-weight: 700;
               background: #f8fafc;
+            }
+            .comments-table {
+              margin-top: 8px;
+            }
+            .comments-table td {
+              line-height: 1.45;
+            }
+            .comments-table td:first-child {
+              width: 25%;
             }
             .signature-section {
               margin-top: 28px;

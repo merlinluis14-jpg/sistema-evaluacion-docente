@@ -315,7 +315,7 @@ export default async function ReporteDocenteDetallePage({
               ...teacher,
               career: selectedCareer,
             }}
-            periodo={periodo?.name ?? "Historico Total"}
+            periodo={periodo?.name ?? "Histórico total"}
             evaluacionesCount={n}
             promedios={{
               fac: promedioFac,
@@ -325,6 +325,8 @@ export default async function ReporteDocenteDetallePage({
               global: promedioGlobal,
             }}
             nivel={nivel}
+            evaluatorName={careerHeadEvaluation?.evaluatorName ?? null}
+            evaluatorComments={careerHeadEvaluation?.comments ?? null}
             facilitador={facilitador}
             habilidades={habilidades}
             medios={medios}
@@ -429,6 +431,31 @@ export default async function ReporteDocenteDetallePage({
           </div>
         )}
       </div>
+
+      {(careerHeadEvaluation?.evaluatorName || careerHeadEvaluation?.comments) && (
+        <section className="rounded-3xl border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-500">
+                Observaciones de Jefatura
+              </p>
+              <h2 className="mt-2 text-lg font-black text-slate-800">
+                Comentarios del evaluador institucional
+              </h2>
+            </div>
+
+            {careerHeadEvaluation?.evaluatorName && (
+              <span className="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-bold text-blue-700 shadow-sm">
+                {careerHeadEvaluation.evaluatorName}
+              </span>
+            )}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-blue-100 bg-white px-4 py-4 text-sm leading-relaxed text-slate-600 shadow-sm">
+            {careerHeadEvaluation?.comments?.trim() || "Sin comentarios registrados por coordinación."}
+          </div>
+        </section>
+      )}
 
       {n === 0 && (
         <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5 shadow-sm">

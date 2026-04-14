@@ -40,16 +40,16 @@ export type CareerHeadFactorDefinition = {
 export const careerHeadFactors: CareerHeadFactorDefinition[] = [
   {
     key: "planCourseScore",
-    label: "Elaboracion de plan curso, avance programatico y evidencias",
+    label: "Elaboración de plan de curso, avance programático y evidencias",
     description:
-      "Elaborar los documentos que establece el manual de procedimientos eficientemente y con un diseno favorable que promueva la toma de decisiones.",
+      "Elaborar los documentos que establece el manual de procedimientos eficientemente y con un diseño favorable que promueva la toma de decisiones.",
     appliesTo: ["PA", "PTC"],
   },
   {
     key: "competencyEvalScore",
     label: "Evaluación del aprendizaje por competencias EC, ED y EP",
     description:
-      "Registrar documentos de manera correcta, con informacion concreta, relevante y veraz para entregarlos en tiempo y forma.",
+      "Registrar documentos de manera correcta, con información concreta, relevante y veraz para entregarlos en tiempo y forma.",
     appliesTo: ["PA", "PTC"],
   },
   {
@@ -75,14 +75,14 @@ export const careerHeadFactors: CareerHeadFactorDefinition[] = [
   },
   {
     key: "platformUsageScore",
-    label: "Utilizacion de plataformas",
+    label: "Utilización de plataformas",
     description:
       "Planear, evaluar y dar seguimiento con materiales y estrategias complementarias apoyadas en plataformas y recursos de apoyo.",
     appliesTo: ["PA", "PTC"],
   },
   {
     key: "problemSolvingScore",
-    label: "Solucion de problemas",
+    label: "Solución de problemas",
     description:
       "Identificar, analizar y resolver problemas con juicio y criterio, encontrando soluciones viables y efectivas.",
     appliesTo: ["PA", "PTC"],
@@ -98,20 +98,20 @@ export const careerHeadFactors: CareerHeadFactorDefinition[] = [
     key: "teamworkScore",
     label: "Trabajo en equipo",
     description:
-      "Trabajar eficazmente con otros para lograr objetivos comunes, compartir informacion y fomentar la productividad.",
+      "Trabajar eficazmente con otros para lograr objetivos comunes, compartir información y fomentar la productividad.",
     appliesTo: ["PA", "PTC"],
   },
 ];
 
 const facilitatorItems = [
-  { key: "fac_item01", label: "Oriento sobre unidades al inicio", max: 4 },
+  { key: "fac_item01", label: "Orientó sobre unidades al inicio", max: 4 },
   { key: "fac_item02", label: "Domina los contenidos", max: 4 },
   { key: "fac_item03", label: "Resumió temas por sesión", max: 4 },
   { key: "fac_item04", label: "Resumió temas por unidad", max: 4 },
   { key: "fac_item05", label: "Aclaró dudas", max: 4 },
   { key: "fac_item06", label: "Impartió asesorías", max: 4 },
   { key: "fac_item07", label: "Entregó resultados oportunamente", max: 4 },
-  { key: "fac_item08", label: "Logro objetivos del cuatrimestre", max: 4 },
+  { key: "fac_item08", label: "Logró objetivos del cuatrimestre", max: 4 },
   { key: "fac_item09", label: "Promovió respeto y disciplina", max: 4 },
   { key: "fac_item10", label: "Puntualidad del facilitador", max: 4 },
   { key: "fac_item11", label: "Puntualidad del alumno (manejo)", max: 4 },

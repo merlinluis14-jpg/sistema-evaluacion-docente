@@ -64,7 +64,7 @@ export default async function EncuestaFinalPage({
         </h1>
         <p className="mx-auto max-w-2xl text-sm leading-relaxed text-slate-500 sm:text-base">
           Ya completaste tus evaluaciones docentes. Antes de cerrar el proceso, responde este
-          breve cuestionario para evaluar el desempeno general del sistema.
+          breve cuestionario para evaluar el desempeño general del sistema.
         </p>
       </div>
 
@@ -72,15 +72,15 @@ export default async function EncuestaFinalPage({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-2xl">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">
-              Informacion importante
+              Información importante
             </p>
             <p className="mt-3 text-sm font-bold text-slate-800">
-              Este cuestionario evalua la experiencia con el sistema, no al docente.
+              Este cuestionario evalúa la experiencia con el sistema, no al docente.
             </p>
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
-              Tus respuestas se registran de forma anonima para valorar el desempeno de la
+              Tus respuestas se registran de forma anónima para valorar el desempeño de la
               plataforma. El sistema solo usa tu cuenta para evitar respuestas duplicadas en el
-              periodo activo.
+              período activo.
             </p>
           </div>
           <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-left shadow-sm sm:min-w-[220px]">

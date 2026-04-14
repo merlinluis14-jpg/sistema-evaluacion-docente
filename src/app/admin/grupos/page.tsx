@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Calendar, CheckCircle2, Plus, Users } from "lucide-react";
+import { Calendar, CloudDownload, Users } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { formatAcademicText } from "@/lib/text/academicText";
@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 export default async function GruposPage({
     searchParams,
 }: {
-    searchParams: Promise<{ careerId?: string; success?: string; error?: string }>;
+    searchParams: Promise<{ careerId?: string }>;
 }) {
-    const { careerId, success, error } = await searchParams;
+    const { careerId } = await searchParams;
 
     const [groups, careers] = await Promise.all([
         prisma.group.findMany({
@@ -31,38 +31,28 @@ export default async function GruposPage({
             <div className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800">
-                        Gestión de <span className="text-blue-600">Grupos</span>
+                        Catálogo de <span className="text-blue-600">Grupos</span>
                     </h1>
                     <p className="mt-2 text-lg text-slate-500">
-                        Control de grupos académicos y matriculación por carrera.
+                        Consulta los grupos sincronizados desde Horarios y su carga actual de alumnos.
                     </p>
                 </div>
                 <div className="flex w-full flex-col gap-3 sm:w-auto sm:items-end">
                     <Link
-                        href="/admin/grupos/nuevo"
+                        href="/admin/docentes/sincronizar"
                         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 active:scale-95 sm:w-auto"
                     >
-                        <Plus size={16} />
-                        Nuevo Grupo
+                        <CloudDownload size={16} />
+                        Sincronizar academia
                     </Link>
                     <CareerFilter careers={careers} />
                 </div>
             </div>
 
-            {success === "creado" ? (
-                <div className="mb-6 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-700">
-                    <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-                    <p className="text-sm font-bold">
-                        El grupo se registró correctamente y ya puede usarse para matriculación y evaluaciones.
-                    </p>
-                </div>
-            ) : null}
-
-            {error === "duplicado" ? (
-                <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-bold text-rose-700">
-                    Ya existe un grupo con ese nombre, carrera y período.
-                </div>
-            ) : null}
+            <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm text-blue-800 shadow-sm">
+                Los grupos ya no se capturan manualmente aquí. Cada grupo debe existir primero en
+                Horarios y después sincronizarse para que pueda usarse con alumnos y evaluaciones.
+            </div>
 
             <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl">
                 <div className="overflow-x-auto">
@@ -135,7 +125,14 @@ export default async function GruposPage({
                                             >
                                                 Limpiar filtros
                                             </Link>
-                                        ) : null}
+                                        ) : (
+                                            <Link
+                                                href="/admin/docentes/sincronizar"
+                                                className="mt-2 inline-block text-sm font-bold text-blue-600 transition-colors hover:text-blue-800 hover:underline"
+                                            >
+                                                Revisar sincronización académica
+                                            </Link>
+                                        )}
                                     </td>
                                 </tr>
                             ) : null}
