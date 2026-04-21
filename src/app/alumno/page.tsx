@@ -483,8 +483,12 @@ export default async function AlumnoPage({
                             ? "Pendiente"
                             : "Sin docente"}
                       </span>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">
-                        Grupo {subject.groupName}
+                      <span
+                        className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500"
+                        aria-label={`Grupo ${subject.groupName}`}
+                        title={`Grupo ${subject.groupName}`}
+                      >
+                        {subject.groupName}
                       </span>
                   </div>
                     <span className="break-all text-right font-mono text-xs text-slate-400">

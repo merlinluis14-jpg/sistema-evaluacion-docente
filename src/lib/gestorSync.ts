@@ -651,36 +651,64 @@ export async function syncExternalSubjects(
       );
     }
 
-    const syncedSubject = await prisma.subject.upsert({
-      where: {
-        code_careerId: {
-          code: subject.codigo,
-          careerId,
+    const [existingByExternalId, existingByCodeCareer] = await Promise.all([
+      prisma.subject.findUnique({
+        where: { externalId: subject.externalSubjectId },
+        select: { id: true, code: true, careerId: true },
+      }),
+      prisma.subject.findUnique({
+        where: {
+          code_careerId: {
+            code: subject.codigo,
+            careerId,
+          },
         },
-      },
-      update: {
-        externalId: subject.externalSubjectId,
-        name: subject.nombre,
-        code: subject.codigo,
-        cuatrimestre: subject.cuatrimestre,
-        teacherId,
-        isActive: true,
-        managedByExternal: true,
-        lastExternalSyncAt: new Date(),
-      },
-      create: {
-        externalId: subject.externalSubjectId,
-        name: subject.nombre,
-        code: subject.codigo,
-        cuatrimestre: subject.cuatrimestre,
-        teacherId,
-        careerId,
-        isActive: true,
-        managedByExternal: true,
-        lastExternalSyncAt: new Date(),
-      },
-      select: { id: true, code: true },
-    });
+        select: { id: true, code: true, externalId: true },
+      }),
+    ]);
+
+    if (
+      existingByExternalId &&
+      existingByCodeCareer &&
+      existingByExternalId.id !== existingByCodeCareer.id
+    ) {
+      await prisma.subject.update({
+        where: { id: existingByExternalId.id },
+        data: {
+          externalId: null,
+        },
+      });
+
+      warnings.push(
+        `La materia externa ${subject.externalSubjectId} ya estaba enlazada a otro registro local. Se conservara la materia ${subject.codigo} de ${subject.carreraCode} como canonica y se liberara el enlace externo anterior para evitar duplicados.`,
+      );
+    }
+
+    const subjectData = {
+      externalId: subject.externalSubjectId,
+      name: subject.nombre,
+      code: subject.codigo,
+      cuatrimestre: subject.cuatrimestre,
+      teacherId,
+      careerId,
+      isActive: true,
+      managedByExternal: true,
+      lastExternalSyncAt: new Date(),
+    };
+
+    const targetSubjectId =
+      existingByCodeCareer?.id ?? existingByExternalId?.id ?? null;
+
+    const syncedSubject = targetSubjectId
+      ? await prisma.subject.update({
+          where: { id: targetSubjectId },
+          data: subjectData,
+          select: { id: true, code: true },
+        })
+      : await prisma.subject.create({
+          data: subjectData,
+          select: { id: true, code: true },
+        });
 
     importedSubjectKeys.push(`${careerId}:${syncedSubject.code}`);
     affectedCareerIds.add(careerId);
