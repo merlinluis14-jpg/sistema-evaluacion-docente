@@ -1,84 +1,109 @@
-# Guia de operacion para administracion
+# Guía de operación para administración
 
 ## Objetivo
 
-Este documento resume el flujo recomendado para operar el sistema con orden y evitar errores durante las pruebas o la operacion institucional.
+Este documento resume el flujo recomendado para operar el sistema con orden y evitar errores durante pruebas, pilotos o uso institucional.
+
+## Principio de operación
+
+La información académica base ya no se captura manualmente en este sistema. El catálogo oficial proviene de Horarios y se sincroniza en Evaluación Docente.
+
+### Fuente de verdad
+
+#### Horarios
+
+- carreras
+- docentes
+- materias
+- grupos
+- asignaciones `grupo + materia + docente`
+
+#### Evaluación Docente
+
+- alumnos
+- períodos de evaluación
+- respuestas de evaluación
+- observaciones de jefatura o coordinación
+- resultados y reportes
+- bitácoras administrativas
 
 ## Flujo recomendado
 
-1. Verificar que exista un periodo activo.
-2. Confirmar que al menos una cuenta admin adicional este habilitada.
-3. Importar datos base en este orden:
-   - docentes
-   - materias
-   - alumnos
-4. Revisar grupos y materias enlazadas.
-5. Realizar una evaluacion de prueba con un alumno.
-6. Validar resultados en reportes.
-7. Capturar o importar evaluacion de coordinacion.
-8. Exportar `PDF alumnos`, `PDF institucional` y `Excel`.
-9. Ejecutar respaldo al cierre del periodo o de la jornada.
+1. Verificar que exista un período activo.
+2. Confirmar que la conexión con Horarios esté disponible.
+3. Ejecutar `Sincronizar academia`.
+4. Revisar carreras, docentes, materias y grupos sincronizados.
+5. Importar alumnos del período activo.
+6. Validar con un alumno de prueba que vea sus evaluaciones correctas.
+7. Revisar resultados en reportes.
+8. Capturar la evaluación de jefatura o coordinación cuando aplique.
+9. Exportar `PDF alumnos`, `PDF institucional` y `Excel`.
+10. Ejecutar respaldo al cierre del período o de la jornada.
 
-## Importaciones recomendadas
+## Sincronización académica
 
-Cada catalogo tiene dos vias de mantenimiento:
+La sincronización académica trae información desde Horarios y actualiza:
 
-- edicion manual para corregir un registro puntual sin afectar el resto
-- importacion CSV para altas o actualizaciones masivas
+- carreras
+- docentes
+- materias
+- grupos
+- asignaciones reales por grupo
 
-### Docentes
+### Recomendaciones
 
-- Verificar `numero_empleado`, correo institucional y tipo de docente (`PA` o `PTC`).
-- Evitar duplicados de correo o numero de empleado.
-- Si un docente cambia de correo, carrera o estatus, usar la opcion `Editar` en la lista de docentes.
-- Si se desea reemplazar el catalogo completo de una o varias carreras, activar `Sincronizar catalogo importado` durante la importacion. Los docentes faltantes se desactivan, no se elimina su historial.
+- usar `Actualizar catálogo completo` solo cuando se esté sincronizando todo lo vigente en Horarios;
+- confirmar que exista período activo antes de sincronizar;
+- revisar el resumen final de altas, actualizaciones, inactivaciones o retiros;
+- evitar editar manualmente registros sincronizados, salvo campos locales permitidos.
 
-### Materias
+## Importación de alumnos
 
-- Confirmar codigo, nombre, cuatrimestre y docente asignado.
-- El cuatrimestre debe coincidir con los grupos que despues se van a usar.
-- Para un cambio aislado de nombre, docente o cuatrimestre, usar la edicion manual de materias.
-- Si el archivo CSV representa la version oficial del catalogo, activar `Sincronizar catalogo importado`. Las materias faltantes se desactivan y se resincronizan sus grupos compatibles.
+La importación de alumnos sigue siendo local en Evaluación Docente.
 
-### Alumnos
+### Antes de importar
 
-- Verificar matricula, carrera y grupo.
-- La importacion crea o reutiliza grupos y enlaza materias compatibles automaticamente.
-- Si un alumno cambia de matricula, correo, carrera, grupo o estatus, usar la opcion `Editar` en la lista de alumnos.
-- La contrasena inicial del alumno es temporal. El alumno puede cambiarla una sola vez desde su panel.
-- Si el alumno olvida su contrasena, el administrador debe usar `Restablecer contrasena` en la lista de alumnos. El acceso vuelve a quedar con contrasena temporal.
-- Si se necesita reemplazar el roster del periodo activo, activar `Sincronizar roster del periodo activo`. El sistema actualiza los grupos del periodo importado sin borrar historial de periodos anteriores.
+- confirmar que la carrera exista ya sincronizada desde Horarios;
+- confirmar que el grupo exista ya sincronizado en el período activo;
+- validar matrícula, nombres, carrera y grupo en el CSV;
+- usar exactamente los códigos de carrera y grupo que el sistema ya muestra.
 
-### Evaluacion de coordinacion
+### Consideraciones
 
-- Usar la plantilla generada por el sistema.
-- Capturar solo las columnas solicitadas.
-- Para `PA`, los factores no aplicables deben permanecer como `N/A`.
+- la contraseña inicial puede quedar vacía y entonces se usa la matrícula;
+- si se activa `Actualizar lista del período activo`, el sistema ajusta el roster del período sin borrar historial;
+- la importación no debe usarse para crear grupos o carreras nuevas.
+
+## Evaluación de jefatura o coordinación
+
+- registrar la calificación correspondiente;
+- capturar observaciones claras y útiles para los reportes;
+- usar la plantilla oficial si el proceso se realiza mediante importación.
 
 ## Uso de reportes
 
 La vista de reportes permite:
 
-- filtrar por periodo, carrera, materia y grupo
-- ordenar por calificacion de referencia
-- revisar resumen por materia
-- revisar resumen por grupo
-- revisar resumen por carrera
-- revisar el detalle individual de cada docente
+- filtrar por período, carrera, materia y grupo;
+- revisar resultados por docente;
+- revisar observaciones de jefatura o coordinación;
+- exportar resultados en `PDF institucional`, `PDF alumnos` y `Excel`;
+- consultar información consolidada por carrera, materia o grupo.
 
 ## Control de administradores
 
 Desde `Administradores` se puede:
 
-- crear otra cuenta admin
-- restablecer contrasena de otra cuenta admin
-- desactivar una cuenta admin
+- crear otra cuenta admin;
+- restablecer la contraseña de otra cuenta admin;
+- desactivar una cuenta admin.
 
-Todas estas acciones requieren reautenticacion del administrador activo y quedan registradas en logs.
+Todas estas acciones requieren reautenticación del administrador activo y quedan registradas en logs.
 
 ## Recomendaciones de cierre
 
-- Revisar la bitacora administrativa
-- Confirmar que los reportes del periodo sean consistentes
-- Guardar respaldo de la base de datos
-- Resguardar los PDFs institucionales del periodo
+- revisar la bitácora administrativa;
+- confirmar que la sincronización más reciente no dejó advertencias pendientes;
+- validar que los reportes del período sean consistentes;
+- guardar respaldo de la base de datos;
+- resguardar los PDFs institucionales del período.
