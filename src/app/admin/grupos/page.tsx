@@ -78,8 +78,12 @@ export default async function GruposPage({
                                 <tr key={group.id} className="group transition-colors hover:bg-blue-50/30">
                                     <td className="py-5 pl-8 pr-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 bg-white font-black text-blue-600 shadow-sm transition-transform group-hover:scale-110">
-                                                {group.name}
+                                            <div
+                                                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-100 bg-white font-black text-blue-600 shadow-sm transition-transform group-hover:scale-110"
+                                                aria-label={`Grupo ${group.name}`}
+                                                title={`Grupo ${group.name}`}
+                                            >
+                                                {group.cuatrimestre ? `${group.cuatrimestre}°` : "G"}
                                             </div>
                                             <span className="text-lg font-bold text-slate-800">{group.name}</span>
                                         </div>
