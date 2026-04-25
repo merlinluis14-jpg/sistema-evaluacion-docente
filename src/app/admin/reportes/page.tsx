@@ -71,6 +71,18 @@ type SubjectSummaryAccumulator = {
 type EvaluationWithRelations = Prisma.EvaluationGetPayload<{
   include: {
     teacher: { include: { career: true } };
+    groupSubject: {
+      include: {
+        group: {
+          include: {
+            career: true;
+            _count: {
+              select: { enrollments: true };
+            };
+          };
+        };
+      };
+    };
     student: {
       include: {
         groups: {
@@ -274,6 +286,18 @@ export default async function ReportesPage({
     },
     include: {
       teacher: { include: { career: true } },
+      groupSubject: {
+        include: {
+          group: {
+            include: {
+              career: true,
+              _count: {
+                select: { enrollments: true },
+              },
+            },
+          },
+        },
+      },
       student: {
         include: {
           groups: {
@@ -450,12 +474,16 @@ export default async function ReportesPage({
     subjectSummary.teacherScores.set(`${evaluation.teacherId}:${careerId}`, teacherScore);
     subjectSummary.evals.push(evaluation);
 
-    const matchingEnrollments = evaluation.student.groups.filter((enrollment) =>
-      enrollment.group.subjects.some((groupSubject) => groupSubject.subjectId === evaluation.subjectId),
-    );
+    const directGroup = evaluation.groupSubject?.group ?? null;
+    const matchingGroups = directGroup
+      ? [directGroup]
+      : evaluation.student.groups
+          .filter((enrollment) =>
+            enrollment.group.subjects.some((groupSubject) => groupSubject.subjectId === evaluation.subjectId),
+          )
+          .map((enrollment) => enrollment.group);
 
-    for (const enrollment of matchingEnrollments) {
-      const group = enrollment.group;
+    for (const group of matchingGroups) {
       careerSummary.groupIds.add(group.id);
       subjectSummary.groupIds.add(group.id);
 

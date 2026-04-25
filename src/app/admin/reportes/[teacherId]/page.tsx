@@ -79,18 +79,17 @@ export default async function ReporteDocenteDetallePage({
     where: { id: teacherId },
     include: {
       career: true,
-      subjects: {
-        where: { isActive: true },
+      groupSubjects: {
         include: {
-          career: true,
-          groups: {
+          subject: {
             include: {
-              group: {
-                include: {
-                  career: true,
-                  _count: { select: { enrollments: true } },
-                },
-              },
+              career: true,
+            },
+          },
+          group: {
+            include: {
+              career: true,
+              _count: { select: { enrollments: true } },
             },
           },
         },
@@ -117,11 +116,11 @@ export default async function ReporteDocenteDetallePage({
     name: teacher.career.name,
   });
 
-  for (const subject of teacher.subjects) {
-    availableCareersMap.set(subject.career.id, {
-      id: subject.career.id,
-      code: subject.career.code,
-      name: subject.career.name,
+  for (const assignment of teacher.groupSubjects) {
+    availableCareersMap.set(assignment.subject.career.id, {
+      id: assignment.subject.career.id,
+      code: assignment.subject.career.code,
+      name: assignment.subject.career.name,
     });
   }
 
@@ -169,6 +168,15 @@ export default async function ReporteDocenteDetallePage({
       subject: {
         include: { career: true },
       },
+      groupSubject: {
+        include: {
+          group: {
+            include: {
+              career: true,
+            },
+          },
+        },
+      },
       student: {
         include: {
           groups: {
@@ -186,20 +194,20 @@ export default async function ReporteDocenteDetallePage({
     },
   });
 
-  const subjectAssignments = teacher.subjects
-    .filter((subject) => subject.careerId === selectedCareer.id)
-    .flatMap((subject) =>
-      subject.groups
-        .filter((groupSubject) => groupSubject.group.careerId === selectedCareer.id)
-        .map((groupSubject) => ({
-          key: `${subject.id}:${groupSubject.group.id}`,
-          subjectId: subject.id,
-          subjectCode: subject.code,
-          subjectName: subject.name,
-          groupId: groupSubject.group.id,
-          groupName: groupSubject.group.name,
-        })),
+  const subjectAssignments = teacher.groupSubjects
+    .filter(
+      (groupSubject) =>
+        groupSubject.subject.careerId === selectedCareer.id &&
+        (!periodo?.name || groupSubject.group.period === periodo.name),
     )
+    .map((groupSubject) => ({
+      key: groupSubject.id,
+      subjectId: groupSubject.subject.id,
+      subjectCode: groupSubject.subject.code,
+      subjectName: groupSubject.subject.name,
+      groupId: groupSubject.group.id,
+      groupName: groupSubject.group.name,
+    }))
     .sort((a, b) => {
       const groupDiff = a.groupName.localeCompare(b.groupName, "es");
       if (groupDiff !== 0) return groupDiff;
@@ -232,14 +240,20 @@ export default async function ReporteDocenteDetallePage({
   }
 
   for (const evaluation of evaluaciones) {
-    const matchingGroups = evaluation.student.groups.filter(
-      (enrollment) =>
-        enrollment.group.careerId === selectedCareer.id &&
-        enrollment.group.subjects.some((groupSubject) => groupSubject.subjectId === evaluation.subjectId),
-    );
+    const directGroup = evaluation.groupSubject?.group ?? null;
+    const matchingGroups = directGroup
+      ? [directGroup]
+      : evaluation.student.groups
+          .filter(
+            (enrollment) =>
+              enrollment.group.careerId === selectedCareer.id &&
+              (!periodo?.name || enrollment.group.period === periodo.name) &&
+              enrollment.group.subjects.some((groupSubject) => groupSubject.subjectId === evaluation.subjectId),
+          )
+          .map((enrollment) => enrollment.group);
 
-    for (const enrollment of matchingGroups) {
-      const key = `${evaluation.subjectId}:${enrollment.group.id}`;
+    for (const group of matchingGroups) {
+      const key = evaluation.groupSubjectId ?? `${evaluation.subjectId}:${group.id}`;
       const current = assignmentSummaryMap.get(key);
 
       if (!current) {
@@ -247,7 +261,7 @@ export default async function ReporteDocenteDetallePage({
           key,
           subjectCode: evaluation.subject.code,
           subjectName: evaluation.subject.name,
-          groupName: enrollment.group.name,
+          groupName: group.name,
           evaluationsCount: 1,
           studentAverage: "0.00",
           evals: [evaluation],
