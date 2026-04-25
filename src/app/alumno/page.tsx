@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
+import { getGroupDisplayMetadata } from "@/lib/groupDisplayName";
 import { prisma } from "@/lib/prisma";
 import { formatAcademicText } from "@/lib/text/academicText";
 
@@ -45,6 +46,11 @@ export default async function AlumnoPage({
         include: {
           group: {
             include: {
+              career: {
+                select: {
+                  code: true,
+                },
+              },
               subjects: {
                 where: {
                   subject: {
@@ -113,10 +119,16 @@ export default async function AlumnoPage({
       teacher: { name: string; lastName: string } | null;
       career: { code: string };
       groupName: string;
+      groupAccessibilityLabel: string;
     }
   >();
 
   for (const enrollment of student?.groups ?? []) {
+    const groupDisplay = getGroupDisplayMetadata(
+      enrollment.group.name,
+      enrollment.group.career.code,
+    );
+
     for (const groupSubject of enrollment.group.subjects) {
       const subject = groupSubject.subject;
       if (!subjectMap.has(groupSubject.id)) {
@@ -128,7 +140,8 @@ export default async function AlumnoPage({
           cuatrimestre: subject.cuatrimestre,
           teacher: groupSubject.teacher,
           career: subject.career,
-          groupName: enrollment.group.name,
+          groupName: groupDisplay.displayName,
+          groupAccessibilityLabel: groupDisplay.accessibilityLabel,
         });
       }
     }
@@ -146,7 +159,28 @@ export default async function AlumnoPage({
   const finalSurveyPending = Boolean(
     activePeriod && hasCompletedAllEvaluations && !feedbackResponse,
   );
-  const groupNames = Array.from(new Set((student?.groups ?? []).map((enrollment) => enrollment.group.name)));
+  const groupsSummary = Array.from(
+    new Map(
+      (student?.groups ?? []).map((enrollment) => {
+        const groupDisplay = getGroupDisplayMetadata(
+          enrollment.group.name,
+          enrollment.group.career.code,
+        );
+
+        return [
+          enrollment.group.id,
+          {
+            displayName: groupDisplay.displayName,
+            accessibilityLabel: groupDisplay.accessibilityLabel,
+          },
+        ];
+      }),
+    ).values(),
+  );
+  const groupNames = groupsSummary.map((group) => group.displayName);
+  const groupAccessibilitySummary = groupsSummary
+    .map((group) => group.accessibilityLabel)
+    .join(", ");
   const sortedSubjects = [...subjects].sort((a, b) => {
     const aDone =
       completedAssignments.has(a.assignmentId) ||
@@ -278,7 +312,11 @@ export default async function AlumnoPage({
                     {activePeriod?.name ?? "Sin período activo"}
                   </span>
                   {groupNames.length > 0 && (
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                    <span
+                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
+                      aria-label={groupAccessibilitySummary}
+                      title={groupAccessibilitySummary}
+                    >
                       {groupNames.join(", ")}
                     </span>
                   )}
@@ -485,8 +523,8 @@ export default async function AlumnoPage({
                       </span>
                       <span
                         className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500"
-                        aria-label={`Grupo ${subject.groupName}`}
-                        title={`Grupo ${subject.groupName}`}
+                        aria-label={subject.groupAccessibilityLabel}
+                        title={subject.groupAccessibilityLabel}
                       >
                         {subject.groupName}
                       </span>

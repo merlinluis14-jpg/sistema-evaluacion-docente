@@ -4,6 +4,7 @@ import { EvaluationForm } from "./EvaluationForm";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getGroupDisplayMetadata } from "@/lib/groupDisplayName";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +38,11 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
             id: true,
             name: true,
             careerId: true,
+            career: {
+              select: {
+                code: true,
+              },
+            },
           },
         },
       },
@@ -113,6 +119,11 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
     );
   }
 
+  const groupDisplay = getGroupDisplayMetadata(
+    groupSubject.group.name,
+    groupSubject.group.career.code,
+  );
+
   return (
     <div className="space-y-5 pb-8 sm:space-y-6 sm:pb-12">
       <div className="space-y-1 py-2 text-center sm:py-4">
@@ -129,7 +140,10 @@ export default async function EvaluarPage({ params }: { params: Promise<{ subjec
           <p className="text-xs font-bold uppercase tracking-widest text-blue-500">Materia</p>
           <h2 className="break-words text-lg font-bold text-slate-900 sm:text-xl">{groupSubject.subject.name}</h2>
           <p className="mt-0.5 break-words text-xs text-slate-400">
-            {groupSubject.subject.career.name} - {groupSubject.subject.code} - Grupo {groupSubject.group.name}
+            {groupSubject.subject.career.name} - {groupSubject.subject.code} -{" "}
+            <span title={groupDisplay.accessibilityLabel}>
+              Grupo {groupDisplay.displayName}
+            </span>
           </p>
         </div>
         <div className="min-w-0 sm:text-right">
