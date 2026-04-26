@@ -14,10 +14,17 @@ export default async function GruposPage({
   searchParams: Promise<{ careerId?: string }>;
 }) {
   const { careerId } = await searchParams;
+  const activePeriod = await prisma.period.findFirst({
+    where: { isActive: true },
+    select: { name: true },
+  });
 
   const [groups, careers] = await Promise.all([
     prisma.group.findMany({
-      where: careerId ? { careerId } : {},
+      where: {
+        ...(careerId ? { careerId } : {}),
+        ...(activePeriod?.name ? { period: activePeriod.name } : {}),
+      },
       orderBy: [{ career: { code: "asc" } }, { name: "asc" }],
       include: {
         career: true,

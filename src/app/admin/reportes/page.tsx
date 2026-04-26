@@ -208,6 +208,8 @@ export default async function ReportesPage({
 
   const periodoActivo = periodos.find((periodo) => periodo.isActive);
   const periodoId = periodoIdParam ?? periodoActivo?.id;
+  const selectedPeriod = periodos.find((periodo) => periodo.id === periodoId);
+  const selectedPeriodName = selectedPeriod?.name;
 
   const firstCareerWithEvaluationsId =
     !scope.isGlobal && !requestedCareerId && periodoId && carreras.length > 1
@@ -249,11 +251,14 @@ export default async function ReportesPage({
     : restrictedCareerIds
       ? { careerId: { in: restrictedCareerIds } }
       : {};
-  const groupListWhere = carreraId
-    ? { careerId: carreraId }
-    : restrictedCareerIds
-      ? { careerId: { in: restrictedCareerIds } }
-      : undefined;
+  const groupListWhere = {
+    ...(carreraId
+      ? { careerId: carreraId }
+      : restrictedCareerIds
+        ? { careerId: { in: restrictedCareerIds } }
+        : {}),
+    ...(selectedPeriodName ? { period: selectedPeriodName } : {}),
+  };
 
   const [materias, grupos] = await Promise.all([
     prisma.subject.findMany({

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { ChevronLeft, ChevronRight, GraduationCap, Pencil, Plus, Upload } from "lucide-react";
 
+import { getGroupDisplayMetadata } from "@/lib/groupDisplayName";
 import { prisma } from "@/lib/prisma";
 import { formatAcademicText } from "@/lib/text/academicText";
 import { ResetStudentPasswordButton } from "./ResetStudentPasswordButton";
@@ -14,6 +15,10 @@ export default async function AlumnosPage({
     const { carrera, grupo, q, page, success } = await searchParams;
     const currentPage = parseInt(page || "1", 10);
     const PAGE_SIZE = 50;
+    const activePeriod = await prisma.period.findFirst({
+        where: { isActive: true },
+        select: { name: true },
+    });
 
     const carreras = await prisma.career.findMany({
         where: { isActive: true },
@@ -24,6 +29,7 @@ export default async function AlumnosPage({
         where: {
             isActive: true,
             ...(carrera ? { careerId: carrera } : {}),
+            ...(activePeriod?.name ? { period: activePeriod.name } : {}),
         },
         orderBy: { name: "asc" },
         include: { career: true },
@@ -57,7 +63,25 @@ export default async function AlumnosPage({
                 },
             },
             groups: {
-                include: { group: true },
+                where: activePeriod?.name
+                    ? {
+                          group: {
+                              period: activePeriod.name,
+                          },
+                      }
+                    : undefined,
+                include: {
+                    group: {
+                        include: {
+                            career: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    group: {
+                        name: "asc",
+                    },
+                },
                 take: 1,
             },
         },
@@ -169,11 +193,18 @@ export default async function AlumnosPage({
                             className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">Todos los grupos</option>
-                            {grupos.map((currentGroup) => (
-                                <option key={currentGroup.id} value={currentGroup.id}>
-                                    {currentGroup.career.code} - {currentGroup.name} ({currentGroup.period})
-                                </option>
-                            ))}
+                            {grupos.map((currentGroup) => {
+                                const { displayName } = getGroupDisplayMetadata(
+                                    currentGroup.name,
+                                    currentGroup.career.code,
+                                );
+
+                                return (
+                                    <option key={currentGroup.id} value={currentGroup.id}>
+                                        {currentGroup.career.code} - {displayName} ({currentGroup.period})
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
 
@@ -249,9 +280,27 @@ export default async function AlumnosPage({
                                     </span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                    <span className="text-sm text-slate-500">
-                                        {alumno.groups[0]?.group.name ?? "-"}
-                                    </span>
+                                    {alumno.groups[0]?.group ? (
+                                        (() => {
+                                            const { displayName, accessibilityLabel } =
+                                                getGroupDisplayMetadata(
+                                                    alumno.groups[0].group.name,
+                                                    alumno.groups[0].group.career.code,
+                                                );
+
+                                            return (
+                                                <span
+                                                    className="text-sm text-slate-500"
+                                                    aria-label={accessibilityLabel}
+                                                    title={accessibilityLabel}
+                                                >
+                                                    {displayName}
+                                                </span>
+                                            );
+                                        })()
+                                    ) : (
+                                        <span className="text-sm text-slate-500">-</span>
+                                    )}
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                     {alumno.isActive ? (
